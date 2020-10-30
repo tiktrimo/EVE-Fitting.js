@@ -1,0 +1,3 @@
+cd standardizationStage && node weaveTypeIDs && cd.. && ^
+cd jsons && cd ignore && type skillsUgly.json | python -m json.tool > skills.json && type typeIDsUgly.json | python -m json.tool > typeIDs.json && cd.. && cd.. && ^
+cd jsons && node importItems && cd.. 

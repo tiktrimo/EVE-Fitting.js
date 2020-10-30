@@ -1,0 +1,310 @@
+{
+  "ship": {
+    "typeID": 29988,
+    "typeGroupID": 963,
+    "typeName": "Proteus",
+    "marketGroupID": 1141,
+    "typeRigSize": 2,
+    "typeMetaGroupID": 14
+  },
+  "lowSlots": [
+    {
+      "item": {
+        "typeID": 1183,
+        "typeGroupID": 62,
+        "typeName": "Small Armor Repairer II",
+        "marketGroupID": 1049,
+        "typeMetaGroupID": 2,
+        "typeIsLoPower": true
+      },
+      "charge": false
+    },
+    {
+      "item": {
+        "typeID": 10190,
+        "typeGroupID": 302,
+        "typeName": "Magnetic Field Stabilizer II",
+        "marketGroupID": 648,
+        "typeMetaGroupID": 2,
+        "typeIsLoPower": true
+      },
+      "charge": false
+    },
+    {
+      "item": {
+        "typeID": 4403,
+        "typeGroupID": 1150,
+        "typeName": "Reactive Armor Hardener",
+        "marketGroupID": 1416,
+        "typeMetaGroupID": 1,
+        "typeIsLoPower": true
+      },
+      "charge": false
+    },
+    {
+      "item": {
+        "typeID": 10190,
+        "typeGroupID": 302,
+        "typeName": "Magnetic Field Stabilizer II",
+        "marketGroupID": 648,
+        "typeMetaGroupID": 2,
+        "typeIsLoPower": true
+      },
+      "charge": false
+    },
+    {
+      "item": {
+        "typeID": 3530,
+        "typeGroupID": 62,
+        "typeName": "Medium Armor Repairer II",
+        "marketGroupID": 1050,
+        "typeMetaGroupID": 2,
+        "typeIsLoPower": true
+      },
+      "charge": false
+    },
+    {
+      "item": {
+        "typeID": 11269,
+        "typeGroupID": 326,
+        "typeName": "Multispectrum Energized Membrane II",
+        "marketGroupID": 1686,
+        "typeMetaGroupID": 2,
+        "typeIsLoPower": true
+      },
+      "charge": false
+    }
+  ],
+  "midSlots": [
+    {
+      "item": {
+        "typeID": 12058,
+        "typeGroupID": 46,
+        "typeName": "10MN Afterburner II",
+        "marketGroupID": 542,
+        "typeMetaGroupID": 2,
+        "typeIsMedPower": true
+      },
+      "charge": false
+    },
+    {
+      "item": {
+        "typeID": 1978,
+        "typeGroupID": 213,
+        "typeName": "Tracking Computer II",
+        "marketGroupID": 706,
+        "typeChargeSize": 1,
+        "typeMetaGroupID": 2,
+        "typeIsMedPower": true
+      },
+      "charge": false
+    },
+    {
+      "item": {
+        "typeID": 1978,
+        "typeGroupID": 213,
+        "typeName": "Tracking Computer II",
+        "marketGroupID": 706,
+        "typeChargeSize": 1,
+        "typeMetaGroupID": 2,
+        "typeIsMedPower": true
+      },
+      "charge": false
+    },
+    {
+      "item": {
+        "typeID": 1952,
+        "typeGroupID": 212,
+        "typeName": "Sensor Booster II",
+        "marketGroupID": 671,
+        "typeChargeSize": 1,
+        "typeMetaGroupID": 2,
+        "typeIsMedPower": true
+      },
+      "charge": false
+    }
+  ],
+  "highSlots": [
+    {
+      "item": {
+        "typeID": 3082,
+        "typeGroupID": 74,
+        "typeName": "250mm Railgun II",
+        "marketGroupID": 565,
+        "typeChargeSize": 2,
+        "typeMetaGroupID": 2,
+        "typeIsHiPower": true,
+        "typeIsTurretFitted": true
+      },
+      "charge": false
+    },
+    {
+      "item": {
+        "typeID": 3082,
+        "typeGroupID": 74,
+        "typeName": "250mm Railgun II",
+        "marketGroupID": 565,
+        "typeChargeSize": 2,
+        "typeMetaGroupID": 2,
+        "typeIsHiPower": true,
+        "typeIsTurretFitted": true
+      },
+      "charge": false
+    },
+    {
+      "item": {
+        "typeID": 3082,
+        "typeGroupID": 74,
+        "typeName": "250mm Railgun II",
+        "marketGroupID": 565,
+        "typeChargeSize": 2,
+        "typeMetaGroupID": 2,
+        "typeIsHiPower": true,
+        "typeIsTurretFitted": true
+      },
+      "charge": false
+    },
+    {
+      "item": {
+        "typeID": 3082,
+        "typeGroupID": 74,
+        "typeName": "250mm Railgun II",
+        "marketGroupID": 565,
+        "typeChargeSize": 2,
+        "typeMetaGroupID": 2,
+        "typeIsHiPower": true,
+        "typeIsTurretFitted": true
+      },
+      "charge": false
+    },
+    {
+      "item": {
+        "typeID": 3082,
+        "typeGroupID": 74,
+        "typeName": "250mm Railgun II",
+        "marketGroupID": 565,
+        "typeChargeSize": 2,
+        "typeMetaGroupID": 2,
+        "typeIsHiPower": true,
+        "typeIsTurretFitted": true
+      },
+      "charge": false
+    },
+    {
+      "item": {
+        "typeID": 3082,
+        "typeGroupID": 74,
+        "typeName": "250mm Railgun II",
+        "marketGroupID": 565,
+        "typeChargeSize": 2,
+        "typeMetaGroupID": 2,
+        "typeIsHiPower": true,
+        "typeIsTurretFitted": true
+      },
+      "charge": false
+    }
+  ],
+  "rigSlots": [
+    {
+      "item": {
+        "typeID": 31017,
+        "typeGroupID": 773,
+        "typeName": "Medium Explosive Armor Reinforcer II",
+        "marketGroupID": 1207,
+        "typeRigSize": 2,
+        "typeMetaGroupID": 2
+      },
+      "charge": false
+    },
+    {
+      "item": {
+        "typeID": 31378,
+        "typeGroupID": 781,
+        "typeName": "Medium Capacitor Control Circuit II",
+        "marketGroupID": 1223,
+        "typeRigSize": 2,
+        "typeMetaGroupID": 2
+      },
+      "charge": false
+    },
+    {
+      "item": {
+        "typeID": 31378,
+        "typeGroupID": 781,
+        "typeName": "Medium Capacitor Control Circuit II",
+        "marketGroupID": 1223,
+        "typeRigSize": 2,
+        "typeMetaGroupID": 2
+      },
+      "charge": false
+    }
+  ],
+  "miscSlots": [
+    {
+      "item": {
+        "typeID": 45629,
+        "typeGroupID": 958,
+        "typeName": "Proteus Core - Augmented Fusion Reactor",
+        "marketGroupID": 1124,
+        "typeMetaGroupID": 14
+      },
+      "charge": false
+    },
+    {
+      "item": {
+        "typeID": 45594,
+        "typeGroupID": 954,
+        "typeName": "Proteus Defensive - Nanobot Injector",
+        "marketGroupID": 1129,
+        "typeMetaGroupID": 14
+      },
+      "charge": false
+    },
+    {
+      "item": {
+        "typeID": 45604,
+        "typeGroupID": 956,
+        "typeName": "Proteus Offensive - Hybrid Encoding Platform",
+        "marketGroupID": 1132,
+        "typeMetaGroupID": 14
+      },
+      "charge": false
+    },
+    {
+      "item": {
+        "typeID": 45617,
+        "typeGroupID": 957,
+        "typeName": "Proteus Propulsion - Hyperspatial Optimization",
+        "marketGroupID": 1136,
+        "typeMetaGroupID": 14
+      },
+      "charge": false
+    }
+  ],
+  "droneSlots": [
+    {
+      "item": {
+        "typeID": 2456,
+        "typeGroupID": 100,
+        "typeName": "Hobgoblin II",
+        "marketGroupID": 837,
+        "typeDroneSize": 5,
+        "typeMetaGroupID": 2,
+        "typeCount": 5
+      },
+      "charge": false
+    },
+    {
+      "item": {
+        "typeID": 2466,
+        "typeGroupID": 100,
+        "typeName": "Hornet II",
+        "marketGroupID": 837,
+        "typeDroneSize": 5,
+        "typeMetaGroupID": 2,
+        "typeCount": 5
+      },
+      "charge": false
+    }
+  ]
+}

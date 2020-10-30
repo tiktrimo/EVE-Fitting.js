@@ -1,0 +1,28 @@
+[
+  {
+    "skillTypeID": 3304,
+    "bonuses": [
+      {
+        "modifiedAttributeID": 54,
+        "value": 1.875
+      },
+      {
+        "modifiedAttributeID": 158,
+        "value": 1.25
+      },
+      {
+        "modifiedAttributeID": 64,
+        "value": 1.25
+      }
+    ]
+  },
+  {
+    "skillTypeID": 3348,
+    "bonuses": [
+      {
+        "modifiedAttributeID": 54,
+        "value": 1.5
+      }
+    ]
+  }
+]

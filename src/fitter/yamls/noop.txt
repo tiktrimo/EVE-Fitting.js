@@ -1,0 +1,9 @@
+dogmaAttributeCategories.yaml
+dogmaAttributes.yaml
+dogmaEffects.yaml
+marketGroup.yaml
+metaGroup.yaml
+typeDogma.yaml
+typeIDs.yaml
+eveUnits.yaml
+iconID.yaml
