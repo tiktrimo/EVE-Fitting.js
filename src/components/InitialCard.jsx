@@ -1,12 +1,6 @@
 import React from "react";
 import FitCard from "./FitCard/FitCard";
-import {
-  Button,
-  ButtonGroup,
-  Grid,
-  Paper,
-  Typography,
-} from "@material-ui/core";
+import { Button, ButtonGroup, Grid, Paper } from "@material-ui/core";
 import GitHubIcon from "@material-ui/icons/GitHub";
 
 const Links = (props) => {
@@ -41,7 +35,7 @@ const Links = (props) => {
 
 export default function initialCard(props) {
   return (
-    <Grid container spacing={3}>
+    <Grid style={{ width: "100%" }} container spacing={3}>
       <Grid xs={12} container item justify="center"></Grid>
       <Grid xs={12} container item justify="center">
         <FitCard cache={props.cache} />

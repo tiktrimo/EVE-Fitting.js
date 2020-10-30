@@ -21,94 +21,102 @@ const useStyles = makeStyles((theme) => ({
 
 const OverloadButton = (props) => {
   return (
-    <RecButton
-      style={{
-        width: "100%",
-        minWidth: 20,
-        backgroundColor: red[500],
-        color: "#ffffff",
-      }}
-      onClick={() => {
-        props.dispatchListItems({
-          type: props.variant,
-          payload: "overload",
-        });
-      }}
-      disabled={props.disabled}
-    >
-      <Tooltip title="Overload" placement="left" arrow>
-        {overloadSvg}
-      </Tooltip>
-    </RecButton>
+    <Tooltip title="Overload" placement="left" arrow>
+      <div>
+        <RecButton
+          style={{
+            width: "100%",
+            minWidth: 20,
+            backgroundColor: red[500],
+            color: "#ffffff",
+          }}
+          onClick={() => {
+            props.dispatchListItems({
+              type: props.variant,
+              payload: "overload",
+            });
+          }}
+          disabled={props.disabled}
+        >
+          {overloadSvg}
+        </RecButton>
+      </div>
+    </Tooltip>
   );
 };
 const ActivationButton = (props) => {
   return (
-    <RecButton
-      style={{
-        width: "100%",
-        minWidth: 20,
-        backgroundColor: green[500],
-        color: "#ffffff",
-      }}
-      onClick={() => {
-        props.dispatchListItems({
-          type: props.variant,
-          payload: "activation",
-        });
-      }}
-      disabled={props.disabled}
-    >
-      <Tooltip title="Active" placement="left" arrow>
-        {activationSvg}
-      </Tooltip>
-    </RecButton>
+    <Tooltip title="Active" placement="left" arrow>
+      <div>
+        <RecButton
+          style={{
+            width: "100%",
+            minWidth: 20,
+            backgroundColor: green[500],
+            color: "#ffffff",
+          }}
+          onClick={() => {
+            props.dispatchListItems({
+              type: props.variant,
+              payload: "activation",
+            });
+          }}
+          disabled={props.disabled}
+        >
+          {activationSvg}
+        </RecButton>
+      </div>
+    </Tooltip>
   );
 };
 const PassiveButton = (props) => {
   return (
-    <RecButton
-      style={{
-        width: "100%",
-        minWidth: 20,
-        backgroundColor: orange[500],
-        color: "#ffffff",
-      }}
-      onClick={() => {
-        props.dispatchListItems({
-          type: props.variant,
-          payload: "passive",
-        });
-      }}
-      disabled={props.disabled}
-    >
-      <Tooltip title="Online" placement="left" arrow>
-        {passiveSvg}
-      </Tooltip>
-    </RecButton>
+    <Tooltip title="Online" placement="left" arrow>
+      <div>
+        <RecButton
+          style={{
+            width: "100%",
+            minWidth: 20,
+            backgroundColor: orange[500],
+            color: "#ffffff",
+          }}
+          onClick={() => {
+            props.dispatchListItems({
+              type: props.variant,
+              payload: "passive",
+            });
+          }}
+          disabled={props.disabled}
+        >
+          {passiveSvg}
+        </RecButton>
+      </div>
+    </Tooltip>
   );
 };
 const OfflineButton = (props) => {
   return (
-    <RecButton
-      style={{
-        width: "100%",
-        minWidth: 20,
-        backgroundColor: grey[500],
-        color: "#ffffff",
-      }}
-      onClick={() => {
-        props.dispatchListItems({
-          type: props.variant,
-          payload: "offline",
-        });
-      }}
-      disabled={props.disabled}
-    >
-      <Tooltip title="Offline" placement="left" arrow>
-        {offlineSvg}
-      </Tooltip>
-    </RecButton>
+    <Tooltip title="Offline" placement="left" arrow>
+      <div>
+        <RecButton
+          style={{
+            width: "100%",
+            minWidth: 20,
+            backgroundColor: grey[500],
+            color: "#ffffff",
+          }}
+          onClick={() => {
+            props.dispatchListItems({
+              type: props.variant,
+              payload: "offline",
+            });
+          }}
+          disabled={props.disabled}
+        >
+          {offlineSvg}
+        </RecButton>
+      </div>
+    </Tooltip>
   );
 };
 

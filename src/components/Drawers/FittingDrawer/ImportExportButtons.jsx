@@ -10,6 +10,7 @@ import {
   ListItemText,
   ListItemIcon,
   ListItem,
+  Tooltip,
 } from "@material-ui/core";
 import { useState } from "react";
 import { orange } from "@material-ui/core/colors";
@@ -37,31 +38,40 @@ export default function ImportExportButtons(props) {
   const [openAlert, setOpenAlert] = useState(false);
   return (
     <React.Fragment>
-      <RecButton
-        className={classes.button}
-        onClick={() => {
-          copyTextFromClipboard().then((text) => {
-            if (text === false) return setOpenAlert(true);
-            props.setImportFitText(text);
-            props.setImportStateFlag(importInitializeFlag);
-            props.cache.wait("/typeIDsTable").then((typeIDs) => {
-              const IDs = EFT.extractIDs(text, typeIDs);
-              fittingLazyFetch(props.cache, IDs);
-            });
-          });
-        }}
-      >
-        <ArchiveIcon />
-      </RecButton>
+      <Tooltip title="Import" placement="bottom" arrow>
+        <div>
+          <RecButton
+            className={classes.button}
+            onClick={() => {
+              copyTextFromClipboard().then((text) => {
+                if (text === false) return setOpenAlert(true);
+                props.setImportFitText(text);
+                props.setImportStateFlag(importInitializeFlag);
+                props.cache.wait("/typeIDsTable").then((typeIDs) => {
+                  const IDs = EFT.extractIDs(text, typeIDs);
+                  fittingLazyFetch(props.cache, IDs);
+                });
+              });
+            }}
+          >
+            <ArchiveIcon />
+          </RecButton>
+        </div>
+      </Tooltip>
 
-      <RecButton
-        className={classes.button}
-        onClick={() => {
-          navigator.clipboard.writeText(props.exportFitText);
-        }}
-      >
-        <UnarchiveIcon />
-      </RecButton>
+      <Tooltip title="Export" placement="bottom" arrow>
+        <div>
+          <RecButton
+            className={classes.button}
+            onClick={() => {
+              navigator.clipboard.writeText(props.exportFitText);
+            }}
+          >
+            <UnarchiveIcon />
+          </RecButton>
+        </div>
+      </Tooltip>
+
       <Snackbar
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
         open={openAlert}

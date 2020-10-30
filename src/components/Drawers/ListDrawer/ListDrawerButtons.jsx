@@ -14,90 +14,98 @@ import { useEffect } from "react";
 
 const DeleteButton = function (props) {
   return (
-    <RecButton
-      style={{
-        width: "100%",
-        minWidth: 20,
-        backgroundColor: red[500],
-        color: "#ffffff",
-      }}
-      onClick={() => props.setItem("DEL")}
-      disabled={!props.activeItem?.typeID}
-    >
-      <Tooltip title="Delete" placement="bottom" arrow>
-        <CloseIcon />
-      </Tooltip>
-    </RecButton>
+    <Tooltip title="Delete" placement="bottom" arrow>
+      <div>
+        <RecButton
+          style={{
+            width: "100%",
+            minWidth: 20,
+            backgroundColor: red[500],
+            color: "#ffffff",
+          }}
+          onClick={() => props.setItem("DEL")}
+          disabled={!props.activeItem?.typeID}
+        >
+          <CloseIcon />
+        </RecButton>
+      </div>
+    </Tooltip>
   );
 };
 const AmmoDeleteButton = function (props) {
   return (
-    <RecButton
-      style={{
-        width: "100%",
-        minWidth: 20,
-        backgroundColor: orange[500],
-        color: "#ffffff",
-      }}
-      onClick={() => {
-        props.dispatchListItems({ type: "AMMO", payload: "DEL" });
-      }}
-      disabled={!props.activeCharge?.typeID}
-    >
-      <Tooltip title="Delete ammo" placement="bottom" arrow>
-        <HighlightOffIcon />
-      </Tooltip>
-    </RecButton>
+    <Tooltip title="Delete ammo" placement="bottom" arrow>
+      <div>
+        <RecButton
+          style={{
+            width: "100%",
+            minWidth: 20,
+            backgroundColor: orange[500],
+            color: "#ffffff",
+          }}
+          onClick={() => {
+            props.dispatchListItems({ type: "AMMO", payload: "DEL" });
+          }}
+          disabled={!props.activeCharge?.typeID}
+        >
+          <HighlightOffIcon />
+        </RecButton>
+      </div>
+    </Tooltip>
   );
 };
 const ShowInfoButton = function (props) {
   return (
-    <RecButton
-      style={{
-        width: "100%",
-        minWidth: 20,
-        backgroundColor: blue[500],
-        color: "#ffffff",
-      }}
-      onClick={() => {
-        props.dispatchSlotsOpen({
-          type: "STAT",
-          payload: {
-            open: true,
-            slotVariant: props.activeSlot.type,
-            slotNumber: props.activeSlot.index,
-          },
-        });
-      }}
-      disabled={!props.activeItem?.typeID}
-    >
-      <Tooltip title="Information" placement="bottom" arrow>
-        <InfoIcon />
-      </Tooltip>
-    </RecButton>
+    <Tooltip title="Information" placement="bottom" arrow>
+      <div>
+        <RecButton
+          style={{
+            width: "100%",
+            minWidth: 20,
+            backgroundColor: blue[500],
+            color: "#ffffff",
+          }}
+          onClick={() => {
+            props.dispatchSlotsOpen({
+              type: "STAT",
+              payload: {
+                open: true,
+                slotVariant: props.activeSlot.type,
+                slotNumber: props.activeSlot.index,
+              },
+            });
+          }}
+          disabled={!props.activeItem?.typeID}
+        >
+          <InfoIcon />
+        </RecButton>
+      </div>
+    </Tooltip>
   );
 };
 const AddButton = function (props) {
   return (
-    <RecButton
-      style={{
-        width: "100%",
-        minWidth: 20,
-        backgroundColor: green[500],
-        color: "#ffffff",
-      }}
-      onClick={() => {
-        props.dispatchListItems({
-          type: "DRONE_SLOT",
-          payload: "ADD",
-        });
-      }}
-      disabled={!props.activeItem?.typeID}
-    >
-      <Tooltip title="Add drone" placement="bottom" arrow>
-        <ExposurePlus1Icon />
-      </Tooltip>
-    </RecButton>
+    <Tooltip title="Add drone" placement="bottom" arrow>
+      <div>
+        <RecButton
+          style={{
+            width: "100%",
+            minWidth: 20,
+            backgroundColor: green[500],
+            color: "#ffffff",
+          }}
+          onClick={() => {
+            props.dispatchListItems({
+              type: "DRONE_SLOT",
+              payload: "ADD",
+            });
+          }}
+          disabled={!props.activeItem?.typeID}
+        >
+          <ExposurePlus1Icon />
+        </RecButton>
+      </div>
+    </Tooltip>
   );
 };
 const LoopOrNotButton = function (props) {
@@ -108,23 +116,25 @@ const LoopOrNotButton = function (props) {
   }, [props.liftedIsLoop]);
 
   return (
-    <RecButton
-      style={{
-        width: "100%",
-        minWidth: 20,
-        backgroundColor: isLoop ? green[500] : red[500],
-        color: "#ffffff",
-      }}
-      onClick={() => {
-        props.setItem("LOOPLOOP");
-        props.setLiftedIsLoop(!isLoop);
-        setIsLoop(!isLoop);
-      }}
-    >
-      <Tooltip title="Loop through slots" placement="bottom" arrow>
-        {isLoop ? <SyncIcon /> : <SyncDisabledIcon />}
-      </Tooltip>
-    </RecButton>
+    <Tooltip title="Loop through slots" placement="bottom" arrow>
+      <div>
+        <RecButton
+          style={{
+            width: "100%",
+            minWidth: 20,
+            backgroundColor: isLoop ? green[500] : red[500],
+            color: "#ffffff",
+          }}
+          onClick={() => {
+            props.setItem("LOOPLOOP");
+            props.setLiftedIsLoop(!isLoop);
+            setIsLoop(!isLoop);
+          }}
+        >
+          {isLoop ? <SyncIcon /> : <SyncDisabledIcon />}
+        </RecButton>
+      </div>
+    </Tooltip>
   );
 };
 
