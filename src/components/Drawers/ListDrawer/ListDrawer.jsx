@@ -33,6 +33,7 @@ export default function ListDrawer(props) {
   const classes = useStyles();
 
   const [item, setItem] = useState(false);
+  const [width, setWidth] = useState(0);
 
   const getEveListConfig = useCallback(() => {
     return {
@@ -54,6 +55,17 @@ export default function ListDrawer(props) {
   ]);
 
   useEffect(() => {
+    setWidth(window.innerWidth);
+    const handleRender = (e) => {
+      setWidth(window.innerWidth);
+    };
+    window.addEventListener("resize", handleRender);
+    return () => {
+      window.removeEventListener("resize", handleRender);
+    };
+  }, []);
+
+  useEffect(() => {
     if (!!item) {
       props.dispatchListItems({ type: props.variant, payload: item });
       setItem(false);
@@ -62,10 +74,15 @@ export default function ListDrawer(props) {
 
   return (
     <Drawer
-      anchor={!!props.anchor ? props.anchor : "right"}
+      classes={{ paper: classes.rootPaper }}
+      PaperProps={{
+        style: {
+          marginLeft: props.expand === true ? 300 : 60,
+        },
+      }}
+      anchor={width < 1000 ? "right" : "left"}
       open={props.open}
       variant="persistent"
-      classes={{ paper: classes.rootPaper }}
     >
       <ListDrawerButtons setItem={setItem} {...props} />
 

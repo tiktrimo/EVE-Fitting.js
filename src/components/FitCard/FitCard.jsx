@@ -34,7 +34,9 @@ const EditButton = (props) => {
 export default function FitCard(props) {
   const [fit, setFit] = useState(false);
   const [fitID, setFitID] = useState(false);
+
   const [open, setOpen] = useState(true);
+  const [expand, setExpand] = useState(window.innerWidth < 1000 ? false : true);
 
   const [stat, setStat] = useState(Stat.defaultStat);
 
@@ -51,6 +53,8 @@ export default function FitCard(props) {
       <Drawers
         open={open}
         setOpen={setOpen}
+        expand={expand}
+        setExpand={setExpand}
         fitID={fitID}
         setFitID={setFitID}
         setFit={setFit}

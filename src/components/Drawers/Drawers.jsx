@@ -183,6 +183,7 @@ export default function Drawers(props) {
   return (
     <React.Fragment>
       <ListDrawers
+        expand={props.expand}
         slotsOpen={slotsOpen}
         fit={fit}
         slots={slots}
@@ -197,8 +198,10 @@ export default function Drawers(props) {
         fit={fit}
         slots={slots}
         open={props.open}
-        exportFitText={exportFitText}
         setOpen={props.setOpen}
+        expand={props.expand}
+        setExpand={props.setExpand}
+        exportFitText={exportFitText}
         slotsOpen={slotsOpen}
         dispatchSlotsOpen={dispatchSlotsOpen}
         listItems={listItems}

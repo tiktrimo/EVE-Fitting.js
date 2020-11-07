@@ -67,7 +67,6 @@ const useStyles = makeStyles((theme) => ({
 export default function FittingDrawer(props) {
   const classes = useStyles();
 
-  const [expand, setExpand] = useState(true);
   const [importFitText, setImportFitText] = useState(false);
   const [importStateFlag, setImportStateFlag] = useState(importFinishFlag);
 
@@ -87,7 +86,7 @@ export default function FittingDrawer(props) {
         open={props.open}
         variant="permanent"
         classes={{
-          paper: classes[switchExpandOpen(props.open, expand)],
+          paper: classes[switchExpandOpen(props)],
         }}
       >
         <ButtonGroup>
@@ -105,9 +104,9 @@ export default function FittingDrawer(props) {
             right: 0,
             backgroundColor: "#F5F5F5",
           }}
-          onClick={() => setExpand(!expand)}
+          onClick={() => props.setExpand(!props.expand)}
         >
-          {!!expand ? <ChevronLeftIcon /> : <ChevronRightIcon />}
+          {!!props.expand ? <ChevronLeftIcon /> : <ChevronRightIcon />}
         </Button>
 
         <div className={classes.child}>
@@ -166,9 +165,9 @@ export default function FittingDrawer(props) {
     </React.Fragment>
   );
 }
-function switchExpandOpen(open, expand) {
-  if (!open) return "rootClose";
-  if (!expand) return "rootRetract";
+function switchExpandOpen(props) {
+  if (!props.open) return "rootClose";
+  if (!props.expand) return "rootRetract";
   return "rootExpand";
 }
 export function getSlotCount(slots, variant) {

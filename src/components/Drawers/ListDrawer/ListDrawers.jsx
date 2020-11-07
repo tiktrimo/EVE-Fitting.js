@@ -36,6 +36,7 @@ export default React.memo(function ListDrawers(props) {
             activeCharge={activeCharge}
             liftedIsLoop={liftedIsLoop}
             setLiftedIsLoop={setLiftedIsLoop}
+            expand={props.expand}
             open={props.slotsOpen[variant].open}
             filter={generateFilter(props.slots, props.slotsOpen, variant)}
             {...props}

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import FitCard from "./FitCard/FitCard";
 import { Button, ButtonGroup, Grid, Paper } from "@material-ui/core";
 import GitHubIcon from "@material-ui/icons/GitHub";
@@ -35,16 +35,38 @@ const Links = (props) => {
   );
 };
 
-export default function initialCard(props) {
+export default function InitialCard(props) {
+  const [width, setWidth] = useState(0);
+
+  useEffect(() => {
+    setWidth(window.innerWidth);
+    const handleRender = (e) => {
+      setWidth(window.innerWidth);
+    };
+    window.addEventListener("resize", handleRender);
+    return () => {
+      window.removeEventListener("resize", handleRender);
+    };
+  }, []);
+
   return (
-    <Grid style={{ width: "100%", margin: 0 }} container spacing={3}>
-      <Grid xs={12} container item justify="center"></Grid>
-      <Grid xs={12} container item justify="center">
-        <FitCard cache={props.cache} />
+    <div style={{ display: "flex", flexDirection: "row-reverse" }}>
+      <Grid
+        style={{
+          width: width < 1000 ? "100%" : width - 600,
+          margin: 0,
+        }}
+        container
+        spacing={3}
+      >
+        <Grid xs={12} container item justify="center"></Grid>
+        <Grid xs={12} container item justify="center">
+          <FitCard cache={props.cache} />
+        </Grid>
+        <Grid xs={12} container item justify="center">
+          <Links />
+        </Grid>
       </Grid>
-      <Grid xs={12} container item justify="center">
-        <Links />
-      </Grid>
-    </Grid>
+    </div>
   );
 }
