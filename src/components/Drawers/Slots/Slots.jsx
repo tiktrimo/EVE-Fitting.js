@@ -43,7 +43,7 @@ export default function Slots(props) {
     setFetchedCharges,
   };
 
-  const [activeSlotNumber, setActiveSlotNumber] = useState(-1);
+  const [activeSlotNumber, setActiveSlotNumber] = useState(0);
   const [isLoop, setIsLoop] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [session, setSession] = useState(0);
@@ -180,6 +180,7 @@ export default function Slots(props) {
                 key={`${props.variant}:${index}`}
                 variant={props.variant}
                 open={props.open}
+                slotsOpen={props.slotsOpen}
                 slots={props.slots}
                 fetchedItem={fetchedItems[index]}
                 fetchedCharge={fetchedCharges[index]}

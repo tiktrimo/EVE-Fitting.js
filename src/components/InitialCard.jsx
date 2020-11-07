@@ -8,7 +8,7 @@ const Links = (props) => {
     <Paper elevation={2}>
       <ButtonGroup variant="text">
         <Button
-          href={"https://github.com/tiktrimo/EVE-Fitting.js/issues"}
+          href={"https://github.com/tiktrimo/EVE-Fitting.js"}
           target="_blank"
           color="primary"
         >
@@ -22,7 +22,9 @@ const Links = (props) => {
           BUG REPORT
         </Button>
         <Button
-          href={"https://github.com/tiktrimo/EVE-Fitting.js/issues"}
+          href={
+            "https://github.com/tiktrimo/EVE-Fitting.js/blob/master/DOCS/DOCS.md"
+          }
           target="_blank"
           color="primary"
         >
@@ -35,7 +37,7 @@ const Links = (props) => {
 
 export default function initialCard(props) {
   return (
-    <Grid style={{ width: "100%" }} container spacing={3}>
+    <Grid style={{ width: "100%", margin: 0 }} container spacing={3}>
       <Grid xs={12} container item justify="center"></Grid>
       <Grid xs={12} container item justify="center">
         <FitCard cache={props.cache} />

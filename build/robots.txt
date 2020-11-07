@@ -2,4 +2,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://eve-damagecontrol.web.app/sitemap.xml
+

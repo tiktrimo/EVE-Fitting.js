@@ -165,9 +165,7 @@ export default function Slot(props) {
                   isHover ? classes.rootAvatarHover : classes.rootAvatarDefault
                 }
               >
-                {!!item
-                  ? feedSource(item, charge)
-                  : slotIcon(props.variant, props.open)}
+                {!!item ? feedSource(item, charge) : slotIcon(props)}
               </Avatar>
             </SlotMetaBadge>
           </SlotChargeBadge>
@@ -225,12 +223,12 @@ function getLoadableDrone(ship) {
   return { size: droneSize };
 }
 
-function slotIcon(type, tooltipOpen) {
-  switch (type) {
+function slotIcon(props) {
+  switch (props.variant) {
     case "SHIP":
       return (
         <Tooltip
-          open={tooltipOpen}
+          open={props.open && !props.slotsOpen.SHIP.open}
           title="Click here to choose ship"
           placement="right"
           arrow

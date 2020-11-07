@@ -67,7 +67,7 @@ const useStyles = makeStyles((theme) => ({
 export default function FittingDrawer(props) {
   const classes = useStyles();
 
-  const [expand, setExpand] = useState(false);
+  const [expand, setExpand] = useState(true);
   const [importFitText, setImportFitText] = useState(false);
   const [importStateFlag, setImportStateFlag] = useState(importFinishFlag);
 

@@ -145,7 +145,7 @@ const useStyles = makeStyles((theme) => ({
 export default function Hardpoints(props) {
   const classes = useStyles();
 
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const [load, setLoad] = useState(Stat.defaultStat.resource.load);
   const [capacity, setCapacity] = useState(Stat.defaultStat.resource.capacity);
 

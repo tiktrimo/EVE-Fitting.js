@@ -34,7 +34,7 @@ const EditButton = (props) => {
 export default function FitCard(props) {
   const [fit, setFit] = useState(false);
   const [fitID, setFitID] = useState(false);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
 
   const [stat, setStat] = useState(Stat.defaultStat);
 

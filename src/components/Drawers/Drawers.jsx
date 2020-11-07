@@ -59,6 +59,7 @@ const initialSlotsOpen = {
   AMMO: { open: false, slotVariant: false, filter: false },
   STAT: { open: false, slotVariant: false, slotNumber: false, filter: false },
 };
+
 function slotsOpenReducer(state, action) {
   switch (action.type) {
     case "SHIP":
@@ -158,7 +159,8 @@ export default function Drawers(props) {
   }, []);
 
   useEffect(() => {
-    dispatchSlotsOpen({ type: "RESET" });
+    if (props.open === true) dispatchSlotsOpen({ type: "SHIP" });
+    else dispatchSlotsOpen({ type: "RESET" });
   }, [props.open]);
 
   useEffect(() => {
