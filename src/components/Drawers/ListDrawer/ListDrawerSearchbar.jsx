@@ -22,11 +22,17 @@ const useStyles = makeStyles((theme) => ({
     padding: "3px 0px 3px 1px",
     height: 26,
   },
-  popper: {
-    zIndex: 1201,
-    transition: theme.transitions.create("opacity", {
+  popperVisible: {
+    transition: `${theme.transitions.create(["opacity"], {
       duration: 150,
-    }),
+    })}`,
+  },
+  popperHidden: {
+    transition: `${theme.transitions.create(["opacity"], {
+      duration: 150,
+    })},${theme.transitions.create(["z-index"], {
+      duration: 300,
+    })}`,
   },
   popperPaper: {
     width: 300,
@@ -95,8 +101,13 @@ export default function ListDrawerSearchbar(props) {
         />
 
         <Popper
-          style={{ opacity: searchVisible ? 1 : 0 }}
-          className={classes.popper}
+          style={{
+            opacity: searchVisible ? 1 : 0,
+            zIndex: searchVisible ? 2000 : -1000,
+          }}
+          className={
+            searchVisible ? classes.popperVisible : classes.popperHidden
+          }
           open={searchOpen}
           anchorEl={anchorEl.current}
           placement="bottom-start"
