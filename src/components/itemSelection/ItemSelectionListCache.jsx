@@ -12,6 +12,7 @@ const useStyles = makeStyles((theme) => ({
     minWidth: 350,
     height: "100%",
     backgroundColor: theme.palette.background.paper,
+    paddingTop: 0,
   },
 }));
 
@@ -61,31 +62,33 @@ export default React.memo(function ItemSelectionListCache(props) {
   }, [item?.typeID]);
 
   useEffect(() => {
+    const evelistConfigUpToDate = {
+      ...eveListConfig,
+      rootMarketGroupID: props.eveListConfig.rootMarketGroupID,
+      filter: props.eveListConfig.filter,
+      table: {
+        marketGroupTable: marketGroupTable,
+        invTypesTable: invTypesTable,
+      },
+      cache: props.cache,
+    };
+
     if (!!marketGroupTable && !!invTypesTable) {
-      props.cache
-        .get(
-          //prettier-ignore
-          `eveListConfig:${JSON.stringify(props.eveListConfig)})}`,
-          () => {
-            return new Promise((resolve) => {
-              resolve(
-                createEveList({
-                  ...eveListConfig,
-                  rootMarketGroupID: props.eveListConfig.rootMarketGroupID,
-                  filter: props.eveListConfig.filter,
-                  table: {
-                    marketGroupTable: marketGroupTable,
-                    invTypesTable: invTypesTable,
-                  },
-                  cache: props.cache,
-                })
-              );
-            });
-          }
-        )
-        .then((data) => {
-          setBuiltListStructure(data);
-        });
+      if (!props.nosave)
+        props.cache
+          .get(
+            //prettier-ignore
+            `eveListConfig:${JSON.stringify(props.eveListConfig)})}`,
+            () => {
+              return new Promise((resolve) => {
+                resolve(createEveList(evelistConfigUpToDate));
+              });
+            }
+          )
+          .then((data) => {
+            setBuiltListStructure(data);
+          });
+      else setBuiltListStructure(createEveList(evelistConfigUpToDate));
     }
   }, [marketGroupTable, invTypesTable, hashFilter(props.eveListConfig)]);
 

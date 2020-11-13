@@ -28,6 +28,10 @@ function bodyFilterInvTypesTable(allowedAttribute, invTypesTable) {
         return allowedAttribute.value.includes(
           entry[allowedAttribute.attributeName]
         );
+      case String:
+        return entry[allowedAttribute.attributeName]
+          .toLowerCase()
+          .includes(allowedAttribute.value.toLowerCase());
       default:
         return true;
     }

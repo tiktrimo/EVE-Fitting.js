@@ -1,7 +1,6 @@
 import React from "react";
 import NestedList from "../../components/simpleEdition/shipCardComponents/NestedListDedicated";
 import ItemSelection from "../../components/itemSelection/ItemSelection";
-
 import isTerminalGroup from "./isTerminalGroup";
 import findChildrenMarketGroup from "./findChildrenMarketGroup";
 import findChildrenInvTypes from "./findChildrenInvTypes";
@@ -13,6 +12,7 @@ export default function headCreateEveList(props) {
   if (!props.rootMarketGroupID) return;
 
   props.table.invTypesTable = filterInvTypesTable(props);
+  if (props.table.invTypesTable.length > 50) props.opened = false;
 
   if (props.rootMarketGroupID.constructor === Number) {
     return bodyCreateEveList(props);
@@ -62,6 +62,7 @@ function renderChildrenMarketGroup(props) {
     else
       return (
         <NestedList
+          opened={!!props.opened}
           key={entry.marketGroupName}
           itemData={entry}
           eveListConfig={props}
@@ -80,6 +81,7 @@ function validateTables(props) {
 }
 
 export const defalutEveListConfigStructure = {
+  opened: false,
   rootMarketGroupID: 2,
   table: {
     marketGroupTable: false,
@@ -96,7 +98,6 @@ export const defalutEveListConfigStructure = {
   state: {
     item: false,
     setItem: false,
-    openedCategories: false,
-    setOpenedCategories: false,
+    outboundSetItem: false,
   },
 };

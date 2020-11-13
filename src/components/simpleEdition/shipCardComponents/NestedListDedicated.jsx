@@ -43,11 +43,20 @@ export default function NestedList(props) {
   const [image, setImage] = React.useState("");
 
   const handleClick = () => {
-    handleOpenedCategories(open, props);
     setOpen(!open);
   };
 
   useEffect(() => {
+    if (props.opened === true) setOpen(true);
+
+    return () => {
+      setOpen(false);
+    };
+  }, [props.opened]);
+
+  useEffect(() => {
+    let isMounted = true;
+
     if (props.itemData.iconTypeID === 3584)
       // description: Severed head (soaked in formaldehyde) - Unknown
       props.cache
@@ -58,18 +67,15 @@ export default function NestedList(props) {
             .then(async (url) => {
               return await fetch(url)
                 .then((data) => data.arrayBuffer())
-                .then((buffer) => {
-                  const base64Flag = "data:image/jpeg;base64,";
-
-                  let binary = "";
-                  const bytes = [].slice.call(new Uint8Array(buffer));
-                  bytes.forEach((b) => (binary += String.fromCharCode(b)));
-                  return base64Flag + window.btoa(binary);
-                });
+                .then((arrayBuffer) => convertArrayBufferToBase64(arrayBuffer));
             });
         })
-        .then((data) => setImage(data));
+        .then((data) => !!isMounted && setImage(data));
     else setImage(feedSource(props.itemData));
+
+    return () => {
+      isMounted = false;
+    };
   }, [props.cache, props.itemData]);
 
   return (
@@ -102,23 +108,11 @@ export default function NestedList(props) {
 function feedSource(itemData) {
   return `https://images.evetech.net/types/${itemData?.iconTypeID}/icon?size=32`;
 }
-function handleOpenedCategories(open, props) {
-  if (
-    !props.eveListConfig.state.openedCategories ||
-    !props.eveListConfig.state.setOpenedCategories
-  ) {
-    return;
-  }
+function convertArrayBufferToBase64(arrayBuffer) {
+  const base64Flag = "data:image/jpeg;base64,";
 
-  if (open) {
-    const openedCategories = props.eveListConfig.state.openedCategories;
-    const setOpenedCategories = props.eveListConfig.state.setOpenedCategories;
-
-    setOpenedCategories(
-      openedCategories.filter((entry) => entry !== props.itemData.marketGroupID)
-    );
-  } else {
-    const setOpenedCategories = props.eveListConfig.state.setOpenedCategories;
-    setOpenedCategories([props.itemData.marketGroupID]);
-  }
+  let binary = "";
+  const bytes = [].slice.call(new Uint8Array(arrayBuffer));
+  bytes.forEach((b) => (binary += String.fromCharCode(b)));
+  return base64Flag + window.btoa(binary);
 }

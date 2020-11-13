@@ -103,6 +103,7 @@ export default function FittingDrawer(props) {
             top: 0,
             right: 0,
             backgroundColor: "#F5F5F5",
+            borderRadius: 0,
           }}
           onClick={() => props.setExpand(!props.expand)}
         >
@@ -153,6 +154,7 @@ export default function FittingDrawer(props) {
             right: 0,
             backgroundColor: "#F5F5F5",
             zIndex: 1,
+            borderRadius: 0,
           }}
           onClick={() => {
             props.dispatchSlotsOpen({ type: "RESET" });

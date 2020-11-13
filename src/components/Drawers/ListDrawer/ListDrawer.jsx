@@ -1,16 +1,17 @@
 import React from "react";
-import { Drawer, Button, makeStyles, ButtonGroup } from "@material-ui/core";
+import { Drawer, Button, makeStyles } from "@material-ui/core";
 import { useState } from "react";
 import ItemSelectionListCache from "../../itemSelection/ItemSelectionListCache";
 import { useEffect } from "react";
 import LastPageIcon from "@material-ui/icons/LastPage";
+import FirstPageIcon from "@material-ui/icons/FirstPage";
 import ListDrawerButtons from "./ListDrawerButtons";
 import { useCallback } from "react";
+import ListDrawerSearchbar from "./ListDrawerSearchbar";
 
 const useStyles = makeStyles((theme) => ({
   rootPaper: {
     width: 300,
-    maxWidth: "80%",
     height: "100%",
     overflow: "hidden",
   },
@@ -85,7 +86,10 @@ export default function ListDrawer(props) {
       variant="persistent"
     >
       <ListDrawerButtons setItem={setItem} {...props} />
-
+      <ListDrawerSearchbar
+        eveListConfig={getEveListConfig()}
+        cache={props.cache}
+      />
       <div className={classes.child}>
         <ItemSelectionListCache
           eveListConfig={getEveListConfig()}
@@ -96,7 +100,7 @@ export default function ListDrawer(props) {
         className={classes.retractButton}
         onClick={(e) => props.dispatchSlotsOpen({ type: "RESET" })}
       >
-        <LastPageIcon />
+        {width < 1000 ? <LastPageIcon /> : <FirstPageIcon />}
       </Button>
     </Drawer>
   );

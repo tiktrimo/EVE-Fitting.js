@@ -18,7 +18,7 @@ export default function RecButton(props) {
       variant="contained"
       style={
         props.disabled === true
-          ? { ...props.style, backgroundColor: "#e0e0e0", color: "#ffffff" }
+          ? { ...props.style, backgroundColor: "#f5f5f5", color: "#ffffff" }
           : { ...props.style }
       }
       disableElevation
