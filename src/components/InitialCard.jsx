@@ -1,7 +1,27 @@
 import React, { useEffect, useState } from "react";
 import FitCard from "./FitCard/FitCard";
-import { Button, ButtonGroup, Grid, Paper } from "@material-ui/core";
+import {
+  Button,
+  ButtonGroup,
+  Grid,
+  makeStyles,
+  Paper,
+  useTheme,
+} from "@material-ui/core";
 import GitHubIcon from "@material-ui/icons/GitHub";
+import WbSunnyIcon from "@material-ui/icons/WbSunny";
+import Brightness2Icon from "@material-ui/icons/Brightness2";
+
+const useStyles = makeStyles((theme) => ({
+  modeButton: {
+    backgroundColor: theme.palette.background.paper,
+    color: theme.palette.text.primary,
+  },
+  modeButtonActive: {
+    backgroundColor: theme.palette.background.paper,
+    color: theme.palette.property.org,
+  },
+}));
 
 const Links = (props) => {
   return (
@@ -29,6 +49,38 @@ const Links = (props) => {
           color="primary"
         >
           DOCS
+        </Button>
+      </ButtonGroup>
+    </Paper>
+  );
+};
+
+const Settings = (props) => {
+  const classes = useStyles();
+  const theme = useTheme();
+
+  return (
+    <Paper style={{ marginLeft: 10 }} elevation={2}>
+      <ButtonGroup variant="text">
+        <Button
+          className={
+            props.isDark ? classes.modeButton : classes.modeButtonActive
+          }
+          onClick={() => {
+            props.setIsDark(false);
+          }}
+        >
+          <WbSunnyIcon />
+        </Button>
+        <Button
+          className={
+            props.isDark ? classes.modeButtonActive : classes.modeButton
+          }
+          onClick={() => {
+            props.setIsDark(true);
+          }}
+        >
+          <Brightness2Icon />
         </Button>
       </ButtonGroup>
     </Paper>
@@ -65,6 +117,7 @@ export default function InitialCard(props) {
         </Grid>
         <Grid xs={12} container item justify="center">
           <Links />
+          <Settings isDark={props.isDark} setIsDark={props.setIsDark} />
         </Grid>
       </Grid>
     </div>

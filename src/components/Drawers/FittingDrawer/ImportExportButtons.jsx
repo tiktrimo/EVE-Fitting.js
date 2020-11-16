@@ -19,8 +19,8 @@ import { importInitializeFlag } from "./FittingDrawer";
 
 const useStyles = makeStyles((theme) => ({
   button: {
-    backgroundColor: "#ffffff",
-    color: "#000000",
+    backgroundColor: theme.palette.background.paper,
+    color: theme.palette.text.primary,
   },
   snackbar: {
     backgroundColor: orange[500],
@@ -29,6 +29,9 @@ const useStyles = makeStyles((theme) => ({
     height: 40,
     width: "100%",
     padding: "0px 10px 0px 10px",
+  },
+  warning: {
+    color: theme.palette.button.color,
   },
 }));
 
@@ -82,7 +85,7 @@ export default function ImportExportButtons(props) {
         message={
           <ListItem className={classes.lsitItem}>
             <ListItemIcon>
-              <WarningIcon style={{ color: "#ffffff" }} fontSize="small" />
+              <WarningIcon className={classes.warning} fontSize="small" />
             </ListItemIcon>
 
             <ListItemText

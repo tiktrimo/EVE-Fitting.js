@@ -60,6 +60,7 @@ const SearchTextField = withStyles({
       borderLeftWidth: 6,
       padding: "4px !important", // override inline-style
     },
+    width: "90%",
   },
 })(TextField);
 

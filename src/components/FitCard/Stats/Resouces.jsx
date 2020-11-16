@@ -6,70 +6,96 @@ import {
   List,
   ListItem,
   Collapse,
+  useTheme,
 } from "@material-ui/core";
 import { useState } from "react";
 import LinearProgressLabel from "./LinearProgressLabel";
 import {
-  turretSVG,
-  launcherSVG,
-  calibrationSVG,
+  TurretIcon,
+  LauncherIcon,
+  CalibrationIcon,
   DroneBayIcon,
   DroneBandwidthIcon,
 } from "../../Icons/resourceIcons";
-import { red } from "@material-ui/core/colors";
 import Stat from "./services/Stat";
 import { useCallback } from "react";
 import ResourcesMiscellaneousListItem from "./ResourcesMiscellaneousListItem";
 
 const TurretHardpoint = (props) => {
+  const theme = useTheme();
+
   return (
     <LinearProgressLabel
       value={0}
       label={props.label}
       Icon={
         <Tooltip title="Turret Hardpoints" placement="left" arrow>
-          {turretSVG}
+          <div style={{ height: 24 }}>
+            <TurretIcon color={theme.palette.text.primary} />
+          </div>
         </Tooltip>
       }
       typographyProps={{
-        style: { fontSize: 14, fontWeight: 700, color: "#000000" },
+        style: {
+          fontSize: 14,
+          fontWeight: 700,
+          color: theme.palette.text.primary,
+        },
       }}
     />
   );
 };
 const LauncherHardpoint = (props) => {
+  const theme = useTheme();
+
   return (
     <LinearProgressLabel
       value={0}
       label={props.label}
       Icon={
         <Tooltip title="Launcher Hardpoints" placement="left" arrow>
-          {launcherSVG}
+          <div style={{ height: 24 }}>
+            <LauncherIcon color={theme.palette.text.primary} />
+          </div>
         </Tooltip>
       }
       typographyProps={{
-        style: { fontSize: 14, fontWeight: 700, color: "#000000" },
+        style: {
+          fontSize: 14,
+          fontWeight: 700,
+          color: theme.palette.text.primary,
+        },
       }}
     />
   );
 };
 const Calibration = (props) => {
+  const theme = useTheme();
+
   return (
     <LinearProgressLabel
       value={0}
       label={props.label}
       Icon={
         <Tooltip title="Calibration" placement="left" arrow>
-          {calibrationSVG}
+          <div style={{ height: 24 }}>
+            <CalibrationIcon color={theme.palette.text.primary} />
+          </div>
         </Tooltip>
       }
       typographyProps={{
-        style: { fontSize: 14, fontWeight: 700, color: "#000000" },
+        style: {
+          fontSize: 14,
+          fontWeight: 700,
+          color: theme.palette.text.primary,
+        },
       }}
     />
   );
 };
 const DroneBandwidth = (props) => {
+  const theme = useTheme();
+
   return (
     <LinearProgressLabel
       value={props.value}
@@ -77,7 +103,13 @@ const DroneBandwidth = (props) => {
       Icon={
         <Tooltip title="Drone Bandwidth" placement="left" arrow>
           <div style={{ height: 24 }}>
-            <DroneBandwidthIcon color={props.isError ? red[500] : "#000000"} />
+            <DroneBandwidthIcon
+              color={
+                props.isError
+                  ? theme.palette.property.red
+                  : theme.palette.text.primary
+              }
+            />
           </div>
         </Tooltip>
       }
@@ -85,13 +117,17 @@ const DroneBandwidth = (props) => {
         style: {
           fontSize: 14,
           fontWeight: 700,
-          color: props.isError ? red[500] : "#000000",
+          color: props.isError
+            ? theme.palette.property.red
+            : theme.palette.text.primary,
         },
       }}
     />
   );
 };
 const DroneBay = (props) => {
+  const theme = useTheme();
+
   return (
     <LinearProgressLabel
       value={props.value}
@@ -99,7 +135,13 @@ const DroneBay = (props) => {
       Icon={
         <Tooltip title="Drone Bay" placement="left" arrow>
           <div style={{ height: 24 }}>
-            <DroneBayIcon color={props.isError ? red[500] : "#000000"} />
+            <DroneBayIcon
+              color={
+                props.isError
+                  ? theme.palette.property.red
+                  : theme.palette.text.primary
+              }
+            />
           </div>
         </Tooltip>
       }
@@ -107,7 +149,9 @@ const DroneBay = (props) => {
         style: {
           fontSize: 14,
           fontWeight: 700,
-          color: props.isError ? red[500] : "#000000",
+          color: props.isError
+            ? theme.palette.property.red
+            : theme.palette.text.primary,
         },
       }}
     />
@@ -138,7 +182,7 @@ const useStyles = makeStyles((theme) => ({
   nested: {
     padding: 0,
     margin: 0,
-    backgroundColor: "#F5F5F5",
+    backgroundColor: theme.palette.action.hover,
   },
 }));
 

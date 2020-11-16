@@ -1,11 +1,8 @@
 import React from "react";
-
 import LinearProgressLabel from "./LinearProgressLabel";
-import { capacitorChargeSVG } from "../../Icons/capacitorIcons";
-import { Tooltip, makeStyles } from "@material-ui/core";
-import { orange } from "@material-ui/core/colors";
-const EX_COLOR = orange[500];
-const EX_BACK_COLOR = orange[200];
+import { CapacitorChargeIcon } from "../../Icons/capacitorIcons";
+import { Tooltip, makeStyles, useTheme } from "@material-ui/core";
+
 const useStyles = makeStyles((theme) => ({
   tooltip: {
     maxWidth: 80,
@@ -14,6 +11,7 @@ const useStyles = makeStyles((theme) => ({
 
 export default function Capacitor(props) {
   const classes = useStyles();
+  const theme = useTheme();
 
   return (
     <React.Fragment>
@@ -24,7 +22,7 @@ export default function Capacitor(props) {
           props.stat.capacitor.boosterChargeRate -
           props.stat.capacitor.activationUseRate
         ).toFixed(2)}GJ/s`}
-        backgroundColor={"#ffffff"}
+        backgroundColor={theme.palette.background.paper}
         Icon={
           <Tooltip
             classes={{ tooltip: classes.tooltip }}
@@ -35,18 +33,27 @@ export default function Capacitor(props) {
             placement="left"
             arrow
           >
-            {capacitorChargeSVG}
+            <div style={{ height: 24 }}>
+              <CapacitorChargeIcon
+                color={theme.palette.text.primary}
+                backgroundColor={theme.palette.background.paper}
+              />
+            </div>
           </Tooltip>
         }
         typographyProps={{
-          style: { fontSize: 14, fontWeight: 700, color: "#000000" },
+          style: {
+            fontSize: 14,
+            fontWeight: 700,
+            color: theme.palette.text.primary,
+          },
         }}
       />
       <LinearProgressLabel
         value={props.stat.capacitor.stableLevel}
         label={`${props.stat.capacitor.stableLevel}%`}
-        backgroundColor={EX_BACK_COLOR}
-        color={EX_COLOR}
+        backgroundColor={theme.palette.property.orgSecondary}
+        color={theme.palette.property.org}
       />
     </React.Fragment>
   );

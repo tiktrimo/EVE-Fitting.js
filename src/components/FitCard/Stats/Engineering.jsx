@@ -1,21 +1,17 @@
 import React from "react";
-import { Grid } from "@material-ui/core";
+import { Grid, useTheme } from "@material-ui/core";
 import LinearProgressLabel from "./LinearProgressLabel";
-import { red, blue } from "@material-ui/core/colors";
 import FlagIcon from "@material-ui/icons/Flag";
 
-const CPU_COLOR = blue[500];
-const CPU_BACK_COLOR = blue[200];
-const PG_COLOR = red[500];
-const PG_BACK_COLOR = red[200];
-
 const Cpu = (props) => {
+  const theme = useTheme();
+
   return (
     <LinearProgressLabel
       value={getPercent(props.load, props.output)}
       label={`${getNum(props.load)}/${getNum(props.output)}tf`}
-      backgroundColor={CPU_BACK_COLOR}
-      color={CPU_COLOR}
+      backgroundColor={theme.palette.property.blueSecondary}
+      color={theme.palette.property.blue}
       Icon={
         getPercent(props.load, props.output) >= 100 && (
           <FlagIcon style={{ color: "#ffffff" }} fontSize="small" />
@@ -25,12 +21,14 @@ const Cpu = (props) => {
   );
 };
 const Powergrid = (props) => {
+  const theme = useTheme();
+
   return (
     <LinearProgressLabel
       value={getPercent(props.load, props.output)}
       label={`${getNum(props.load)}/${getNum(props.output)}MW`}
-      backgroundColor={PG_BACK_COLOR}
-      color={PG_COLOR}
+      backgroundColor={theme.palette.property.redSecondary}
+      color={theme.palette.property.red}
       Icon={
         getPercent(props.load, props.output) >= 100 && (
           <FlagIcon style={{ color: "#ffffff" }} fontSize="small" />

@@ -7,9 +7,8 @@ import { getSlotCount } from "../FittingDrawer/FittingDrawer.jsx";
 import Fit from "../../../fitter/src/Fit";
 import { findAttributebyID } from "../../../services/dataManipulation/findAttributes";
 import { Avatar, Divider, makeStyles, Typography } from "@material-ui/core";
-import { blueGrey, orange } from "@material-ui/core/colors";
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((theme) => ({
   root: {
     position: "relative",
   },
@@ -19,7 +18,7 @@ const useStyles = makeStyles(() => ({
     width: 10,
     top: 2,
     left: 2,
-    backgroundColor: blueGrey[200],
+    backgroundColor: theme.palette.property.gre,
   },
   divider: {
     width: "200%",

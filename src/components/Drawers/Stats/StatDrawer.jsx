@@ -1,5 +1,11 @@
 import React from "react";
-import { Drawer, makeStyles, Button, ButtonGroup } from "@material-ui/core";
+import {
+  Drawer,
+  makeStyles,
+  Button,
+  ButtonGroup,
+  useTheme,
+} from "@material-ui/core";
 import LastPageIcon from "@material-ui/icons/LastPage";
 import { useState } from "react";
 import Stat from "./Stat";
@@ -20,6 +26,13 @@ const useStyles = makeStyles((theme) => ({
     marginBottom: 40,
     overflowX: "hidden",
   },
+  retractButton: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    backgroundColor: theme.palette.action.hover,
+    borderRadius: 0,
+  },
   rootButton: {
     paddingRight: 20,
   },
@@ -27,16 +40,18 @@ const useStyles = makeStyles((theme) => ({
 
 export default function StatDrawer(props) {
   const classes = useStyles();
+  const theme = useTheme();
+
   const [tabIndex, setTabIndex] = useState(0);
 
   const styleButton = useCallback(
     (index) => {
-      let backgroundColor = "#f5f5f5";
-      let color = "#212121";
+      let backgroundColor = theme.palette.action.hover;
+      let color = theme.palette.text.disabled;
 
       if (tabIndex === index) {
-        backgroundColor = "#212121";
-        color = "#ffffff";
+        backgroundColor = theme.palette.action.selected;
+        color = theme.palette.text.primary;
       }
       return {
         backgroundColor: backgroundColor,
@@ -87,12 +102,7 @@ export default function StatDrawer(props) {
         </div>
       </div>
       <Button
-        style={{
-          position: "absolute",
-          bottom: 0,
-          right: 0,
-          backgroundColor: "#F5F5F5",
-        }}
+        className={classes.retractButton}
         onClick={() => props.dispatchSlotsOpen({ type: "RESET" })}
       >
         <LastPageIcon />

@@ -1,5 +1,5 @@
 import React from "react";
-import { Badge, Avatar, makeStyles } from "@material-ui/core";
+import { Badge, Avatar, makeStyles, useTheme } from "@material-ui/core";
 import { useCallback } from "react";
 import { useState } from "react";
 import { useEffect } from "react";
@@ -12,8 +12,6 @@ const useStyles = makeStyles((theme) => ({
   rootAvatar: {
     width: 20,
     height: 20,
-    color: "#ffffff",
-    backgroundColor: "#000000",
     right: 15,
     bottom: 3,
     fontSize: 12,
@@ -27,10 +25,11 @@ const useStyles = makeStyles((theme) => ({
 
 export default function SlotChargeBadge(props) {
   const classes = useStyles();
+  const theme = useTheme();
 
   const [badgeColor, setBadgeColor] = useState({
-    color: "#000000",
-    backgroundColor: "#ffffff",
+    color: theme.palette.text.primary,
+    backgroundColor: theme.palette.background.paper,
   });
   const [badgeIcon, setBadgeIcon] = useState(false);
 
@@ -61,29 +60,29 @@ export default function SlotChargeBadge(props) {
       // No charge loaded
       setBadgeIcon(<AddCircleOutlineIcon fontSize="small" />);
       setBadgeColor({
-        color: "#000000",
-        backgroundColor: "#ffffff",
-        border: "0.1px solid rgb(235, 235, 235)",
+        color: theme.palette.text.primary,
+        backgroundColor: theme.palette.background.paper,
+        border: `0.1px solid ${theme.palette.background.paper}`,
       });
     } else if (
       !Fit.validateChargeSlot({ item: props.item, charge: props.charge })
     ) {
       // Charge not compatible
       setBadgeColor({
-        color: "#ffffff",
-        backgroundColor: "#ff4242",
+        color: theme.palette.background.paper,
+        backgroundColor: theme.palette.property.red,
       });
       setBadgeIcon(<HighlightOffIcon fontSize="small" />);
     } else {
       // Charge loaded
       setBadgeColor({
-        color: "#000000",
-        backgroundColor: "#ffffff",
-        border: "0.1px solid rgb(235, 235, 235)",
+        color: theme.palette.text.primary,
+        backgroundColor: theme.palette.background.paper,
+        border: `0.1px solid ${theme.palette.background.paper}`,
       });
       setBadgeIcon(<AdjustIcon fontSize="small" />);
     }
-  }, [props.charge?.typeID, props.item?.typeID, props.count]);
+  }, [props.charge?.typeID, props.item?.typeID, props.count, theme]);
 
   return (
     <Badge

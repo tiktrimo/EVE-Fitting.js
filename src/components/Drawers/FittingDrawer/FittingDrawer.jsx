@@ -55,6 +55,29 @@ const useStyles = makeStyles((theme) => ({
     }),
     overflow: "hidden",
   },
+  expandButton: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    backgroundColor: theme.palette.action.opaqueHover,
+    borderRadius: 0,
+    opacity: 1,
+    "&:hover": {
+      backgroundColor: theme.palette.background.paper,
+    },
+  },
+  retractButton: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    backgroundColor: theme.palette.action.opaqueHover,
+    zIndex: 1,
+    borderRadius: 0,
+    "&:hover": {
+      backgroundColor: theme.palette.background.paper,
+    },
+  },
+
   child: {
     width: "100%",
     overflowX: "hidden",
@@ -98,13 +121,7 @@ export default function FittingDrawer(props) {
           />
         </ButtonGroup>
         <Button
-          style={{
-            position: "absolute",
-            top: 0,
-            right: 0,
-            backgroundColor: "#F5F5F5",
-            borderRadius: 0,
-          }}
+          className={classes.expandButton}
           onClick={() => props.setExpand(!props.expand)}
         >
           {!!props.expand ? <ChevronLeftIcon /> : <ChevronRightIcon />}
@@ -134,28 +151,10 @@ export default function FittingDrawer(props) {
               );
             })}
           </div>
-          <div
-            style={{
-              width: "100%",
-              height:
-                window.innerHeight - childRef.current?.clientHeight > 0
-                  ? window.innerHeight - childRef.current?.clientHeight
-                  : 80,
-              paddingRight: 20,
-              backgroundColor: "#F5F5F5",
-            }}
-          />
         </div>
 
         <Button
-          style={{
-            position: "absolute",
-            bottom: 0,
-            right: 0,
-            backgroundColor: "#F5F5F5",
-            zIndex: 1,
-            borderRadius: 0,
-          }}
+          className={classes.retractButton}
           onClick={() => {
             props.dispatchSlotsOpen({ type: "RESET" });
             props.setOpen(false);

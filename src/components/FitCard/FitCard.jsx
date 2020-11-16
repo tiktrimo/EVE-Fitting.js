@@ -1,12 +1,30 @@
 import React from "react";
 import Drawers from "../Drawers/Drawers";
-import { Card, Button, Grid, Typography } from "@material-ui/core";
+import {
+  Card,
+  Button,
+  Grid,
+  Typography,
+  makeStyles,
+  useTheme,
+} from "@material-ui/core";
 import { useState } from "react";
 import StatsSummary from "./Stats/StatsSummary";
 import Stat from "./Stats/services/Stat";
-import { blueGrey } from "@material-ui/core/colors";
+
+const useStyles = makeStyles((theme) => ({
+  editButton: {
+    fontSize: 26,
+    fontWeight: 1000,
+    letterSpacing: -1.5,
+    lineHeight: 1,
+  },
+}));
 
 const EditButton = (props) => {
+  const classes = useStyles();
+  const theme = useTheme();
+
   return (
     <Button
       style={{ height: 70 }}
@@ -15,12 +33,11 @@ const EditButton = (props) => {
     >
       <Grid item xs={12}>
         <Typography
+          className={classes.editButton}
           style={{
-            fontSize: 26,
-            fontWeight: 1000,
-            letterSpacing: -1.5,
-            lineHeight: 1,
-            color: !!props.fit.ship?.typeName ? "#000000" : blueGrey[200],
+            color: !!props.fit.ship?.typeName
+              ? theme.palette.text.primary
+              : theme.palette.property.blueGreyLight,
           }}
           align="center"
         >

@@ -26,7 +26,11 @@ const useStyles = makeStyles((theme) => ({
     position: "absolute",
     bottom: 0,
     right: 0,
-    backgroundColor: "#F5F5F5",
+    backgroundColor: theme.palette.action.opaqueHover,
+    borderRadius: 0,
+    "&:hover": {
+      backgroundColor: theme.palette.background.paper,
+    },
   },
 }));
 

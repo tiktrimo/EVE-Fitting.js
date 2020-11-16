@@ -1,31 +1,29 @@
 import React from "react";
 import { SvgIcon } from "@material-ui/core";
 
-export const armorSVG = (
+export const ArmorIcon = (props) => (
   <SvgIcon>
     <path
       d="m6.86886,11.73771l1.459,-2.65575c0.01641,0.00001 -0.01638,-0.7213 0.24591,-1.14753c0.2623,-0.42623 0.45902,-0.68852 0.88525,-0.7541c0.42623,-0.06557 -1.01639,-1.01639 -0.09836,-1.96721c0.91803,-0.95082 1.90164,-1.31148 3.2459,-0.55738c1.34426,0.7541 2.78686,2.29506 2.83605,2.29507l0.15574,3.29509c-0.41393,2.35245 -0.7377,3.4918 -0.7459,3.49179c0.0164,0.00001 2.11477,1.01641 2.86886,4.32788l-3.55739,-1.44263c0.01641,0.00001 -2.86884,2.19673 -2.88524,2.19672c0.0164,0.00001 -3.65573,-0.42622 -3.67213,-0.42623c0.0164,0.00001 -0.34425,-2.2295 -0.36065,-2.22951c0.0164,0.00001 2.21312,-2.06556 2.19671,-2.06557l-2.57375,-2.36064z"
-      strokeWidth="0"
-      stroke="#000000"
-      fill="#000000"
+      fill={props.color || "#000000"}
     />
   </SvgIcon>
 );
-export const shieldSVG = (
+export const ShieldIcon = (props) => (
   <SvgIcon>
     <path
       d=" M 15.023 17.29 Q 13.407 18.645 12.078 18.723 Q 10.593 18.723 8.925 17.29 Q 7.257 15.857 6.788 14.866 L 6.788 5.277 Q 10.198 6.134 12.078 6.137 Q 13.959 6.14 17.212 5.277 L 17.212 14.866 Q 16.638 15.935 15.023 17.29 Z "
-      fill="rgb(0,0,0)"
+      fill={props.color || "#000000"}
     />
   </SvgIcon>
 );
-export const structureSVG = (
+export const StructureIcon = (props) => (
   <SvgIcon>
     <path
       d=" M 12.266 19.395 L 8.944 17.478 L 5.623 15.56 L 5.623 11.725 L 5.623 7.89 L 8.944 5.972 L 12.266 4.054 L 15.587 5.972 L 18.908 7.89 L 18.908 11.725 L 18.908 15.56 L 15.587 17.478 L 12.266 19.395 Z "
       fill="none"
       strokeWidth="2"
-      stroke="rgb(0,0,0)"
+      stroke={props.color || "#000000"}
     />
     <line
       x1="6.771"
@@ -33,7 +31,7 @@ export const structureSVG = (
       x2="17.862"
       y2="14.945"
       strokeWidth="1"
-      stroke="rgb(0,0,0)"
+      stroke={props.color || "#000000"}
     />
     <line
       x1="17.862"
@@ -41,7 +39,7 @@ export const structureSVG = (
       x2="6.606"
       y2="15.11"
       strokeWidth="1"
-      stroke="rgb(0,0,0)"
+      stroke={props.color || "#000000"}
     />
     <line
       x1="12.266"
@@ -49,7 +47,7 @@ export const structureSVG = (
       x2="12.266"
       y2="18.33"
       strokeWidth="1"
-      stroke="rgb(0,0,0)"
+      stroke={props.color || "#000000"}
     />
   </SvgIcon>
 );

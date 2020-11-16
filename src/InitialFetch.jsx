@@ -4,11 +4,26 @@ import { useEffect } from "react";
 import { storage } from "./index";
 import cJSON from "compressed-json";
 import InitialCard from "./components/InitialCard";
+import { makeStyles, Paper } from "@material-ui/core";
 
 const ttl = 60 * 60 * 1;
 const cache = new cacheService(ttl);
 
+const useStyles = makeStyles((theme) => ({
+  root: {
+    width: "100%",
+    height: "100%",
+    position: "fixed",
+    top: 0,
+    left: 0,
+    borderRadius: 0,
+    overflow: "auto",
+  },
+}));
+
 export default function InitialD(props) {
+  const classes = useStyles();
+
   useEffect(() => {
     cache.get("/marketCategories", () => {
       return storage
@@ -62,8 +77,12 @@ export default function InitialD(props) {
   }, []);
 
   return (
-    <React.Fragment>
-      <InitialCard cache={cache} />
-    </React.Fragment>
+    <Paper className={classes.root} elevation={0}>
+      <InitialCard
+        isDark={props.isDark}
+        setIsDark={props.setIsDark}
+        cache={cache}
+      />
+    </Paper>
   );
 }

@@ -5,17 +5,17 @@ import {
   ListItemText,
   Avatar,
   Tooltip,
-  CircularProgress,
+  useTheme,
 } from "@material-ui/core";
 import { useState } from "react";
 import {
-  highSlotSVG,
-  midSlotSVG,
-  lowSlotSVG,
-  rigSlotSVG,
-  droneSVG,
-  miscSVG,
-  capsuleSVG,
+  HighSlotIcon,
+  MidSlotIcon,
+  LowSlotIcon,
+  RigSlotIcon,
+  DroneIcon,
+  CapsuleIcon,
+  MiscIcon,
 } from "../../Icons/slotIcons.jsx";
 import SlotChargeBadge from "./SlotChargeBadge.jsx";
 import { useEffect } from "react";
@@ -33,7 +33,7 @@ const useStyles = makeStyles((theme) => ({
     height: 50,
     width: "110%",
     minWidth: 60,
-    backgroundColor: "#F5F5F5",
+    backgroundColor: theme.palette.action.hover,
   },
   rootDiv: {
     position: "absolute",
@@ -45,9 +45,8 @@ const useStyles = makeStyles((theme) => ({
     height: 40,
     marginLeft: 10,
     marginTop: 4,
-    color: "#000000",
-    backgroundColor: "#F5F5F5",
-    border: "0.1px solid rgb(235, 235, 235)",
+    backgroundColor: theme.palette.action.hover,
+    border: `0.1px solid ${theme.palette.divider}`,
     marginRight: 20,
   },
   rootAvatarDefault: {
@@ -55,9 +54,8 @@ const useStyles = makeStyles((theme) => ({
     height: 40,
     marginLeft: 10,
     marginTop: 4,
-    color: "#000000",
-    backgroundColor: "#ffffff",
-    border: "0.1px solid rgb(235, 235, 235)",
+    backgroundColor: theme.palette.background.paper,
+    border: `0.1px solid ${theme.palette.divider}`,
     marginRight: 20,
   },
   stateArcBorder: {
@@ -77,6 +75,8 @@ const useStyles = makeStyles((theme) => ({
 
 export default function Slot(props) {
   const classes = useStyles();
+  const theme = useTheme();
+
   const [item, setItem] = useState(false);
   const [charge, setCharge] = useState(false);
 
@@ -156,7 +156,9 @@ export default function Slot(props) {
                 className={classes.stateArcBorder}
                 style={{
                   borderLeftColor: getCurrentStateColor(
-                    props?.fetchedItem?.typeState
+                    props?.fetchedItem?.typeState,
+                    false,
+                    theme
                   ),
                 }}
               />
@@ -165,7 +167,7 @@ export default function Slot(props) {
                   isHover ? classes.rootAvatarHover : classes.rootAvatarDefault
                 }
               >
-                {!!item ? feedSource(item, charge) : slotIcon(props)}
+                {!!item ? feedSource(item, charge) : slotIcon(props, theme)}
               </Avatar>
             </SlotMetaBadge>
           </SlotChargeBadge>
@@ -223,7 +225,7 @@ function getLoadableDrone(ship) {
   return { size: droneSize };
 }
 
-function slotIcon(props) {
+function slotIcon(props, theme) {
   switch (props.variant) {
     case "SHIP":
       return (
@@ -233,20 +235,22 @@ function slotIcon(props) {
           placement="right"
           arrow
         >
-          {capsuleSVG}
+          <div style={{ height: 24 }}>
+            <CapsuleIcon color={theme.palette.text.primary} />
+          </div>
         </Tooltip>
       );
     case "MISC_SLOT":
-      return miscSVG;
+      return <MiscIcon color={theme.palette.text.primary} />;
     case "HIGH_SLOT":
-      return highSlotSVG;
+      return <HighSlotIcon color={theme.palette.text.primary} />;
     case "MID_SLOT":
-      return midSlotSVG;
+      return <MidSlotIcon color={theme.palette.text.primary} />;
     case "LOW_SLOT":
-      return lowSlotSVG;
+      return <LowSlotIcon color={theme.palette.text.primary} />;
     case "RIG_SLOT":
-      return rigSlotSVG;
+      return <RigSlotIcon color={theme.palette.text.primary} />;
     case "DRONE_SLOT":
-      return droneSVG;
+      return <DroneIcon color={theme.palette.text.primary} />;
   }
 }

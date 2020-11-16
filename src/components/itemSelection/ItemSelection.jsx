@@ -1,10 +1,16 @@
 import React from "react";
-import { ListItem, ListItemText, Avatar, makeStyles } from "@material-ui/core";
+import {
+  ListItem,
+  ListItemText,
+  Avatar,
+  makeStyles,
+  useTheme,
+} from "@material-ui/core";
 
 const useStyle = makeStyles((theme) => ({
   root: {
     padding: "8px 16px 8px 16px",
-    backgroundColor: "#F5F5F5",
+    backgroundColor: "rgba(0, 0, 0, 0)",
   },
   rootAvatar: {
     width: 10,
@@ -15,6 +21,7 @@ const useStyle = makeStyles((theme) => ({
 
 export default function ItemSelection(props) {
   const classes = useStyle();
+  const theme = useTheme();
 
   return (
     <ListItem
@@ -25,7 +32,7 @@ export default function ItemSelection(props) {
     >
       <Avatar
         style={{
-          backgroundColor: getTechColor(props.itemData),
+          backgroundColor: getTechColor(props.itemData, theme),
         }}
         className={classes.rootAvatar}
       >
@@ -44,14 +51,14 @@ const handleItemClick = (props) => () => {
   props.outboundSetItem && props.outboundSetItem(props.itemData);
 };
 
-function getTechColor(item) {
+function getTechColor(item, theme) {
   if (!item) return undefined;
 
   const typeMetaGroupID = item.typeMetaGroupID;
   switch (typeMetaGroupID) {
     //tech1
     case 1:
-      return "#F5F5F5";
+      return theme.palette.action.hover;
     //tech2
     case 2:
       return "#f59500";
@@ -74,6 +81,6 @@ function getTechColor(item) {
     case 15:
       return "#ad0000";
     default:
-      return "#F5F5F5";
+      return theme.palette.action.hover;
   }
 }

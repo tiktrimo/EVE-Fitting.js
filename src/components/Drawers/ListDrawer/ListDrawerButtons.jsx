@@ -1,28 +1,56 @@
 import React from "react";
-import { Grid, Tooltip } from "@material-ui/core";
+import { Grid, makeStyles, Tooltip, useTheme } from "@material-ui/core";
 import CloseIcon from "@material-ui/icons/Close";
 import InfoIcon from "@material-ui/icons/Info";
 import RecButton from "../RecButton";
 import HighlightOffIcon from "@material-ui/icons/HighlightOff";
 import ExposurePlus1Icon from "@material-ui/icons/ExposurePlus1";
-import { red, blue, orange, green } from "@material-ui/core/colors";
 import SetStateMenu from "./SetStateMenu";
 import SyncIcon from "@material-ui/icons/Sync";
 import SyncDisabledIcon from "@material-ui/icons/SyncDisabled";
 import { useState } from "react";
 import { useEffect } from "react";
 
+const useStyles = makeStyles((theme) => ({
+  deleteButton: {
+    width: "100%",
+    minWidth: 20,
+    backgroundColor: theme.palette.property.red,
+    color: theme.palette.button.color,
+  },
+  ammoDeleteButton: {
+    width: "100%",
+    minWidth: 20,
+    backgroundColor: theme.palette.property.orange,
+    color: theme.palette.button.color,
+  },
+  showInfoButton: {
+    width: "100%",
+    minWidth: 20,
+    backgroundColor: theme.palette.property.blue,
+    color: theme.palette.button.color,
+  },
+  addButton: {
+    width: "100%",
+    minWidth: 20,
+    backgroundColor: theme.palette.property.green,
+    color: theme.palette.button.color,
+  },
+  loopOrNotButton: {
+    width: "100%",
+    minWidth: 20,
+    color: theme.palette.button.color,
+  },
+}));
+
 const DeleteButton = function (props) {
+  const classes = useStyles();
+
   return (
     <Tooltip title="Delete" placement="bottom" arrow>
       <div>
         <RecButton
-          style={{
-            width: "100%",
-            minWidth: 20,
-            backgroundColor: red[500],
-            color: "#ffffff",
-          }}
+          className={classes.deleteButton}
           onClick={() => props.setItem("DEL")}
           disabled={!props.activeItem?.typeID}
         >
@@ -33,16 +61,13 @@ const DeleteButton = function (props) {
   );
 };
 const AmmoDeleteButton = function (props) {
+  const classes = useStyles();
+
   return (
     <Tooltip title="Delete ammo" placement="bottom" arrow>
       <div>
         <RecButton
-          style={{
-            width: "100%",
-            minWidth: 20,
-            backgroundColor: orange[500],
-            color: "#ffffff",
-          }}
+          className={classes.ammoDeleteButton}
           onClick={() => {
             props.dispatchListItems({ type: "AMMO", payload: "DEL" });
           }}
@@ -55,16 +80,13 @@ const AmmoDeleteButton = function (props) {
   );
 };
 const ShowInfoButton = function (props) {
+  const classes = useStyles();
+
   return (
     <Tooltip title="Information" placement="bottom" arrow>
       <div>
         <RecButton
-          style={{
-            width: "100%",
-            minWidth: 20,
-            backgroundColor: blue[500],
-            color: "#ffffff",
-          }}
+          className={classes.showInfoButton}
           onClick={() => {
             props.dispatchSlotsOpen({
               type: "STAT",
@@ -84,16 +106,13 @@ const ShowInfoButton = function (props) {
   );
 };
 const AddButton = function (props) {
+  const classes = useStyles();
+
   return (
     <Tooltip title="Add drone" placement="bottom" arrow>
       <div>
         <RecButton
-          style={{
-            width: "100%",
-            minWidth: 20,
-            backgroundColor: green[500],
-            color: "#ffffff",
-          }}
+          className={classes.addButton}
           onClick={() => {
             props.dispatchListItems({
               type: "DRONE_SLOT",
@@ -110,6 +129,8 @@ const AddButton = function (props) {
 };
 const LoopOrNotButton = function (props) {
   const [isLoop, setIsLoop] = useState(true);
+  const classes = useStyles();
+  const theme = useTheme();
 
   useEffect(() => {
     if (props.liftedIsLoop !== isLoop) setIsLoop(props.liftedIsLoop);
@@ -119,11 +140,11 @@ const LoopOrNotButton = function (props) {
     <Tooltip title="Loop through slots" placement="bottom" arrow>
       <div>
         <RecButton
+          className={classes.loopOrNotButton}
           style={{
-            width: "100%",
-            minWidth: 20,
-            backgroundColor: isLoop ? green[500] : red[500],
-            color: "#ffffff",
+            backgroundColor: isLoop
+              ? theme.palette.property.green
+              : theme.palette.property.red,
           }}
           onClick={() => {
             props.setItem("LOOPLOOP");

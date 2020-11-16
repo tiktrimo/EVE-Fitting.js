@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import LinearProgressLabel from "./LinearProgressLabel";
-import { alphaSVG, DroneDamageSVG } from "../../Icons/damageIcons";
-import { turretSVG } from "../../Icons/resourceIcons";
+import { AlphaIcon, DroneDamageSVG } from "../../Icons/damageIcons";
+import { TurretIcon } from "../../Icons/resourceIcons";
 import {
   Tooltip,
   Grid,
@@ -9,54 +9,22 @@ import {
   Collapse,
   ListItem,
   List,
+  useTheme,
 } from "@material-ui/core";
-import { red } from "@material-ui/core/colors";
 import DamageRangeListItem from "./DamageRangeListItem";
 
 const WeaponDps = (props) => {
+  const theme = useTheme();
+
   return (
     <LinearProgressLabel
       value={0}
       label={props.label}
-      backgroundColor={"#ffffff"}
+      backgroundColor={theme.palette.background.paper}
       Icon={
         <Tooltip title="Weapon DPS" placement="left" arrow>
-          {turretSVG}
-        </Tooltip>
-      }
-      typographyProps={{
-        style: { fontSize: 14, fontWeight: 700, color: "#000000" },
-      }}
-    />
-  );
-};
-const WeaponAlpha = (props) => {
-  return (
-    <LinearProgressLabel
-      value={0}
-      label={props.label}
-      backgroundColor={"#ffffff"}
-      Icon={
-        <Tooltip title="Alpha Damage" placement="left" arrow>
-          {alphaSVG}
-        </Tooltip>
-      }
-      typographyProps={{
-        style: { fontSize: 14, fontWeight: 700, color: "#000000" },
-      }}
-    />
-  );
-};
-const DroneDps = (props) => {
-  return (
-    <LinearProgressLabel
-      value={0}
-      label={props.label}
-      backgroundColor={"#ffffff"}
-      Icon={
-        <Tooltip title="Drone DPS" placement="left" arrow>
           <div style={{ height: 24 }}>
-            <DroneDamageSVG color={props.isError ? red[500] : "#000000"} />
+            <TurretIcon color={theme.palette.text.primary} />
           </div>
         </Tooltip>
       }
@@ -64,7 +32,65 @@ const DroneDps = (props) => {
         style: {
           fontSize: 14,
           fontWeight: 700,
-          color: props.isError ? red[500] : "#000000",
+          color: theme.palette.text.primary,
+        },
+      }}
+    />
+  );
+};
+const WeaponAlpha = (props) => {
+  const theme = useTheme();
+
+  return (
+    <LinearProgressLabel
+      value={0}
+      label={props.label}
+      backgroundColor={theme.palette.background.paper}
+      Icon={
+        <Tooltip title="Alpha Damage" placement="left" arrow>
+          <div style={{ height: 24 }}>
+            <AlphaIcon color={theme.palette.text.primary} />
+          </div>
+        </Tooltip>
+      }
+      typographyProps={{
+        style: {
+          fontSize: 14,
+          fontWeight: 700,
+          color: theme.palette.text.primary,
+        },
+      }}
+    />
+  );
+};
+const DroneDps = (props) => {
+  const theme = useTheme();
+
+  return (
+    <LinearProgressLabel
+      value={0}
+      label={props.label}
+      backgroundColor={theme.palette.background.paper}
+      Icon={
+        <Tooltip title="Drone DPS" placement="left" arrow>
+          <div style={{ height: 24 }}>
+            <DroneDamageSVG
+              color={
+                props.isError
+                  ? theme.palette.property.red
+                  : theme.palette.text.primary
+              }
+            />
+          </div>
+        </Tooltip>
+      }
+      typographyProps={{
+        style: {
+          fontSize: 14,
+          fontWeight: 700,
+          color: props.isError
+            ? theme.palette.property.red
+            : theme.palette.text.primary,
         },
       }}
     />
@@ -91,6 +117,7 @@ const useStyles = makeStyles((theme) => ({
 
 export default function Damage(props) {
   const classes = useStyles();
+  const theme = useTheme();
 
   const [open, setOpen] = useState(true);
 

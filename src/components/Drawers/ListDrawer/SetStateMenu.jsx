@@ -1,35 +1,53 @@
 import React from "react";
 import RecButton from "../RecButton";
-import { red, orange, green, grey } from "@material-ui/core/colors";
 import RecMenu from "../RecMenu";
 import Fit from "../../../fitter/src/Fit";
 import { useEffect } from "react";
 import { useState } from "react";
-import { makeStyles, Tooltip } from "@material-ui/core";
+import { makeStyles, Tooltip, useTheme } from "@material-ui/core";
 import {
-  passiveSvg,
-  activationSvg,
-  overloadSvg,
-  offlineSvg,
+  PassiveIcon,
+  ActivationIcon,
+  OverloadIcon,
+  OfflineIcon,
 } from "../../Icons/stateIcons";
 
 const useStyles = makeStyles((theme) => ({
   rootButton: {
-    width: 40,
+    width: "100%",
+    minWidth: 20,
+  },
+  overloadButton: {
+    width: "100%",
+    minWidth: 20,
+    backgroundColor: theme.palette.property.red,
+  },
+  activationButton: {
+    width: "100%",
+    minWidth: 20,
+    backgroundColor: theme.palette.property.green,
+  },
+  passiveButton: {
+    width: "100%",
+    minWidth: 20,
+    backgroundColor: theme.palette.property.orange,
+  },
+  offlineButton: {
+    width: "100%",
+    minWidth: 20,
+    backgroundColor: theme.palette.property.grey,
   },
 }));
 
 const OverloadButton = (props) => {
+  const classes = useStyles();
+  const theme = useTheme();
+
   return (
     <Tooltip title="Overload" placement="left" arrow>
       <div>
         <RecButton
-          style={{
-            width: "100%",
-            minWidth: 20,
-            backgroundColor: red[500],
-            color: "#ffffff",
-          }}
+          className={classes.overloadButton}
           onClick={() => {
             props.dispatchListItems({
               type: props.variant,
@@ -38,23 +56,27 @@ const OverloadButton = (props) => {
           }}
           disabled={props.disabled}
         >
-          {overloadSvg}
+          <OverloadIcon
+            color={
+              props.disabled
+                ? theme.palette.background.paper
+                : theme.palette.button.color
+            }
+          />
         </RecButton>
       </div>
     </Tooltip>
   );
 };
 const ActivationButton = (props) => {
+  const classes = useStyles();
+  const theme = useTheme();
+
   return (
     <Tooltip title="Active" placement="left" arrow>
       <div>
         <RecButton
-          style={{
-            width: "100%",
-            minWidth: 20,
-            backgroundColor: green[500],
-            color: "#ffffff",
-          }}
+          className={classes.activationButton}
           onClick={() => {
             props.dispatchListItems({
               type: props.variant,
@@ -63,23 +85,27 @@ const ActivationButton = (props) => {
           }}
           disabled={props.disabled}
         >
-          {activationSvg}
+          <ActivationIcon
+            color={
+              props.disabled
+                ? theme.palette.background.paper
+                : theme.palette.button.color
+            }
+          />
         </RecButton>
       </div>
     </Tooltip>
   );
 };
 const PassiveButton = (props) => {
+  const classes = useStyles();
+  const theme = useTheme();
+
   return (
     <Tooltip title="Online" placement="left" arrow>
       <div>
         <RecButton
-          style={{
-            width: "100%",
-            minWidth: 20,
-            backgroundColor: orange[500],
-            color: "#ffffff",
-          }}
+          className={classes.passiveButton}
           onClick={() => {
             props.dispatchListItems({
               type: props.variant,
@@ -88,23 +114,27 @@ const PassiveButton = (props) => {
           }}
           disabled={props.disabled}
         >
-          {passiveSvg}
+          <PassiveIcon
+            color={
+              props.disabled
+                ? theme.palette.background.paper
+                : theme.palette.button.color
+            }
+          />
         </RecButton>
       </div>
     </Tooltip>
   );
 };
 const OfflineButton = (props) => {
+  const classes = useStyles();
+  const theme = useTheme();
+
   return (
     <Tooltip title="Offline" placement="left" arrow>
       <div>
         <RecButton
-          style={{
-            width: "100%",
-            minWidth: 20,
-            backgroundColor: grey[500],
-            color: "#ffffff",
-          }}
+          className={classes.offlineButton}
           onClick={() => {
             props.dispatchListItems({
               type: props.variant,
@@ -113,7 +143,13 @@ const OfflineButton = (props) => {
           }}
           disabled={props.disabled}
         >
-          {offlineSvg}
+          <OfflineIcon
+            color={
+              props.disabled
+                ? theme.palette.background.paper
+                : theme.palette.button.color
+            }
+          />
         </RecButton>
       </div>
     </Tooltip>
@@ -122,6 +158,8 @@ const OfflineButton = (props) => {
 
 export default function SetStateMenu(props) {
   const classes = useStyles();
+  const theme = useTheme();
+
   const [isActiveModule, setIsActiveModule] = useState(true);
 
   useEffect(() => {
@@ -145,21 +183,23 @@ export default function SetStateMenu(props) {
         <RecButton
           className={classes.rootButton}
           style={{
-            width: "100%",
-            minWidth: 20,
             backgroundColor: getCurrentStateColor(
               props.activeItem?.typeState,
-              props.variant === "AMMO"
+              props.variant === "AMMO",
+              theme
             ),
-            color: "#ffffff",
           }}
           disabled={!props.activeItem?.typeID}
         >
           <Tooltip title="Item state" placement="bottom" arrow>
-            {getCurrentStateIcon(
-              props.activeItem?.typeState,
-              props.variant === "AMMO"
-            )}
+            <div style={{ height: 24 }}>
+              {getCurrentStateIcon(
+                props.activeItem?.typeState,
+                props.variant === "AMMO",
+                !props.activeItem?.typeID,
+                theme
+              )}
+            </div>
           </Tooltip>
         </RecButton>
       }
@@ -190,32 +230,73 @@ export default function SetStateMenu(props) {
     </RecMenu>
   );
 }
-export function getCurrentStateColor(state, isAmmo = false) {
-  if (isAmmo === true) return orange[500];
+export function getCurrentStateColor(state, isAmmo = false, theme) {
+  if (isAmmo === true) return theme.palette.property.org;
   switch (state) {
     case "overload":
-      return red[500];
+      return theme.palette.property.red;
     case "activation":
-      return green[500];
+      return theme.palette.property.green;
     case "passive":
-      return orange[500];
+      return theme.palette.property.org;
     case "offline":
-      return grey[500];
+      return theme.palette.property.grey;
     default:
-      return "#ffffff00";
+      return theme.palette.action.hover;
   }
 }
-function getCurrentStateIcon(state, isAmmo = false) {
-  if (isAmmo === true) return passiveSvg;
+function getCurrentStateIcon(state, isAmmo, isDisabled, theme) {
+  if (isAmmo === true)
+    return (
+      <PassiveIcon
+        color={
+          isDisabled
+            ? theme.palette.background.paper
+            : theme.palette.button.color
+        }
+      />
+    );
   switch (state) {
     case "overload":
-      return overloadSvg;
+      return (
+        <OverloadIcon
+          color={
+            isDisabled
+              ? theme.palette.background.paper
+              : theme.palette.button.color
+          }
+        />
+      );
     case "activation":
-      return activationSvg;
+      return (
+        <ActivationIcon
+          color={
+            isDisabled
+              ? theme.palette.background.paper
+              : theme.palette.button.color
+          }
+        />
+      );
     case "passive":
-      return passiveSvg;
+      return (
+        <PassiveIcon
+          color={
+            isDisabled
+              ? theme.palette.background.paper
+              : theme.palette.button.color
+          }
+        />
+      );
     case "offline":
     default:
-      return offlineSvg;
+      return (
+        <OfflineIcon
+          color={
+            isDisabled
+              ? theme.palette.background.paper
+              : theme.palette.button.color
+          }
+        />
+      );
   }
 }

@@ -1,6 +1,5 @@
 import React from "react";
-import { green, orange, grey, blueGrey } from "@material-ui/core/colors";
-import { makeStyles, Typography, ListItem } from "@material-ui/core";
+import { makeStyles, Typography, ListItem, useTheme } from "@material-ui/core";
 import { useEffect } from "react";
 import { useState } from "react";
 
@@ -27,6 +26,16 @@ const useStyles = makeStyles((theme) => ({
     color: "#ffffff",
     fontWeight: 700,
   },
+  optimalRangeLabel: {
+    fontSize: 14,
+    fontWeight: 700,
+    color: theme.palette.text.primary,
+  },
+  rangeFont: {
+    fontSize: 14,
+    fontWeight: 700,
+    color: theme.palette.text.primary,
+  },
 }));
 
 const PostIt = (props) => {
@@ -49,23 +58,33 @@ const PostIt = (props) => {
 };
 
 const OptimalRangeBar = (props) => {
+  const classes = useStyles();
+  const theme = useTheme();
+
   return (
-    <PostIt share={props.share.optimalRangeShare} index={0} color={green[500]}>
-      <Typography style={{ fontSize: 14, fontWeight: 700 }} align="right">
+    <PostIt
+      share={props.share.optimalRangeShare}
+      index={0}
+      color={theme.palette.property.green}
+    >
+      <Typography className={classes.rangeFont} align="right">
         {`${(props.share.optimalRange / 1000).toFixed(1)}KM`}
       </Typography>
     </PostIt>
   );
 };
 const FalloffRangeBar = (props) => {
+  const classes = useStyles();
+  const theme = useTheme();
+
   return (
     props.share.falloffRange > 0 && (
       <PostIt
         share={props.share.falloffRangeShare}
         index={1}
-        color={orange[500]}
+        color={theme.palette.property.org}
       >
-        <Typography style={{ fontSize: 14, fontWeight: 700 }} align="right">
+        <Typography className={classes.rangeFont} align="right">
           {
             //prettier-ignore
             `${((props.share.optimalRange + props.share.falloffRange) / 1000).toFixed(1)}KM`
@@ -78,6 +97,7 @@ const FalloffRangeBar = (props) => {
 
 export default function DamageRangeListItem(props) {
   const classes = useStyles();
+  const theme = useTheme();
 
   const [shares, setShares] = useState([]);
 
@@ -92,7 +112,11 @@ export default function DamageRangeListItem(props) {
         key={`${share.optimalRangeShare}/${share.falloffRangeShare}`}
       >
         <div className={classes.rootDiv}>
-          <PostIt share={100} index={2} color={blueGrey[200]} />
+          <PostIt
+            share={100}
+            index={2}
+            color={theme.palette.property.greySecondary}
+          />
           <FalloffRangeBar share={share} />
           <OptimalRangeBar share={share} />
           <Typography className={classes.label}>

@@ -599,7 +599,7 @@ export default class Fit {
   };
   static #createBoard_setState = function (type) {
     if (!type && type !== 0) return undefined;
-    if (type.iconID === 33) return "passive"; // if type is skill
+    if (!type.typeEffectsStats || type.iconID === 33) return "passive"; // if type is skill
     const initialState = type.typeEffectsStats.reduce((acc, efft) => {
       if (
         (efft.effectCategory === "activation" && efft.effectID !== 16) ||

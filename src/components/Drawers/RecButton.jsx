@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, makeStyles } from "@material-ui/core";
+import { Button, makeStyles, useTheme } from "@material-ui/core";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -10,6 +10,7 @@ const useStyles = makeStyles((theme) => ({
 
 export default function RecButton(props) {
   const classes = useStyles();
+  const theme = useTheme();
 
   return (
     <Button
@@ -18,7 +19,11 @@ export default function RecButton(props) {
       variant="contained"
       style={
         props.disabled === true
-          ? { ...props.style, backgroundColor: "#f5f5f5", color: "#ffffff" }
+          ? {
+              ...props.style,
+              backgroundColor: theme.palette.action.hover,
+              color: theme.palette.background.paper,
+            }
           : { ...props.style }
       }
       disableElevation
