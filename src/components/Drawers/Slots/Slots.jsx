@@ -65,7 +65,6 @@ export default function Slots(props) {
 
   //Import fitText using EFT class
   useEffect(() => {
-    console.log(props.importFitText);
     if (props.importFitText !== false) importSlots(props, setters);
   }, [props.importFitText]);
 
@@ -259,7 +258,7 @@ function importSlots(props, setters) {
     const charges = new Array(slotCount).fill(false);
 
     const slots = fitFromText[translateVariant(props.variant)] || [];
-    console.log(translateVariant(props.variant), slotCount, slots);
+
     //prettier-ignore
     slots.forEach((slot, index) => {
       items[index] = !!slot.item && { ...slot.item, typeState: "activation" };

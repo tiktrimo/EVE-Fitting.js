@@ -52,7 +52,7 @@ const darkTheme = createMuiTheme({
       grey: blueGrey[400],
       greySecondary: blueGrey[200],
       org: "#ff994d", // For some f'ed reson using "orange"name make problem.
-      orgSecondary: "#f3cb90", // So instead of looking for some problem jusy used or(an)g(e)
+      orgSecondary: "#f3cb90", // So instead of looking for problem just used or(an)g(e)
       green: green[500],
     },
   },

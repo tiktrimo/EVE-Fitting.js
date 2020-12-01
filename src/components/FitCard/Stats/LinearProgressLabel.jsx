@@ -10,6 +10,11 @@ import {
 import { useCallback } from "react";
 
 const useStyles = makeStyles((theme) => ({
+  root: {
+    height: 20,
+    position: "relative",
+    width: "100%",
+  },
   rootGrid: {
     width: "100%",
     height: "100%",
@@ -32,6 +37,11 @@ const useStyles = makeStyles((theme) => ({
   label: {
     fontSize: 12,
     color: "#ffffff",
+  },
+  description: {
+    fontSize: 14,
+    fontWeight: 700,
+    color: theme.palette.text.secondary,
   },
 }));
 
@@ -58,7 +68,7 @@ export default function LinearProgressLabel(props) {
   );
 
   return (
-    <Grid style={{ height: 20, position: "relative" }}>
+    <Grid className={classes.root}>
       <Grid className={classes.rootGrid}>
         <LinearProgressFixed
           className={classes.progress}
@@ -70,6 +80,12 @@ export default function LinearProgressLabel(props) {
         {props.Icon}
         <Typography className={classes.label} {...props.typographyProps}>
           {props.label}
+        </Typography>
+        <Typography
+          className={classes.description}
+          style={{ paddingLeft: !!props.description ? 5 : 0 }}
+        >
+          {props.description}
         </Typography>
       </Grid>
     </Grid>
