@@ -67,6 +67,7 @@ export default function SlotChargeBadge(props) {
     } else if (
       !Fit.validateChargeSlot({ item: props.item, charge: props.charge })
     ) {
+      console.log("NO!");
       // Charge not compatible
       setBadgeColor({
         color: theme.palette.background.paper,
@@ -132,10 +133,10 @@ export function getLoadableGroup(item) {
   // Charge size[attributeID] = 128
   const loadableSize = typeAttributesStats.find(
     (attr) => attr.attributeID === 128
-  );
+  )?.value;
 
   return {
     group: loadableGroupIDs,
-    size: loadableSize?.value,
+    size: loadableSize,
   };
 }

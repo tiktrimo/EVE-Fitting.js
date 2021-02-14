@@ -30,6 +30,7 @@ export default React.memo(function ListDrawers(props) {
       ].map((variant) => {
         return (
           <ListDrawer
+            tag={props.tag}
             key={variant}
             variant={variant}
             activeItem={activeItem}

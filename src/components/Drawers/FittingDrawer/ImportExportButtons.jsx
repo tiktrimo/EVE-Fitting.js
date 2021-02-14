@@ -40,7 +40,9 @@ export default function ImportExportButtons(props) {
 
   const [openAlert, setOpenAlert] = useState(false);
 
-  const [title, setTitle] = useState("Welcome to Fitting.js");
+  const [title, setTitle] = useState(
+    "Something went wrong ㅠㅜ. reload the page"
+  );
   const [text, setText] = useState(false);
 
   const handleImportClick = useCallback(() => {

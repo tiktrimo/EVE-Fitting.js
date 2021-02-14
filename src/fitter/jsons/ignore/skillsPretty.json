@@ -2620,6 +2620,7 @@
             "modifiedAttributeID": 114,
             "modifyingAttributeID": 292,
             "operation": "postPercent",
+            "skillTypeID": 3320,
             "modifiedAttributeHighIsGood": true,
             "modifiedAttributeStackable": true
           },
@@ -2629,6 +2630,7 @@
             "modifiedAttributeID": 116,
             "modifyingAttributeID": 292,
             "operation": "postPercent",
+            "skillTypeID": 3320,
             "modifiedAttributeHighIsGood": true,
             "modifiedAttributeStackable": true
           },
@@ -2638,6 +2640,7 @@
             "modifiedAttributeID": 117,
             "modifyingAttributeID": 292,
             "operation": "postPercent",
+            "skillTypeID": 3320,
             "modifiedAttributeHighIsGood": true,
             "modifiedAttributeStackable": true
           },
@@ -2647,6 +2650,7 @@
             "modifiedAttributeID": 118,
             "modifyingAttributeID": 292,
             "operation": "postPercent",
+            "skillTypeID": 3320,
             "modifiedAttributeHighIsGood": true,
             "modifiedAttributeStackable": true
           }
@@ -2788,6 +2792,7 @@
             "modifiedAttributeID": 114,
             "modifyingAttributeID": 292,
             "operation": "postPercent",
+            "skillTypeID": 3321,
             "modifiedAttributeHighIsGood": true,
             "modifiedAttributeStackable": true
           },
@@ -2797,6 +2802,7 @@
             "modifiedAttributeID": 116,
             "modifyingAttributeID": 292,
             "operation": "postPercent",
+            "skillTypeID": 3321,
             "modifiedAttributeHighIsGood": true,
             "modifiedAttributeStackable": true
           },
@@ -2806,6 +2812,7 @@
             "modifiedAttributeID": 117,
             "modifyingAttributeID": 292,
             "operation": "postPercent",
+            "skillTypeID": 3321,
             "modifiedAttributeHighIsGood": true,
             "modifiedAttributeStackable": true
           },
@@ -2815,6 +2822,7 @@
             "modifiedAttributeID": 118,
             "modifyingAttributeID": 292,
             "operation": "postPercent",
+            "skillTypeID": 3321,
             "modifiedAttributeHighIsGood": true,
             "modifiedAttributeStackable": true
           }
@@ -2956,6 +2964,7 @@
             "modifiedAttributeID": 114,
             "modifyingAttributeID": 292,
             "operation": "postPercent",
+            "skillTypeID": 3322,
             "modifiedAttributeHighIsGood": true,
             "modifiedAttributeStackable": true
           },
@@ -2965,6 +2974,7 @@
             "modifiedAttributeID": 116,
             "modifyingAttributeID": 292,
             "operation": "postPercent",
+            "skillTypeID": 3322,
             "modifiedAttributeHighIsGood": true,
             "modifiedAttributeStackable": true
           },
@@ -2974,6 +2984,7 @@
             "modifiedAttributeID": 117,
             "modifyingAttributeID": 292,
             "operation": "postPercent",
+            "skillTypeID": 3322,
             "modifiedAttributeHighIsGood": true,
             "modifiedAttributeStackable": true
           },
@@ -2983,6 +2994,7 @@
             "modifiedAttributeID": 118,
             "modifyingAttributeID": 292,
             "operation": "postPercent",
+            "skillTypeID": 3322,
             "modifiedAttributeHighIsGood": true,
             "modifiedAttributeStackable": true
           }
@@ -3245,6 +3257,7 @@
             "modifiedAttributeID": 114,
             "modifyingAttributeID": 292,
             "operation": "postPercent",
+            "skillTypeID": 3324,
             "modifiedAttributeHighIsGood": true,
             "modifiedAttributeStackable": true
           },
@@ -3254,6 +3267,7 @@
             "modifiedAttributeID": 116,
             "modifyingAttributeID": 292,
             "operation": "postPercent",
+            "skillTypeID": 3324,
             "modifiedAttributeHighIsGood": true,
             "modifiedAttributeStackable": true
           },
@@ -3263,6 +3277,7 @@
             "modifiedAttributeID": 117,
             "modifyingAttributeID": 292,
             "operation": "postPercent",
+            "skillTypeID": 3324,
             "modifiedAttributeHighIsGood": true,
             "modifiedAttributeStackable": true
           },
@@ -3272,6 +3287,7 @@
             "modifiedAttributeID": 118,
             "modifyingAttributeID": 292,
             "operation": "postPercent",
+            "skillTypeID": 3324,
             "modifiedAttributeHighIsGood": true,
             "modifiedAttributeStackable": true
           }
@@ -3427,6 +3443,7 @@
             "modifiedAttributeID": 114,
             "modifyingAttributeID": 292,
             "operation": "postPercent",
+            "skillTypeID": 3325,
             "modifiedAttributeHighIsGood": true,
             "modifiedAttributeStackable": true
           },
@@ -3436,6 +3453,7 @@
             "modifiedAttributeID": 116,
             "modifyingAttributeID": 292,
             "operation": "postPercent",
+            "skillTypeID": 3325,
             "modifiedAttributeHighIsGood": true,
             "modifiedAttributeStackable": true
           },
@@ -3445,6 +3463,7 @@
             "modifiedAttributeID": 117,
             "modifyingAttributeID": 292,
             "operation": "postPercent",
+            "skillTypeID": 3325,
             "modifiedAttributeHighIsGood": true,
             "modifiedAttributeStackable": true
           },
@@ -3454,6 +3473,7 @@
             "modifiedAttributeID": 118,
             "modifyingAttributeID": 292,
             "operation": "postPercent",
+            "skillTypeID": 3325,
             "modifiedAttributeHighIsGood": true,
             "modifiedAttributeStackable": true
           }
@@ -3609,6 +3629,7 @@
             "modifiedAttributeID": 114,
             "modifyingAttributeID": 292,
             "operation": "postPercent",
+            "skillTypeID": 3326,
             "modifiedAttributeHighIsGood": true,
             "modifiedAttributeStackable": true
           },
@@ -3618,6 +3639,7 @@
             "modifiedAttributeID": 116,
             "modifyingAttributeID": 292,
             "operation": "postPercent",
+            "skillTypeID": 3326,
             "modifiedAttributeHighIsGood": true,
             "modifiedAttributeStackable": true
           },
@@ -3627,6 +3649,7 @@
             "modifiedAttributeID": 117,
             "modifyingAttributeID": 292,
             "operation": "postPercent",
+            "skillTypeID": 3326,
             "modifiedAttributeHighIsGood": true,
             "modifiedAttributeStackable": true
           },
@@ -3636,6 +3659,7 @@
             "modifiedAttributeID": 118,
             "modifyingAttributeID": 292,
             "operation": "postPercent",
+            "skillTypeID": 3326,
             "modifiedAttributeHighIsGood": true,
             "modifiedAttributeStackable": true
           }
@@ -14510,6 +14534,7 @@
             "modifiedAttributeID": 64,
             "modifyingAttributeID": 292,
             "operation": "postPercent",
+            "skillTypeID": 3441,
             "modifiedAttributeHighIsGood": true,
             "modifiedAttributeStackable": false,
             "isStackException": true
@@ -22022,6 +22047,7 @@
             "modifiedAttributeID": 64,
             "modifyingAttributeID": 292,
             "operation": "postPercent",
+            "skillTypeID": 12484,
             "modifiedAttributeHighIsGood": true,
             "modifiedAttributeStackable": false,
             "isStackException": true
@@ -22155,6 +22181,7 @@
             "modifiedAttributeID": 64,
             "modifyingAttributeID": 292,
             "operation": "postPercent",
+            "skillTypeID": 12485,
             "modifiedAttributeHighIsGood": true,
             "modifiedAttributeStackable": false,
             "isStackException": true
@@ -22288,6 +22315,7 @@
             "modifiedAttributeID": 64,
             "modifyingAttributeID": 292,
             "operation": "postPercent",
+            "skillTypeID": 12486,
             "modifiedAttributeHighIsGood": true,
             "modifiedAttributeStackable": false,
             "isStackException": true
@@ -22421,6 +22449,7 @@
             "modifiedAttributeID": 64,
             "modifyingAttributeID": 292,
             "operation": "postPercent",
+            "skillTypeID": 12487,
             "modifiedAttributeHighIsGood": true,
             "modifiedAttributeStackable": false,
             "isStackException": true
@@ -24664,6 +24693,7 @@
             "modifiedAttributeID": 51,
             "modifyingAttributeID": 293,
             "operation": "postPercent",
+            "skillTypeID": 20209,
             "modifiedAttributeHighIsGood": false,
             "modifiedAttributeStackable": false,
             "isStackException": true
@@ -24811,6 +24841,7 @@
             "modifiedAttributeID": 51,
             "modifyingAttributeID": 293,
             "operation": "postPercent",
+            "skillTypeID": 20210,
             "modifiedAttributeHighIsGood": false,
             "modifiedAttributeStackable": false,
             "isStackException": true
@@ -24958,6 +24989,7 @@
             "modifiedAttributeID": 51,
             "modifyingAttributeID": 293,
             "operation": "postPercent",
+            "skillTypeID": 20211,
             "modifiedAttributeHighIsGood": false,
             "modifiedAttributeStackable": false,
             "isStackException": true
@@ -25105,6 +25137,7 @@
             "modifiedAttributeID": 51,
             "modifyingAttributeID": 293,
             "operation": "postPercent",
+            "skillTypeID": 20212,
             "modifiedAttributeHighIsGood": false,
             "modifiedAttributeStackable": false,
             "isStackException": true
@@ -25252,6 +25285,7 @@
             "modifiedAttributeID": 51,
             "modifyingAttributeID": 293,
             "operation": "postPercent",
+            "skillTypeID": 20213,
             "modifiedAttributeHighIsGood": false,
             "modifiedAttributeStackable": false,
             "isStackException": true
@@ -31058,6 +31092,7 @@
             "modifiedAttributeID": 64,
             "modifyingAttributeID": 292,
             "operation": "postPercent",
+            "skillTypeID": 23594,
             "modifiedAttributeHighIsGood": true,
             "modifiedAttributeStackable": false,
             "isStackException": true
@@ -31699,6 +31734,7 @@
             "modifiedAttributeID": 64,
             "modifyingAttributeID": 292,
             "operation": "postPercent",
+            "skillTypeID": 24241,
             "modifiedAttributeHighIsGood": true,
             "modifiedAttributeStackable": false,
             "isStackException": true
@@ -34955,6 +34991,7 @@
             "modifiedAttributeID": 51,
             "modifyingAttributeID": 293,
             "operation": "postPercent",
+            "skillTypeID": 25718,
             "modifiedAttributeHighIsGood": false,
             "modifiedAttributeStackable": false,
             "isStackException": true
@@ -35111,6 +35148,7 @@
             "modifiedAttributeID": 114,
             "modifyingAttributeID": 292,
             "operation": "postPercent",
+            "skillTypeID": 25719,
             "modifiedAttributeHighIsGood": true,
             "modifiedAttributeStackable": true
           },
@@ -35120,6 +35158,7 @@
             "modifiedAttributeID": 116,
             "modifyingAttributeID": 292,
             "operation": "postPercent",
+            "skillTypeID": 25719,
             "modifiedAttributeHighIsGood": true,
             "modifiedAttributeStackable": true
           },
@@ -35129,6 +35168,7 @@
             "modifiedAttributeID": 117,
             "modifyingAttributeID": 292,
             "operation": "postPercent",
+            "skillTypeID": 25719,
             "modifiedAttributeHighIsGood": true,
             "modifiedAttributeStackable": true
           },
@@ -35138,6 +35178,7 @@
             "modifiedAttributeID": 118,
             "modifyingAttributeID": 292,
             "operation": "postPercent",
+            "skillTypeID": 25719,
             "modifiedAttributeHighIsGood": true,
             "modifiedAttributeStackable": true
           }
@@ -44542,6 +44583,7 @@
             "modifiedAttributeID": 64,
             "modifyingAttributeID": 292,
             "operation": "postPercent",
+            "skillTypeID": 33699,
             "modifiedAttributeHighIsGood": true,
             "modifiedAttributeStackable": false,
             "isStackException": true

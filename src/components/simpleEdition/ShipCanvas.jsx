@@ -20,8 +20,10 @@ import ReplayIcon from "@material-ui/icons/Replay";
 
 const useStyles = makeStyles((theme) => ({
   root: {
-    width: "65%",
-    height: "100%",
+    width: "85%",
+    minWidth: 300,
+    maxWidth: 600,
+    height: "80%",
   },
 }));
 
@@ -41,28 +43,16 @@ const hostileAnchorInitial = {
 };
 function hostileAnchorReducer(state, action) {
   switch (action.type) {
-    case "anchor1X":
+    case "anchor1":
       return {
         ...state,
-        anchors: { ...state.anchors, anchor1X: action.value },
+        anchors: { ...state.anchors, ...action.value },
       };
 
-    case "anchor1Y":
+    case "anchor2":
       return {
         ...state,
-        anchors: { ...state.anchors, anchor1Y: action.value },
-      };
-
-    case "anchor2X":
-      return {
-        ...state,
-        anchors: { ...state.anchors, anchor2X: action.value },
-      };
-
-    case "anchor2Y":
-      return {
-        ...state,
-        anchors: { ...state.anchors, anchor2Y: action.value },
+        anchors: { ...state.anchors, ...action.value },
       };
 
     case "vector":
@@ -70,6 +60,7 @@ function hostileAnchorReducer(state, action) {
         ...state,
         vector: { ...state.vector, x: action.value.x, y: action.value.y },
       };
+
     case "perfectVector":
       return {
         ...state,
@@ -97,28 +88,16 @@ const onBoardAnchorInitial = {
 };
 function onBoardAnchorReducer(state, action) {
   switch (action.type) {
-    case "anchor1X":
+    case "anchor1":
       return {
         ...state,
-        anchors: { ...state.anchors, anchor1X: action.value },
+        anchors: { ...state.anchors, ...action.value },
       };
 
-    case "anchor1Y":
+    case "anchor2":
       return {
         ...state,
-        anchors: { ...state.anchors, anchor1Y: action.value },
-      };
-
-    case "anchor2X":
-      return {
-        ...state,
-        anchors: { ...state.anchors, anchor2X: action.value },
-      };
-
-    case "anchor2Y":
-      return {
-        ...state,
-        anchors: { ...state.anchors, anchor2Y: action.value },
+        anchors: { ...state.anchors, ...action.value },
       };
 
     case "vector":
@@ -126,6 +105,7 @@ function onBoardAnchorReducer(state, action) {
         ...state,
         vector: { ...state.vector, x: action.value.x, y: action.value.y },
       };
+
     case "perfectVector":
       return {
         ...state,
@@ -152,7 +132,8 @@ export default function ShipCanvas(props) {
     y: hostileAnchor.anchors.anchor1Y - onBoardAnchor.anchors.anchor1Y,
   });
   const [distance, setDistance] = useState(
-    Math.sqrt(Math.pow(distanceVector.x, 2) + Math.pow(distanceVector.y, 2))
+    Math.sqrt(Math.pow(distanceVector.x, 2) + Math.pow(distanceVector.y, 2)) /
+      100
   );
   const [stageWheel, setStageWheel] = useState(1);
   const [stageScale, setStageScale] = useState(1);
@@ -170,7 +151,6 @@ export default function ShipCanvas(props) {
       type: "vector",
       value: { x: vectorX, y: vectorY },
     });
-    props.hostileVector(hostileAnchor);
   }, [hostileAnchor.anchors.anchor2X, hostileAnchor.anchors.anchor2Y]);
 
   useEffect(() => {
@@ -182,16 +162,19 @@ export default function ShipCanvas(props) {
       type: "vector",
       value: { x: vectorX, y: vectorY },
     });
-    props.onBoardVector(onBoardAnchor);
   }, [onBoardAnchor.anchors.anchor2X, onBoardAnchor.anchors.anchor2Y]);
 
   useEffect(() => {
-    setDistanceVector({
+    const _distanceVector = {
       x: hostileAnchor.anchors.anchor1X - onBoardAnchor.anchors.anchor1X,
       y: hostileAnchor.anchors.anchor1Y - onBoardAnchor.anchors.anchor1Y,
-    });
-    props.onBoardVector(onBoardAnchor);
-    props.hostileVector(hostileAnchor);
+    };
+    const _distance =
+      Math.sqrt(
+        Math.pow(_distanceVector.x, 2) + Math.pow(_distanceVector.y, 2)
+      ) / 100;
+    setDistanceVector(_distanceVector);
+    setDistance(_distance);
   }, [
     hostileAnchor.anchors.anchor1X,
     onBoardAnchor.anchors.anchor1X,
@@ -200,13 +183,15 @@ export default function ShipCanvas(props) {
   ]);
 
   useEffect(() => {
-    const pureDistance =
-      Math.sqrt(Math.pow(distanceVector.x, 2) + Math.pow(distanceVector.y, 2)) /
-      100;
-    setDistance(pureDistance);
-    props.distance(pureDistance);
-    props.distanceVector(distanceVector);
-  }, [distanceVector]);
+    dispatchSituation();
+  }, []);
+
+  const dispatchSituation = useCallback(() => {
+    props.setSituation({
+      onboard: { ...onBoardAnchor },
+      hostile: { ...hostileAnchor },
+    });
+  }, [onBoardAnchor, hostileAnchor, distance]);
 
   const handleResetClick = useCallback(() => {
     setStagePoint({});
@@ -270,6 +255,42 @@ export default function ShipCanvas(props) {
           draggable={isStageDrragable}
         >
           <Layer>
+            <Text
+              x={onBoardAnchor.anchors.anchor1X + onBoardAnchor.vector.x}
+              y={onBoardAnchor.anchors.anchor1Y + onBoardAnchor.vector.y}
+              fill={theme.palette.text.primary}
+              text={`${(
+                Math.sqrt(
+                  Math.pow(onBoardAnchor.vector.x, 2) +
+                    Math.pow(onBoardAnchor.vector.y, 2)
+                ) * 3
+              ).toFixed(1)}m/s`}
+              fontSize={12 / stageScale}
+              offsetX={-2}
+            />
+            <Text
+              x={hostileAnchor.anchors.anchor1X + hostileAnchor.vector.x}
+              y={hostileAnchor.anchors.anchor1Y + hostileAnchor.vector.y}
+              fill={theme.palette.text.primary}
+              text={`${(
+                Math.sqrt(
+                  Math.pow(hostileAnchor.vector.x, 2) +
+                    Math.pow(hostileAnchor.vector.y, 2)
+                ) * 3
+              ).toFixed(1)}m/s`}
+              fontSize={12 / stageScale}
+              offsetX={-2}
+            />
+            <Text
+              x={hostileAnchor.anchors.anchor1X + 12 / stageScale}
+              y={hostileAnchor.anchors.anchor1Y - 15 / stageScale}
+              fontSize={12 / stageScale}
+              fill={theme.palette.text.primary}
+              text={`${angleBetweenTwoVectors(
+                distanceVector,
+                hostileAnchor.vector
+              ).toFixed(0)}°`}
+            />
             <Arrow
               pointerLength={4 / stageScale}
               pointerWidth={4 / stageScale}
@@ -280,8 +301,8 @@ export default function ShipCanvas(props) {
                 hostileAnchor.anchors.anchor2Y,
               ]}
               strokeWidth={2 / stageScale}
-              stroke={theme.palette.primary.main}
-              fill={theme.palette.primary.main}
+              stroke={theme.palette.property.red}
+              fill={theme.palette.property.red}
             />
             <Circle
               x={hostileAnchor.anchors.anchor1X}
@@ -294,15 +315,7 @@ export default function ShipCanvas(props) {
                 dispatchHostileAnchor,
                 hostileAnchor
               )}
-            />
-            <Text
-              x={hostileAnchor.anchors.anchor1X + 12 / stageScale}
-              y={hostileAnchor.anchors.anchor1Y - 15 / stageScale}
-              fontSize={12 / stageScale}
-              text={`${angleBetweenTwoVectors(
-                distanceVector,
-                hostileAnchor.vector
-              ).toFixed(0)}°`}
+              onDragEnd={dispatchSituation}
             />
             <Circle
               x={hostileAnchor.anchors.anchor2X}
@@ -312,10 +325,13 @@ export default function ShipCanvas(props) {
               radius={10 / stageScale}
               draggable
               onDragMove={handleHostileAnchor2OnDragMove(dispatchHostileAnchor)}
-              onDragEnd={handleHostileAnchor2OnDragEnd(
-                dispatchHostileAnchor,
-                hostileAnchor
-              )}
+              onDragEnd={(e) => {
+                handleHostileAnchor2OnDragEnd(
+                  dispatchHostileAnchor,
+                  hostileAnchor
+                )(e);
+                dispatchSituation();
+              }}
             />
             <Arrow
               pointerLength={4 / stageScale}
@@ -327,8 +343,8 @@ export default function ShipCanvas(props) {
                 onBoardAnchor.anchors.anchor2Y,
               ]}
               strokeWidth={2 / stageScale}
-              stroke={theme.palette.primary.main}
-              fill={theme.palette.primary.main}
+              stroke={theme.palette.property.blue}
+              fill={theme.palette.property.blue}
             />
             <Circle
               x={onBoardAnchor.anchors.anchor1X}
@@ -339,6 +355,7 @@ export default function ShipCanvas(props) {
                 dispatchOnBoardAnchor,
                 onBoardAnchor
               )}
+              onDragEnd={dispatchSituation}
               on
             />
             <Circle
@@ -347,10 +364,13 @@ export default function ShipCanvas(props) {
               radius={20 / stageScale}
               draggable
               onDragMove={handleOnBoardAnchor2OnDragMove(dispatchOnBoardAnchor)}
-              onDragEnd={handleOnBoardAnchor2OnDragEnd(
-                dispatchOnBoardAnchor,
-                onBoardAnchor
-              )}
+              onDragEnd={(e) => {
+                handleOnBoardAnchor2OnDragEnd(
+                  dispatchOnBoardAnchor,
+                  onBoardAnchor
+                )(e);
+                dispatchSituation();
+              }}
             />
             <Line
               points={[
@@ -373,34 +393,11 @@ export default function ShipCanvas(props) {
               y={
               (onBoardAnchor.anchors.anchor1Y + hostileAnchor.anchors.anchor1Y) / 2
             }
+              fill={theme.palette.text.primary}
               fontSize={12 / stageScale}
-              text={`${distance.toFixed(2)}KM`}
+              text={`${distance.toFixed(2)}km`}
               offsetX={-2}
               /* rotation={handleRotation(distanceVector)} */
-            />
-            <Text
-              x={onBoardAnchor.anchors.anchor1X + onBoardAnchor.vector.x}
-              y={onBoardAnchor.anchors.anchor1Y + onBoardAnchor.vector.y}
-              text={(
-                Math.sqrt(
-                  Math.pow(onBoardAnchor.vector.x, 2) +
-                    Math.pow(onBoardAnchor.vector.y, 2)
-                ) * 3
-              ).toFixed(1)}
-              fontSize={12 / stageScale}
-              offsetX={-2}
-            />
-            <Text
-              x={hostileAnchor.anchors.anchor1X + hostileAnchor.vector.x}
-              y={hostileAnchor.anchors.anchor1Y + hostileAnchor.vector.y}
-              text={(
-                Math.sqrt(
-                  Math.pow(hostileAnchor.vector.x, 2) +
-                    Math.pow(hostileAnchor.vector.y, 2)
-                ) * 3
-              ).toFixed(1)}
-              fontSize={12 / stageScale}
-              offsetX={-2}
             />
           </Layer>
         </Stage>
@@ -410,22 +407,25 @@ export default function ShipCanvas(props) {
 }
 function handleHostileAnchor1OnDragMove(dispatchHostileAnchor, hostileAnchor) {
   return (e) => {
-    dispatchHostileAnchor({ type: "anchor1X", value: e.target.attrs.x });
-    dispatchHostileAnchor({ type: "anchor1Y", value: e.target.attrs.y });
     dispatchHostileAnchor({
-      type: "anchor2X",
-      value: e.target.attrs.x + hostileAnchor.vector.pX,
+      type: "anchor1",
+      value: { anchor1X: e.target.attrs.x, anchor1Y: e.target.attrs.y },
     });
     dispatchHostileAnchor({
-      type: "anchor2Y",
-      value: e.target.attrs.y + hostileAnchor.vector.pY,
+      type: "anchor2",
+      value: {
+        anchor2X: e.target.attrs.x + hostileAnchor.vector.pX,
+        anchor2Y: e.target.attrs.y + hostileAnchor.vector.pY,
+      },
     });
   };
 }
 function handleHostileAnchor2OnDragMove(dispatchHostileAnchor) {
   return (e) => {
-    dispatchHostileAnchor({ type: "anchor2X", value: e.target.attrs.x });
-    dispatchHostileAnchor({ type: "anchor2Y", value: e.target.attrs.y });
+    dispatchHostileAnchor({
+      type: "anchor2",
+      value: { anchor2X: e.target.attrs.x, anchor2Y: e.target.attrs.y },
+    });
   };
 }
 function handleHostileAnchor2OnDragEnd(dispatchHostileAnchor, hostileAnchor) {
@@ -442,22 +442,25 @@ function handleHostileAnchor2OnDragEnd(dispatchHostileAnchor, hostileAnchor) {
 
 function handleOnBoardAnchor1OnDragMove(dispatchOnBoardAnchor, onBoardAnchor) {
   return (e) => {
-    dispatchOnBoardAnchor({ type: "anchor1X", value: e.target.attrs.x });
-    dispatchOnBoardAnchor({ type: "anchor1Y", value: e.target.attrs.y });
     dispatchOnBoardAnchor({
-      type: "anchor2X",
-      value: e.target.attrs.x + onBoardAnchor.vector.pX,
+      type: "anchor1",
+      value: { anchor1X: e.target.attrs.x, anchor1Y: e.target.attrs.y },
     });
     dispatchOnBoardAnchor({
-      type: "anchor2Y",
-      value: e.target.attrs.y + onBoardAnchor.vector.pY,
+      type: "anchor2",
+      value: {
+        anchor2X: e.target.attrs.x + onBoardAnchor.vector.pX,
+        anchor2Y: e.target.attrs.y + onBoardAnchor.vector.pY,
+      },
     });
   };
 }
 function handleOnBoardAnchor2OnDragMove(dispatchOnBoardAnchor) {
   return (e) => {
-    dispatchOnBoardAnchor({ type: "anchor2X", value: e.target.attrs.x });
-    dispatchOnBoardAnchor({ type: "anchor2Y", value: e.target.attrs.y });
+    dispatchOnBoardAnchor({
+      type: "anchor2",
+      value: { anchor2X: e.target.attrs.x, anchor2Y: e.target.attrs.y },
+    });
   };
 }
 function handleOnBoardAnchor2OnDragEnd(dispatchOnBoardAnchor, onBoardAnchor) {

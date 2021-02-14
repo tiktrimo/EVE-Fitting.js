@@ -81,7 +81,9 @@ export default function Slots(props) {
       case "ADD":
         const activeItem = rawItems[activeSlotNumber];
         activeItem["typeCount"] = loopNumber(activeItem.typeCount, 1, 6);
-        break;
+        setRawItems([...rawItems]);
+        props.dispatchListItems({ type: props.variant, payload: false });
+        return;
       case "activation":
         changeState(rawItems[activeSlotNumber], "activation");
         break;
@@ -166,12 +168,11 @@ export default function Slots(props) {
   if (props.slotCount > 0)
     return (
       <React.Fragment>
-        <div
-          className={classes.root}
-          style={{
-            padding: props.variant === "SHIP" ? 0 : "10px 0px 10px 0px",
-          }}
-        >
+        <div className={classes.root}>
+          <Divider
+            className={classes.divider}
+            style={{ backgroundColor: props.backgroundColor }}
+          />
           {new Array(props.slotCount).fill(undefined).map((slot, index) => {
             return (
               <Slot
@@ -199,7 +200,6 @@ export default function Slots(props) {
             <Avatar className={classes.lodingIndicator}>{""}</Avatar>
           )}
         </div>
-        <Divider className={classes.divider} />
       </React.Fragment>
     );
   else return false;

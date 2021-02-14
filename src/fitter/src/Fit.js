@@ -27,8 +27,14 @@ export default class Fit {
 
     if (!loadableGroupIDs.includes(charge.groupID)) return false;
 
-    // Used with (Launcher Group)[attributeID] = 137,602,603
-    // Seems not necessary skip the test and return true
+    const itemCapacity = item.capacity;
+    const chargeVolume = charge.volume;
+    const chargePerCycle = Fit.#common_findAttributeByID(item, 56)?.value; //attributeID: 56, attributeName: "Charges Per Cycle"
+    const chargeVolumePerAct = !!chargePerCycle
+      ? chargeVolume * chargePerCycle
+      : 0;
+    const activationLimit = Math.floor(itemCapacity / chargeVolumePerAct);
+    if (activationLimit <= 0) return false;
 
     return true;
   };
@@ -381,7 +387,10 @@ export default class Fit {
       case "otherID":
         switch (mod.func) {
           case "ItemModifier":
-            return type.domainID.split(":")[0] === mod.domainID.split(":")[0];
+            return (
+              type.domainID.split(".")[0] === mod.domainID.split(".")[0] &&
+              type.domainID.split(".")[1] === mod.domainID.split(".")[1]
+            );
           default:
             /* console.log("UNKNOWN", type, "<-", mod); */ //TESTETS
             return false;
@@ -449,10 +458,10 @@ export default class Fit {
 
     return slots.map((slot, index) => {
       const item = !!slot.item.typeID
-        ? { ...slot.item, domainID: `${slotName}(${index}):item` }
+        ? { ...slot.item, domainID: `${slotName}.${index}.item` }
         : false;
       const charge = !!slot.charge.typeID
-        ? { ...slot.charge, domainID: `${slotName}(${index}):charge` }
+        ? { ...slot.charge, domainID: `${slotName}.${index}.charge` }
         : false;
       return { item, charge };
     });
@@ -656,6 +665,8 @@ export default class Fit {
       case "postDiv":
         value = Fit.#operation_div(baseValue, applyValue);
         break;
+      case "postAssignment":
+        return applyValue;
       default:
         break;
     }

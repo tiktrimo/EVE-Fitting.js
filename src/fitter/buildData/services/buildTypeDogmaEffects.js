@@ -28,14 +28,11 @@ module.exports = function buildTypeDogmaEffects(ID, props) {
         }),
     };
   });
-  const linkedTypeEffectsStats = addMissingEffects(typeDogma, typeEffectsStats);
-  const mutatedTypeEffectsStats = mutateEffects(
-    typeDogma,
-    linkedTypeEffectsStats
-  );
+  const linkedTypeEffectsStats = addMissingEffects(ID, typeEffectsStats);
+  const mutatedTypeEffectsStats = mutateEffects(ID, linkedTypeEffectsStats);
   return mutatedTypeEffectsStats;
 };
-function mutateEffects(typeDogma, typeEffectsStats) {
+function mutateEffects(typeID, typeEffectsStats) {
   const isDamageControl = !!typeEffectsStats.find(
     (efft) => efft.effectID === 2302
   ); //effectID: 2302, effectName: "damageControl"
@@ -47,7 +44,7 @@ function mutateEffects(typeDogma, typeEffectsStats) {
   }
   return typeEffectsStats;
 }
-function addMissingEffects(typeDogma, typeEffectsStats) {
+function addMissingEffects(typeID, typeEffectsStats) {
   if (!typeEffectsStats) return typeEffectsStats;
 
   const privateEffects = [];
@@ -56,50 +53,50 @@ function addMissingEffects(typeDogma, typeEffectsStats) {
   const isHiPower = !!typeEffectsStats.find((efft) => efft.effectID === 12); //effectID: 12, effectName: "hiPower" (in modules)
   const isMedPower = !!typeEffectsStats.find((efft) => efft.effectID === 13); //effectID: 12, effectName: "medPower" (in modules)
   if (isLoPower || isMedPower || isHiPower)
-    privateEffects.push(GET_PRIVATE_EFFECTS(typeDogma, 10001));
+    privateEffects.push(GET_PRIVATE_EFFECTS(typeID, 10001));
 
   //prettier-ignore
   const isMissileSpecialization = !!typeEffectsStats.find((efft) => efft.effectID === 1851); //effectID: 1851,effectName: "selfRof" (in missile skill types)
   if (isMissileSpecialization) {
-    privateEffects.push(GET_PRIVATE_EFFECTS(typeDogma, 10002));
+    privateEffects.push(GET_PRIVATE_EFFECTS(typeID, 10002));
   }
 
   //prettier-ignore
   const isMissileBasic = !!typeEffectsStats.find((efft) => efft.effectID === 660); //effectID: 660, effectName: "missileEMDmgBonus" (in missile skill types)
   if (isMissileBasic) {
-    privateEffects.push(GET_PRIVATE_EFFECTS(typeDogma, 10003));
+    privateEffects.push(GET_PRIVATE_EFFECTS(typeID, 10003));
   }
 
-  const isNaniteRepairPaste = typeDogma.typeID === 28668; //effectID: 5275, effectName: "fueledArmorRepair" (in nanite repair paste type)
+  const isNaniteRepairPaste = typeID === 28668; //effectID: 5275, effectName: "fueledArmorRepair" (in nanite repair paste type)
   if (isNaniteRepairPaste) {
-    privateEffects.push(GET_PRIVATE_EFFECTS(typeDogma, 10004));
+    privateEffects.push(GET_PRIVATE_EFFECTS(typeID, 10004));
   }
   //prettier-ignore
   const isDroneBasicSpecialization = !!typeEffectsStats.find((efft) => efft.effectID === 1730); // effectID: 1730, effectName: "droneDmgBonus" (in drone skill types)
   if (isDroneBasicSpecialization) {
-    privateEffects.push(GET_PRIVATE_EFFECTS(typeDogma, 10005));
+    privateEffects.push(GET_PRIVATE_EFFECTS(typeID, 10005));
   }
   //prettier-ignore
   const isMissileLaunching = !!typeEffectsStats.find((efft) => efft.effectID === 9); // effectID: 9, effectName: "missileLaunching",
   if (isMissileLaunching) {
-    privateEffects.push(GET_PRIVATE_EFFECTS(typeDogma, 10006));
+    privateEffects.push(GET_PRIVATE_EFFECTS(typeID, 10006));
   }
 
   //prettier-ignore
   const isSubsystemSlotModifier = !!typeEffectsStats.find(efft => efft.effectID === 3774); //effectID: 3774, effectName: "slotModifier",
   if (isSubsystemSlotModifier) {
-    privateEffects.push(GET_PRIVATE_EFFECTS(typeDogma, 10007));
+    privateEffects.push(GET_PRIVATE_EFFECTS(typeID, 10007));
   }
 
   //prettier-ignore
   const isSubsystemHardpointModifier = !!typeEffectsStats.find(efft => efft.effectID === 3773); //effectID: 3773, effectName: "hardPointModifierEffect",
   if (isSubsystemHardpointModifier) {
-    privateEffects.push(GET_PRIVATE_EFFECTS(typeDogma, 10008));
+    privateEffects.push(GET_PRIVATE_EFFECTS(typeID, 10008));
   }
 
   return typeEffectsStats.concat(privateEffects);
 }
-const GET_PRIVATE_EFFECTS = (typeDogma, effectID) => {
+const GET_PRIVATE_EFFECTS = (typeID, effectID) => {
   switch (effectID) {
     case 10001:
       return {
@@ -139,7 +136,7 @@ const GET_PRIVATE_EFFECTS = (typeDogma, effectID) => {
             modifiedAttributeID: 51,
             modifyingAttributeID: 293,
             operation: "postPercent",
-            skillTypeID: typeDogma.typeID,
+            skillTypeID: typeID,
             modifiedAttributeHighIsGood: false,
             modifiedAttributeStackable: false,
             isStackException: true,
@@ -158,7 +155,7 @@ const GET_PRIVATE_EFFECTS = (typeDogma, effectID) => {
             modifiedAttributeID: 114,
             modifyingAttributeID: 292,
             operation: "postPercent",
-            skillTypeID: typeDogma.typeID,
+            skillTypeID: typeID,
             modifiedAttributeHighIsGood: true,
             modifiedAttributeStackable: true,
           },
@@ -168,7 +165,7 @@ const GET_PRIVATE_EFFECTS = (typeDogma, effectID) => {
             modifiedAttributeID: 116,
             modifyingAttributeID: 292,
             operation: "postPercent",
-            skillTypeID: typeDogma.typeID,
+            skillTypeID: typeID,
             modifiedAttributeHighIsGood: true,
             modifiedAttributeStackable: true,
           },
@@ -178,7 +175,7 @@ const GET_PRIVATE_EFFECTS = (typeDogma, effectID) => {
             modifiedAttributeID: 117,
             modifyingAttributeID: 292,
             operation: "postPercent",
-            skillTypeID: typeDogma.typeID,
+            skillTypeID: typeID,
             modifiedAttributeHighIsGood: true,
             modifiedAttributeStackable: true,
           },
@@ -188,7 +185,7 @@ const GET_PRIVATE_EFFECTS = (typeDogma, effectID) => {
             modifiedAttributeID: 118,
             modifyingAttributeID: 292,
             operation: "postPercent",
-            skillTypeID: typeDogma.typeID,
+            skillTypeID: typeID,
             modifiedAttributeHighIsGood: true,
             modifiedAttributeStackable: true,
           },
@@ -225,7 +222,7 @@ const GET_PRIVATE_EFFECTS = (typeDogma, effectID) => {
             modifiedAttributeID: 64,
             modifyingAttributeID: 292,
             operation: "postPercent",
-            skillTypeID: typeDogma.typeID,
+            skillTypeID: typeID,
             modifiedAttributeHighIsGood: true,
             modifiedAttributeStackable: false,
             isStackException: true,

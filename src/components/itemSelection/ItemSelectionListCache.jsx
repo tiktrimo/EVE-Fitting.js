@@ -78,7 +78,7 @@ export default React.memo(function ItemSelectionListCache(props) {
         props.cache
           .get(
             //prettier-ignore
-            `eveListConfig:${JSON.stringify(props.eveListConfig)})}`,
+            `eveListConfig:${JSON.stringify(props.eveListConfig)}}`,
             () => {
               return new Promise((resolve) => {
                 resolve(createEveList(evelistConfigUpToDate));

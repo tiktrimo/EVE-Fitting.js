@@ -7,6 +7,7 @@ import Fit from "../../fitter/src/Fit";
 import StatDrawer from "./Stats/StatDrawer.jsx";
 import EFT from "./services/EFT.js";
 import ListDrawers from "./ListDrawer/ListDrawers.jsx";
+import Simulator from "../FitCard/Stats/services/Simulator.js";
 
 const initialSlots = {
   skills: false,
@@ -164,16 +165,16 @@ export default function Drawers(props) {
   }, [props.open]);
 
   useEffect(() => {
-    /*  console.log(
+    console.log(
       "∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨FitCalc∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨"
     );
-    console.time("Fit Stat Calculation"); */
+    console.time("Fit Stat Calculation");
     const appliedFit = Fit.apply(slots);
-    /*  console.timeEnd("Fit Stat Calculation");
+    console.timeEnd("Fit Stat Calculation");
     console.log(appliedFit);
     console.log(
       `∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧`
-    ); */
+    );
     setFit(appliedFit);
     setExportFitText(EFT.buildTextFromFit(appliedFit));
     props.setFit(appliedFit);
@@ -183,6 +184,7 @@ export default function Drawers(props) {
   return (
     <React.Fragment>
       <ListDrawers
+        tag={props.tag}
         expand={props.expand}
         slotsOpen={slotsOpen}
         fit={fit}
@@ -201,6 +203,7 @@ export default function Drawers(props) {
         setOpen={props.setOpen}
         expand={props.expand}
         setExpand={props.setExpand}
+        backgroundColor={props.backgroundColor}
         exportFitText={exportFitText}
         slotsOpen={slotsOpen}
         dispatchSlotsOpen={dispatchSlotsOpen}

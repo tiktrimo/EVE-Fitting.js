@@ -1,0 +1,34 @@
+shieldbooster
+0: {effectCategory: "activation", effectID: 4, effectName: "shieldBoosting"}
+1: {effectCategory: "passive", effectID: 13, effectName: "medPower"}
+2: {effectCategory: "activation", effectID: 16, effectName: "online"}
+3: {effectCategory: "overload", effectID: 3201, effectName: "overloadSelfShieldBonusDurationBonus", modifierInfo: Array(2)}
+4: {effectCategory: "passive", effectID: 10001, effectName: "privateEffect_Engineering_PowerLoad_CpuLoad", modifierInfo: Array(2)
+
+structure
+0: {effectCategory: "passive", effectID: 13, effectName: "medPower"}
+1: {effectCategory: "activation", effectID: 16, effectName: "online"}
+2: {effectCategory: "activation", effectID: 26, effectName: "structureRepair"}
+3: {effectCategory: "overload", effectID: 3002, effectName: "overloadSelfDurationBonus", modifierInfo: Array(1)}
+4: {effectCategory: "passive", effectID: 10001, effectName: "privateEffect_Engineering_PowerLoad_CpuLoad", modifierInfo: Array(2)}
+
+ancillaryshield
+0: {effectCategory: "passive", effectID: 13, effectName: "medPower"}
+1: {effectCategory: "activation", effectID: 16, effectName: "online"}
+2: {effectCategory: "overload", effectID: 3201, effectName: "overloadSelfShieldBonusDurationBonus", modifierInfo: Array(2)}
+3: {effectCategory: "activation", effectID: 4936, effectName: "fueledShieldBoosting"}
+4: {effectCategory: "passive", effectID: 10001, effectName: "privateEffect_Engineering_PowerLoad_CpuLoad", modifierInfo: Array(2)
+
+armorreapir
+0: {effectCategory: "passive", effectID: 11, effectName: "loPower"}
+1: {effectCategory: "activation", effectID: 16, effectName: "online"}
+2: {effectCategory: "activation", effectID: 27, effectName: "armorRepair"}
+3: {effectCategory: "overload", effectID: 3200, effectName: "overloadSelfArmorDamageAmountDurationBonus", modifierInfo: Array(2)}
+4: {effectCategory: "passive", effectID: 10001, effectName: "privateEffect_Engineering_PowerLoad_CpuLoad", modifierInfo: Array(2)}
+
+armorancillary
+0: {effectCategory: "passive", effectID: 11, effectName: "loPower"}
+1: {effectCategory: "activation", effectID: 16, effectName: "online"}
+2: {effectCategory: "overload", effectID: 3200, effectName: "overloadSelfArmorDamageAmountDurationBonus", modifierInfo: Array(2)}
+3: {effectCategory: "activation", effectID: 5275, effectName: "fueledArmorRepair"}
+4: {effectCategory: "passive", effectID: 10001, effectName: "privateEffect_Engineering_PowerLoad_CpuLoad", modifierInfo: Array(2

@@ -82,7 +82,7 @@ const useStyles = makeStyles((theme) => ({
     width: "100%",
     overflowX: "hidden",
     overflowY: "auto",
-    paddingBottom: 5,
+    paddingBottom: 35,
     paddingRight: 20,
   },
 }));

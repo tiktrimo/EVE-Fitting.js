@@ -49,21 +49,26 @@ export default class Stat {
       cpu: { load: 0, output: 0 },
     },
     miscellaneous: {
-      scanResolution: 0,
-      signatureRadius: 0,
-      maximumLockedTarget: 0,
-      maximumTargetingRange: 0,
-      sensorStrength: {
-        gravimetric: 0,
-        magnetometric: 0,
-        ladar: 0,
-        radar: 0,
+      sensor: {
+        scanResolution: 0,
+        maximumLockedTarget: 0,
+        maximumTargetingRange: 0,
+        strength: {
+          gravimetric: 0,
+          magnetometric: 0,
+          ladar: 0,
+          radar: 0,
+        },
       },
-      inertialModifier: 0,
-      maximumVelocity: 0,
-      warpSpeedMultiplier: 0,
-
-      cargoBayCapacity: 0,
+      propulsion: {
+        inertialModifier: 0,
+        maximumVelocity: 0,
+        warpSpeedMultiplier: 0,
+      },
+      misc: {
+        cargoBayCapacity: 0,
+        signatureRadius: 0,
+      },
     },
   };
   static stat(fit) {
@@ -95,35 +100,72 @@ export default class Stat {
     const drones = Stat.#damage_drones(fit);
 
     const turretLauncherDamageSlots = [...turrets, ...launchers];
-    const turretLauncherDamage = turretLauncherDamageSlots.reduce(
-      (acc, slot) => {
-        const damage = Stat.#damage_getDamage(slot.item, slot.charge);
+    const turretLauncherDamageSummaries = turretLauncherDamageSlots.map(
+      (slot) => {
+        return Stat.damage_getSummary(slot.item, slot.charge);
+      }
+    );
+    const turretLauncherDamage = turretLauncherDamageSummaries.reduce(
+      (acc, summary) => {
+        const alpha = summary.damagePerAct.alpha;
+        const maxDps = alpha / summary.activationInfo.duration || 0;
+        const effectiveDps = alpha / summary.activationInfo.e_duration || 0;
 
         return {
-          max: acc.max + damage.max,
-          effective: acc.effective + damage.effective,
-          alpha: acc.alpha + damage.alpha,
+          max: acc.max + maxDps,
+          effective: acc.effective + effectiveDps,
+          alpha: acc.alpha + alpha,
         };
       },
       { max: 0, effective: 0, alpha: 0 }
     );
 
-    const turretLauncherRange = Stat.#damage_range(turrets, launchers);
+    const turretLauncherRange = turretLauncherDamageSummaries.reduce(
+      (acc, summary) => {
+        const optimalRange = summary.range.optimalRange;
+        const falloffRange = summary.range.falloffRange;
 
-    const droneDamage = drones.reduce(
-      (acc, slot) => {
-        const damage = Stat.#damage_getDamage(slot.item, slot.item);
-        const typeCount = slot.item.typeCount;
+        const overlappingRange = acc.find(
+          (range) =>
+            range.optimalRange === optimalRange &&
+            range.falloffRange === falloffRange
+        );
+        if (!!overlappingRange) overlappingRange.debug.push(summary.slot);
+        else acc.push({ optimalRange, falloffRange, debug: [summary.slot] });
+        return acc;
+      },
+      []
+    );
+
+    const droneSummaries = drones.map((drone) => {
+      return Stat.damage_getSummary(drone.item, drone.item);
+    });
+    const droneDamage = droneSummaries.reduce(
+      (acc, summary) => {
+        const typeCount = summary.typeCount;
+        const alpha = summary.damagePerAct.alpha;
+        const maxDps = alpha / summary.activationInfo.duration || 0;
+        const effectiveDps = alpha / summary.activationInfo.e_duration || 0;
         return {
-          max: acc.max + damage.max * typeCount,
-          practical: acc.effective + damage.effective * typeCount,
-          alpha: acc.alpha + damage.alpha,
+          max: acc.max + maxDps * typeCount,
+          effective: acc.effective + effectiveDps,
+          alpha: acc.alpha + alpha,
         };
       },
       { max: 0, effective: 0, alpha: 0 }
     );
 
-    return { turretLauncherDamage, turretLauncherRange, droneDamage };
+    const damageSummaries = [
+      ...turretLauncherDamageSummaries,
+      ...droneSummaries,
+    ];
+
+    return {
+      turretLauncherDamage,
+      turretLauncherRange,
+      droneDamage,
+      damageSummaries,
+    };
   }
   static #damage_turrets = (fit) => {
     return Fit.mapSlots(
@@ -166,59 +208,72 @@ export default class Stat {
       { isIterate: { droneSlots: true } }
     ).filter((slot) => !!slot);
   };
-  static #damage_getDamage = (item, charge) => {
-    const rateOfFire = Stat.getActivationTime(item, charge);
-    const alphaDamage = Stat.#damage_alphaDamage(item, charge);
+  static damage_getSummary = (item, charge) => {
+    if (!item) return false;
 
-    const dps = alphaDamage / rateOfFire.max || 0;
-    const Edps = alphaDamage / rateOfFire.effective || 0;
-    return { max: dps, effective: Edps, alpha: alphaDamage };
+    const damagePerAct = Stat.damage_damagePerAct(item, charge);
+    const activationInfo = Stat.getActivationInfo(item, charge);
+    const range = Stat.damage_range(item, charge);
+    const typeCount = item.typeCount;
+    const slot = { item, charge };
+
+    return { activationInfo, damagePerAct, range, typeCount, slot };
   };
-  static #damage_alphaDamage = (item, charge) => {
-    const damageModifier = findAttributebyID(item, 64); //attributeID: 64, attributeName: "Damage Modifier"
+  static damage_damagePerAct = (item, charge) => {
+    const damageModifier = findAttributebyID(item, 64) || 1; //attributeID: 64, attributeName: "Damage Modifier"
 
     const EM_damage = findAttributebyID(charge, 114); //attributeID: 114, attributeName: "EM damage"
     const TH_damage = findAttributebyID(charge, 118); //attributeID: 118, attributeName: "Thermal damage"
     const KI_damage = findAttributebyID(charge, 117); //attributeID: 117, attributeName: "Kinetic damage"
     const EX_damage = findAttributebyID(charge, 116); //attributeID: 116, attributeName: "Explosive damage"
     const mergedDamage = EM_damage + TH_damage + KI_damage + EX_damage;
-    const damagePerShot = !!damageModifier
-      ? damageModifier * mergedDamage
-      : mergedDamage;
 
-    return damagePerShot;
+    const alpha = damageModifier * mergedDamage;
+
+    return {
+      alpha,
+      EM: EM_damage * damageModifier,
+      TH: TH_damage * damageModifier,
+      KI: KI_damage * damageModifier,
+      EX: EX_damage * damageModifier,
+    };
   };
-  static #damage_range = (turrets, launchers) => {
-    const turretRange = turrets.reduce((acc, slot) => {
-      const optimalRange = findAttributebyID(slot.item, 54); //attributeID: 54, attributeName: "Optimal Range"
-      const falloffRange = findAttributebyID(slot.item, 158); //attributeID: 158, attributeName: "Accuracy falloff "
-      if (!optimalRange || !falloffRange) return acc;
+  static damage_range = (item, charge) => {
+    const isTurretFitted = !!item?.typeEffectsStats?.find(
+      (efft) => efft.effectID === 42
+    ); //effectID: 42, effectName: "turretFitted"
+    const isLauncherFitted = !!item?.typeEffectsStats?.find(
+      (efft) => efft.effectID === 40
+    ); //effectID: 40, effectName: "launcherFitted"
+    const isDrone = item?.typeDroneSize !== undefined;
 
-      const overlappingRange = acc.find(
-        (range) =>
-          range.optimalRange === optimalRange &&
-          range.falloffRange === falloffRange
-      );
-      if (!!overlappingRange) overlappingRange.debug.push(slot);
-      else acc.push({ optimalRange, falloffRange, debug: [slot] });
-      return acc;
-    }, []);
-    const launcherRange = launchers.reduce((acc, slot) => {
-      const maximumVelocity = findAttributebyID(slot.charge, 37); //attributeID: 37, attributeName: "Maximum Velocity"
-      const filghtTime = findAttributebyID(slot.charge, 281); //attributeID: 281, attributeName: "Maximum Flight Time"
-      if (!maximumVelocity || !filghtTime) return acc;
+    if (isTurretFitted) {
+      const optimalRange = findAttributebyID(item, 54); //attributeID: 54, attributeName: "Optimal Range"
+      const falloffRange = findAttributebyID(item, 158); //attributeID: 158, attributeName: "Accuracy falloff "
+      const tracking = findAttributebyID(item, 160); // attributeID: 160, attributeName: "Turret Tracking"
 
+      return { optimalRange, falloffRange, tracking };
+    } else if (isLauncherFitted) {
+      const maximumVelocity = findAttributebyID(charge, 37); //attributeID: 37, attributeName: "Maximum Velocity"
+      const filghtTime = findAttributebyID(charge, 281); //attributeID: 281, attributeName: "Maximum Flight Time"
       const optimalRange = maximumVelocity * (filghtTime / 1000);
-      const overlappingRange = acc.find(
-        (range) => range.optimalRange === optimalRange
-      );
-      if (!!overlappingRange) overlappingRange.debug.push(slot);
-      else acc.push({ optimalRange, falloffRange: 0, debug: [slot] });
-      return acc;
-    }, []);
-    const turretLauncherRange = [...turretRange, ...launcherRange];
+      const explosionVelocity = findAttributebyID(charge, 653); // attributeID: 653, attributeName: "Explosion Velocity"
+      const explosionRadius = findAttributebyID(charge, 654); // attributeID: 654, attributeName: "Explosion Radius"
+      const damageReductionFactor = findAttributebyID(charge, 1353); // attributeID: 1353, attributeName: "aoeDamageReductionFactor"
 
-    return turretLauncherRange;
+      //prettier-ignore
+      return { optimalRange, falloffRange: 0, explosionVelocity, explosionRadius, damageReductionFactor };
+    } else if (isDrone) {
+      const optimalRange = findAttributebyID(item, 54); //attributeID: 54, attributeName: "Optimal Range"
+      const falloffRange = findAttributebyID(item, 158); //attributeID: 158, attributeName: "Accuracy falloff "
+      const tracking = findAttributebyID(item, 160); // attributeID: 160, attributeName: "Turret Tracking"
+      const orbitVelocity = findAttributebyID(item, 508); // attributeID: 508, attributeName: "Orbit Velocity"
+      const orbitRange = findAttributebyID(item, 416); //attributeID: 416, attributeName: "entityFlyRange"
+      const maximumVelocity = findAttributebyID(item, 37); // attributeID: 37, attributeName: "Maximum Velocity"
+
+      //prettier-ignore
+      return { optimalRange, falloffRange, tracking, orbitRange, orbitVelocity, maximumVelocity };
+    } else return { optimalRange: 0, falloffRange: 0 };
   };
 
   static capacitor(fit) {
@@ -265,7 +320,7 @@ export default class Stat {
       capacitorDeltas.push({
         capacitorLevel: i / 10,
         delta:
-          Stat.#capacitor_getAmbientChargeRateMath(Cmax, Cnow, Tnow) +
+          Stat.getAmbientChargeRateMath(Cmax, Cnow, Tnow) +
           capacitor.boosterChargeRate -
           capacitor.activationUseRate,
       });
@@ -283,16 +338,23 @@ export default class Stat {
     const activationCost = findAttributebyID(slot.item, 6); // attributeID: 6, attributeName: "Activation Cost"
     if (activationCost === undefined) return 0;
 
-    const activationTime = Stat.getActivationTime(slot.item, slot.charge);
+    const activationInfo = Stat.getActivationInfo(slot.item, slot.charge);
 
-    return activationCost / activationTime.effective;
+    return activationCost / activationInfo.e_duration;
   };
   static #capacitor_getAmbientChargeRate = (fit, capacitorLevel) => {
-    const Cmax = findAttributebyID(fit.ship, 482); //attributeID: 482, attributeName: "Capacitor Capacity"
-    const Tnow = findAttributebyID(fit.ship, 55) / 1000; //attributeID: 55, attributeName: "Capacitor Recharge time"
+    const chargeInfo = Stat.capacitor_getChargeInfo(fit);
+    const Cmax = chargeInfo.HP;
+    const Tchg = chargeInfo.bonusRate;
     const Cnow = (Cmax * capacitorLevel) / 100;
 
-    return Stat.#capacitor_getAmbientChargeRateMath(Cmax, Cnow, Tnow);
+    return Stat.getAmbientChargeRateMath(Cmax, Cnow, Tchg);
+  };
+  static capacitor_getChargeInfo = (fit) => {
+    const HP = findAttributebyID(fit.ship, 482) || 0; //attributeID: 482, attributeName: "Capacitor Capacity"
+    const bonusRate = findAttributebyID(fit.ship, 55) / 1000 || 0; //attributeID: 55, attributeName: "Capacitor Recharge time"
+
+    return { HP, bonusRate };
   };
   static #capacitor_getBoosterChargeRate = (fit) => {
     const slots = Fit.mapSlots(fit, (slot) => slot, {
@@ -300,22 +362,26 @@ export default class Stat {
     });
     const boosterSlots = slots.filter((slot) => {
       if (!slot?.item?.typeEffectsStats) return false;
-      return slot.item.typeEffectsStats.find((efft) => efft.effectID === 48); //effectID: 48, effectName: "powerBooster"
+      return slot.item.typeEffectsStats.find((efft) => efft.effectID === 48); // effectID: 48, effectName: "powerBooster"
     });
 
     return boosterSlots.reduce((acc, boosterSlot) => {
       //prettier-ignore
-      const activationTime = Stat.getActivationTime(boosterSlot.item, boosterSlot.charge);
+      const activationInfo = Stat.getActivationInfo(boosterSlot.item, boosterSlot.charge);
       //prettier-ignore
-      const capacitorBonus = findAttributebyID(boosterSlot.charge, 67); //attributeID: 67, attributeName: "Capacitor Bonus"
-      const boostChargeRate = capacitorBonus / activationTime.effective || 0;
+      const capacitorBonus = Stat.capacitor_getBonusPerAct_self(boosterSlot.item, boosterSlot.charge);
+      const boostChargeRate = capacitorBonus / activationInfo.e_duration || 0;
 
       return acc + boostChargeRate;
     }, 0);
   };
-  static #capacitor_getAmbientChargeRateMath = (Cmax, Cnow, Tnow) => {
-    return ((10 * Cmax) / Tnow) * (Math.sqrt(Cnow / Cmax) - Cnow / Cmax) || 0;
-  };
+  static capacitor_getBonusPerAct_self(item, charge) {
+    if (!item || !charge) return { capacitorBonus: 0 };
+
+    const bonusPerAct = findAttributebyID(charge, 67); //attributeID: 67, attributeName: "Capacitor Bonus"
+
+    return bonusPerAct;
+  }
 
   static defense(fit) {
     if (!fit || !fit.ship)
@@ -332,11 +398,11 @@ export default class Stat {
         },
       };
     return {
-      resistance: Stat.#defense_resistance(fit),
+      resistance: Stat.defense_resistance(fit),
       active: Stat.#defense_active(fit),
     };
   }
-  static #defense_resistance = (fit) => {
+  static defense_resistance = (fit) => {
     if (!fit.ship || !fit.ship.typeAttributesStats)
       return {
         armor: { HP: 0, EM: 0, TH: 0, KI: 0, EX: 0 },
@@ -357,6 +423,8 @@ export default class Stat {
     const shieldTH = shipAttrs.find((attr) => attr.attributeID === 274);
     const shieldKI = shipAttrs.find((attr) => attr.attributeID === 273);
     const shieldEX = shipAttrs.find((attr) => attr.attributeID === 272);
+    const shieldChargeRate =
+      shipAttrs.find((attr) => attr.attributeID === 479).value / 1000 || 0; // attributeID: 479, attributeName: "Shield recharge time"
 
     const structureHP = shipAttrs.find((attr) => attr.attributeID === 9);
     const structureEM = shipAttrs.find((attr) => attr.attributeID === 113);
@@ -378,6 +446,7 @@ export default class Stat {
         TH: Stat.#defense_resistance_decimal_fix(shieldTH),
         KI: Stat.#defense_resistance_decimal_fix(shieldKI),
         EX: Stat.#defense_resistance_decimal_fix(shieldEX),
+        bonusRate: shieldChargeRate,
       },
       structure: {
         HP: structureHP.value,
@@ -390,6 +459,24 @@ export default class Stat {
   };
   static #defense_resistance_decimal_fix = (attr) => {
     return 100 - attr.value * 100;
+  };
+  static defense_getSummary = (item, charge) => {
+    if (!item) return false;
+
+    const activationInfo = Stat.getActivationInfo(item, charge);
+    const bonusPerAct = Stat.defense_getBonusPerAct(item, charge);
+    const slot = { item, charge };
+
+    return { activationInfo, bonusPerAct, slot };
+  };
+  static defense_getBonusPerAct = (item, charge) => {
+    if (!item) return { shieldBonus: 0, armorBonus: 0, structureBonus: 0 };
+
+    const shield = findAttributebyID(item, 68) || 0; //attributeID: 68, attributeName: "Shield Bonus"
+    const armor = findAttributebyID(item, 84) || 0; //attributeID: 84, attributeName: "Armor Hitpoints Repaired"
+    const structure = findAttributebyID(item, 83) || 0; //attributeID: 83, attributeName: "Structure Hitpoints Repaired"
+
+    return { shield, armor, structure };
   };
   static #defense_active = (fit) => {
     const active = {
@@ -532,23 +619,28 @@ export default class Stat {
   }
 
   static miscellaneous(fit) {
-    if (!fit.ship)
+    if (!fit?.ship?.typeID)
       return {
-        scanResolution: 0,
-        signatureRadius: 0,
-        maximumLockedTarget: 0,
-        maximumTargetingRange: 0,
-        sensorStrength: {
-          gravimetric: 0,
-          magnetometric: 0,
-          ladar: 0,
-          radar: 0,
+        sensor: {
+          scanResolution: 0,
+          maximumLockedTarget: 0,
+          maximumTargetingRange: 0,
+          strength: {
+            gravimetric: 0,
+            magnetometric: 0,
+            ladar: 0,
+            radar: 0,
+          },
         },
-        inertialModifier: 0,
-        maximumVelocity: 0,
-        warpSpeedMultiplier: 0,
-
-        cargoBayCapacity: 0,
+        propulsion: {
+          inertialModifier: 0,
+          maximumVelocity: 0,
+          warpSpeedMultiplier: 0,
+        },
+        misc: {
+          cargoBayCapacity: 0,
+          signatureRadius: 0,
+        },
       };
 
     const ship = fit.ship;
@@ -570,20 +662,26 @@ export default class Stat {
     const cargoBayCapacity = findAttributebyID(ship.capacity);
 
     return {
-      scanResolution,
-      signatureRadius,
-      maximumLockedTarget,
-      maximumTargetingRange,
-      sensorStrength: {
-        gravimetric: gravimetricSensorStrength,
-        magnetometric: magnetometricSensorStrength,
-        ladar: ladarSensorStrength,
-        radar: radarSensorStrength,
+      sensor: {
+        scanResolution,
+        maximumLockedTarget,
+        maximumTargetingRange,
+        strength: {
+          gravimetric: gravimetricSensorStrength,
+          magnetometric: magnetometricSensorStrength,
+          ladar: ladarSensorStrength,
+          radar: radarSensorStrength,
+        },
       },
-      inertialModifier,
-      maximumVelocity,
-      warpSpeedMultiplier,
-      cargoBayCapacity,
+      propulsion: {
+        inertialModifier,
+        maximumVelocity,
+        warpSpeedMultiplier,
+      },
+      misc: {
+        signatureRadius,
+        cargoBayCapacity,
+      },
     };
   }
   static #miscellaneous_maximumVelocity = function (fit) {
@@ -631,15 +729,30 @@ export default class Stat {
     return shipAppliedMaximumVelocity;
   };
 
-  static getActivationTime(item, charge) {
-    if (!item) return { max: 0, effective: 0 };
+  static getActivationInfo(item, charge) {
+    if (!item) return { duration: 0, e_duration: 0 };
 
-    const reloadTime = findAttributebyID(item, 1795); //attributeID: 1795, attributeName: "Reload Time"
-    const activationTime = findAttributebyID(item, 73); // attributeID: 73, attributeName: "Activation time / duration"
-    const rateOfFire = findAttributebyID(item, 51); //attributeID: 51, attributeName: "Rate of fire"
-    const TAV = !!activationTime ? activationTime : rateOfFire; // True Activation Time
+    const activationCost = findAttributebyID(item, 6) || 0; //attributeID: 6, attributeName: "Activation Cost"
+    const reloadTime = (findAttributebyID(item, 1795) || undefined) / 1000; //attributeID: 1795, attributeName: "Reload Time"
+    const activationTime =
+      (findAttributebyID(item, 73) || findAttributebyID(item, 51)) / 1000; // attributeID: 73, attributeName: "Activation time / duration" attributeID: 51, attributeName: "Rate of fire"
 
-    if (!reloadTime) return { max: TAV / 1000, effective: TAV / 1000 };
+    if (!reloadTime || !Stat.#getActivationInfo_isTypeNeedCharge(item))
+      return {
+        duration: activationTime,
+        e_duration: activationTime,
+        activationLimit: Infinity,
+        reloadTime: 0,
+        activationCost,
+      };
+    if (!Fit.validateChargeSlot({ item, charge }))
+      return {
+        duration: Infinity,
+        e_duration: Infinity,
+        activationLimit: 0,
+        reloadTime: 0,
+        activationCost,
+      };
 
     const itemCapacity = item.capacity;
     const chargeVolume = charge.volume;
@@ -648,19 +761,22 @@ export default class Stat {
     const chargeVolumePerAct = !!chargePerCycle
       ? chargeVolume * chargePerCycle
       : 0;
+    const activationLimit = Math.floor(itemCapacity / chargeVolumePerAct);
     const reloadTimePerAct =
       !!reloadTime && !!itemCapacity && !!chargeVolume
-        ? reloadTime / Math.floor(itemCapacity / chargeVolumePerAct)
+        ? reloadTime / activationLimit
         : 0;
-    const EactivationTime = TAV + reloadTimePerAct;
+    const EactivationTime = activationTime + reloadTimePerAct;
 
-    if (!Stat.#getActivationTime_isTypeNeedCharge(item))
-      return { max: TAV / 1000, effective: EactivationTime / 1000 };
-    if (Fit.validateChargeSlot({ item, charge }))
-      return { max: TAV / 1000, effective: EactivationTime / 1000 };
-    else return { max: Infinity, effective: Infinity };
+    return {
+      duration: activationTime,
+      e_duration: EactivationTime,
+      activationLimit,
+      reloadTime,
+      activationCost,
+    };
   }
-  static #getActivationTime_isTypeNeedCharge = (type) => {
+  static #getActivationInfo_isTypeNeedCharge = (type) => {
     if (!type || !type.typeEffectsStats) return false;
 
     //TODO: Add command burst effectIDs
@@ -673,5 +789,9 @@ export default class Stat {
       if (thisEffectsNeedCharge.includes(efft.effectID)) return true;
       return acc;
     }, false);
+  };
+
+  static getAmbientChargeRateMath = (Cmax, Cnow, Tchg) => {
+    return ((10 * Cmax) / Tchg) * (Math.sqrt(Cnow / Cmax) - Cnow / Cmax) || 0;
   };
 }

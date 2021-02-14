@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useReducer, useState } from "react";
 import FitCard from "./FitCard/FitCard";
 import {
   Button,
@@ -11,6 +11,8 @@ import {
 import GitHubIcon from "@material-ui/icons/GitHub";
 import WbSunnyIcon from "@material-ui/icons/WbSunny";
 import Brightness2Icon from "@material-ui/icons/Brightness2";
+import ShipCanvas from "./simpleEdition/ShipCanvas";
+import Simulator from "./FitCard/Stats/services/Simulator";
 
 const useStyles = makeStyles((theme) => ({
   modeButton: {
@@ -87,8 +89,38 @@ const Settings = (props) => {
   );
 };
 
+const initialDrawersOpen = {
+  fit: true,
+  fit1: false,
+};
+const defaultDrawersOpen = {
+  fit: false,
+  fit1: false,
+};
+function drawersOpenReducer(state, action) {
+  if (!action?.tag) return defaultDrawersOpen;
+  switch (action.type) {
+    case "OPEN":
+      return { ...defaultDrawersOpen, [action.tag]: action.payload };
+    case "CLOSE":
+      return { ...defaultDrawersOpen };
+    default:
+      return defaultDrawersOpen;
+  }
+}
+
 export default function InitialCard(props) {
+  const theme = useTheme();
   const [width, setWidth] = useState(0);
+
+  const [drawersOpen, dispatchDrawersOpen] = useReducer(
+    drawersOpenReducer,
+    initialDrawersOpen
+  );
+
+  const [situation, setSituation] = useState();
+  const [fit, setFit] = useState();
+  const [fit1, setFit1] = useState();
 
   useEffect(() => {
     setWidth(window.innerWidth);
@@ -100,6 +132,10 @@ export default function InitialCard(props) {
       window.removeEventListener("resize", handleRender);
     };
   }, []);
+
+  useEffect(() => {
+    if (!!fit && !!fit1) Simulator.test(fit, fit1, situation);
+  }, [fit, fit1, situation]);
 
   return (
     <div style={{ display: "flex", flexDirection: "row-reverse" }}>
@@ -113,7 +149,29 @@ export default function InitialCard(props) {
       >
         <Grid xs={12} container item justify="center"></Grid>
         <Grid xs={12} container item justify="center">
-          <FitCard cache={props.cache} />
+          <FitCard
+            setFit={setFit}
+            backgroundColor={theme.palette.property.blue}
+            color={theme.palette.background.paper}
+            tag={"fit"}
+            drawersOpen={drawersOpen}
+            dispatchDrawersOpen={dispatchDrawersOpen}
+            cache={props.cache}
+          />
+        </Grid>
+        <Grid xs={12} container item justify="center">
+          <FitCard
+            setFit={setFit1}
+            backgroundColor={theme.palette.property.red}
+            color={theme.palette.background.paper}
+            tag={"fit1"}
+            drawersOpen={drawersOpen}
+            dispatchDrawersOpen={dispatchDrawersOpen}
+            cache={props.cache}
+          />
+        </Grid>
+        <Grid xs={12} container item justify="center">
+          <ShipCanvas setSituation={setSituation} />
         </Grid>
         <Grid xs={12} container item justify="center">
           <Links />
