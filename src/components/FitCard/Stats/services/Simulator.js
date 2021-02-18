@@ -3,42 +3,59 @@ import { findAttributebyID } from "../../../../services/dataManipulation/findAtt
 import Stat from "./Stat";
 
 export default class Simulator {
-  static test(fit, fit1, situation) {
-    /* const summaries1 = Summary.getSummaries(fit, situation.onboard);
-    const summaries2 = Summary.getSummaries(fit1, situation.hostile);
-
-    console.log(summaries1);
-
-    if (!!summaries1?.capacitor?.[0]) {
-      summaries1.capacitor[0].activationState.isActive = true;
-      summaries1.capacitor[0].activationState.nextActivation = 0;
-      summaries1.capacitor[0].activationState.nextActivationTick = 0;
-      summaries1.ship.load.capacitor.HP = 200;
+  static test(slots, fit1, situation) {
+    const summaries1 = Summary.addSummaries(slots, situation.onboard);
+    const summaries2 = Summary.addSummaries(fit1, situation.hostile);
+    console.log(summaries1, summaries2);
+    summaries1.summary.load.shield.HP = 100;
+    if (!!summaries1?.midSlots?.[0]?.summary) {
+      summaries1.midSlots[0].summary.activationState.isActive = true;
+      summaries1.midSlots[0].summary.activationState.nextActivation = 0;
+      summaries1.midSlots[0].summary.activationState.nextActivationTick = 0;
       for (let i = 0; i < 100; i++) {
-        this.activateCapacitor(
-          summaries1.capacitor[0],
+        Simulator.activateDefense(
+          summaries1.midSlots[0].summary,
           summaries1,
           summaries2,
           i
         );
-        console.log("summaries", { summaries1, summaries2 });
-        console.log("CAPfor owner", summaries1.ship.load.capacitor.HP);
-        console.log("CAPfor offender", summaries2.ship.load.capacitor.HP);
+        console.log(summaries1.summary.load.shield.HP);
       }
-       for (let i = 0; i < 1000; i++) {
-        this.activateDefense(summaries1.defense[0], summaries1, summaries2, i);
-        this.simulate_capacitor(summaries1);
-        console.log(
-          summaries1.ship.load.capacitor.HP,
-          summaries1.defense[0].activationState.isActive
-        );
-      }
-    } */
+    }
   }
 
+  static simulate_oneTick = (owner, target, tick) => {
+    Simulator.simulate_capacitor(owner);
+    Simulator.simulate_shield(owner);
+    Fit.mapSlots(
+      fit,
+      (slot) => {
+        if (!slot.summary) return false;
+        switch (slot.summary.operation) {
+          case "damage":
+            Simulator.activateDamage(slot.summary, owner, target, tick);
+            break;
+          case "defense":
+            Simulator.activateDefense(slot.summary, owner, target, tick);
+            break;
+          case "capacitor":
+            Simulator.activateCapacitor(slot.summary, owner, target, tick);
+            break;
+        }
+      },
+      {
+        isIterate: {
+          highSlots: true,
+          midSlots: true,
+          lowSlots: true,
+          droneSlots: true,
+        },
+      }
+    );
+  };
   static simulate_capacitor = (target) => {
-    const capacitorState = target.ship.load.capacitor;
-    const capacitorInfo = target.ship.capacity.capacitor;
+    const capacitorState = target.summary.load.capacitor;
+    const capacitorInfo = target.summary.capacity.capacitor;
 
     const ambientChargeRate = EveMath.getAmbientChargeRateMath(
       capacitorInfo.HP,
@@ -53,8 +70,8 @@ export default class Simulator {
     return ambientChargeRate;
   };
   static simulate_shield = (target) => {
-    const shieldState = target.ship.load.shield;
-    const shieldInfo = target.ship.capacity.shield;
+    const shieldState = target.summary.load.shield;
+    const shieldInfo = target.summary.capacity.shield;
 
     const ambientChargeRate = EveMath.getAmbientChargeRateMath(
       shieldInfo.HP,
@@ -68,7 +85,7 @@ export default class Simulator {
 
     return ambientChargeRate;
   };
-
+  //Currently target boost (remote armor repair is nor possible)
   static activateDefense = (summary, owner, target, tick) => {
     //prettier-ignore
     const numOfActivation = Simulator.manageActivationState(owner,summary,tick);
@@ -76,17 +93,17 @@ export default class Simulator {
 
     for (let i = 0; i < numOfActivation; i++) {
       // MUTATION!
-      target.ship.load.shield.HP += summary.bonusPerAct.shield;
-      if (target.ship.capacity.shield.HP < target.ship.load.shield.HP)
-        target.ship.load.shield.HP = target.ship.capacity.shield.HP;
+      owner.summary.load.shield.HP += summary.bonusPerAct.self.shield;
+      if (owner.summary.capacity.shield.HP < owner.summary.load.shield.HP)
+        owner.summary.load.shield.HP = owner.summary.capacity.shield.HP;
 
-      target.ship.load.armor.HP += summary.bonusPerAct.armor;
-      if (target.ship.capacity.armor.HP < target.ship.load.armor.HP)
-        target.ship.load.armor.HP = target.ship.capacity.armor.HP;
+      owner.summary.load.armor.HP += summary.bonusPerAct.self.armor;
+      if (owner.summary.capacity.armor.HP < owner.summary.load.armor.HP)
+        owner.summary.load.armor.HP = owner.summary.capacity.armor.HP;
 
-      target.ship.load.structure.HP += summary.bonusPerAct.structure;
-      if (target.ship.capacity.structure.HP < target.ship.load.structure.HP)
-        target.ship.load.structure.HP = target.ship.capacity.structure.HP;
+      owner.summary.load.structure.HP += summary.bonusPerAct.self.structure;
+      if (owner.summary.capacity.structure.HP < owner.summary.load.structure.HP)
+        owner.summary.load.structure.HP = owner.summary.capacity.structure.HP;
     }
   };
 
@@ -94,7 +111,6 @@ export default class Simulator {
     //prettier-ignore
     const numOfActivation = Simulator.manageActivationState(owner,summary,tick);
     if (numOfActivation == 0) return false;
-    //TODO: make drone work!
     for (let i = 0; i < numOfActivation; i++) {
       //prettier-ignore
       const situationalModifiedSummary = Simulator.#activateDamage_getSituationalModifiedSummary(summary, owner, target);
@@ -102,9 +118,13 @@ export default class Simulator {
       const alpha = Simulator.activateDamage_getAlpha(situationalModifiedSummary, target);
 
       // MUTATION!
-      target.ship.load.shield.HP -= alpha.shield;
-      target.ship.load.armor.HP -= alpha.armor;
-      target.ship.load.structure.HP -= alpha.structure;
+      target.summary.load.shield.HP -= alpha.shield;
+      if (target.summary.load.shield.HP < 0) target.summary.load.shield.HP = 0;
+      target.summary.load.armor.HP -= alpha.armor;
+      if (target.summary.load.armor.HP < 0) target.summary.load.armor.HP = 0;
+      target.summary.load.structure.HP -= alpha.structure;
+      if (target.summary.load.structure.HP < 0)
+        target.summary.load.structure.HP = 0;
     }
   };
   static activateDamage_getAlpha = (summary, target) => {
@@ -137,8 +157,8 @@ export default class Simulator {
     //prettier-ignore
     const shot = Simulator.#activateDamage_getShot(damagePerAct, target, type);
     const damageCapMultiplier =
-      target.ship.load[type].HP / shot.alpha_damaging < 1
-        ? target.ship.load[type].HP / shot.alpha_damaging
+      target.summary.load[type].HP / shot.alpha_damaging < 1
+        ? target.summary.load[type].HP / shot.alpha_damaging
         : 1;
 
     const EM_applied = shot.EM_damaging * damageCapMultiplier;
@@ -172,10 +192,14 @@ export default class Simulator {
     };
   };
   static #activateDamage_getShot = (damagePerAct, target, type) => {
-    const EM_blocked = (damagePerAct.EM * target.ship.capacity[type].EM) / 100;
-    const TH_blocked = (damagePerAct.TH * target.ship.capacity[type].TH) / 100;
-    const KI_blocked = (damagePerAct.KI * target.ship.capacity[type].KI) / 100;
-    const EX_blocked = (damagePerAct.EX * target.ship.capacity[type].EX) / 100;
+    const EM_blocked =
+      (damagePerAct.EM * target.summary.capacity[type].EM) / 100;
+    const TH_blocked =
+      (damagePerAct.TH * target.summary.capacity[type].TH) / 100;
+    const KI_blocked =
+      (damagePerAct.KI * target.summary.capacity[type].KI) / 100;
+    const EX_blocked =
+      (damagePerAct.EX * target.summary.capacity[type].EX) / 100;
     const alpha_blocked = EM_blocked + TH_blocked + KI_blocked + EX_blocked;
 
     const EM_damaging = damagePerAct.EM - EM_blocked;
@@ -221,7 +245,14 @@ export default class Simulator {
     };
   };
   static #activateDamage_getSituationalMul = (summary, owner, target) => {
-    if (!!summary.range.tracking) {
+    if (!!summary.capacity.propulsion.orbitRange) {
+      //prettier-ignore
+      const droneAccuracy = EveMath.getDroneAccracy(summary, owner, target);
+
+      return Math.random() <= droneAccuracy
+        ? EveMath.getTurretRandomDamageModifier()
+        : 0;
+    } else if (!!summary.range.tracking) {
       //prettier-ignore
       const turretAccuracy = EveMath.getTurretAcurracy(summary, owner, target);
 
@@ -248,17 +279,21 @@ export default class Simulator {
       const situationalModifiedSummary = Simulator.#activateCapacitor_getSituationalModifiedSummary(summary, owner, target);
 
       // MUTATION!
-      target.ship.load.capacitor.HP +=
+      target.summary.load.capacitor.HP +=
         situationalModifiedSummary.bonusPerAct.target;
-      if (target.ship.load.capacitor.HP < 0) target.ship.load.capacitor.HP = 0;
-      if (target.ship.capacity.capacitor.HP < target.ship.load.capacitor.HP < 0)
-        target.ship.capacity.capacitor.HP = target.ship.load.capacitor.HP < 0;
+      if (target.summary.load.capacitor.HP < 0)
+        target.summary.load.capacitor.HP = 0;
+      if (
+        target.summary.capacity.capacitor.HP < target.summary.load.capacitor.HP
+      )
+        target.summary.load.capacitor.HP = target.summary.capacity.capacitor.HP;
 
-      owner.ship.load.capacitor.HP +=
-        situationalModifiedSummary.bonusPerAct.self;
-      if (owner.ship.load.capacitor.HP < 0) owner.ship.load.capacitor.HP = 0;
-      if (owner.ship.capacity.capacitor.HP < owner.ship.load.capacitor.HP < 0)
-        owner.ship.capacity.capacitor.HP = owner.ship.load.capacitor.HP < 0;
+      owner.summary.load.capacitor.HP +=
+        situationalModifiedSummary.bonusPerAct.owner;
+      if (owner.summary.load.capacitor.HP < 0)
+        owner.summary.load.capacitor.HP = 0;
+      if (owner.summary.capacity.capacitor.HP < owner.summary.load.capacitor.HP)
+        owner.summary.load.capacitor.HP = owner.summary.capacity.capacitor.HP;
     }
   };
   static #activateCapacitor_getSituationalModifiedSummary = (
@@ -266,16 +301,16 @@ export default class Simulator {
     owner,
     target
   ) => {
-    const ownerCapacitorHP = owner.ship.load.capacitor.HP;
-    const targetCapacitorHP = target.ship.load.capacitor.HP;
+    const ownerCapacitorHP = owner.summary.load.capacitor.HP;
+    const targetCapacitorHP = target.summary.load.capacitor.HP;
 
     // prettier-ignore
     const situationalMul = Simulator.#activateCapacitor_getSituationalMul(summary, owner, target);
-    const bonusPerActSelf = summary.bonusPerAct.self * situationalMul;
+    const bonusPerActOwner = summary.bonusPerAct.self * situationalMul;
     const bonusPerActTarget = summary.bonusPerAct.target * situationalMul;
 
     if (summary.isNosferatu) {
-      const maxBonusPerAct = Math.min(bonusPerActSelf, targetCapacitorHP);
+      const maxBonusPerAct = Math.min(bonusPerActOwner, targetCapacitorHP);
       let symmetricBonusPerAct = maxBonusPerAct;
 
       if (
@@ -299,7 +334,7 @@ export default class Simulator {
     return {
       ...summary,
       bonusPerAct: {
-        self: bonusPerActSelf,
+        owner: bonusPerActOwner,
         target: bonusPerActTarget,
       },
     };
@@ -350,11 +385,11 @@ export default class Simulator {
     if (state.nextActivationTick === tick)
       subSecActivation = Simulator.manageActivationState(owner, summary, tick);
 
-    return 1 + subSecActivation;
+    return (1 + subSecActivation) * state.typeCount;
   };
   static #manageActivationState_capcitor = (owner, summary) => {
     const activationInfo = summary.activationInfo;
-    const capacitorState = owner.ship.load.capacitor;
+    const capacitorState = owner.summary.load.capacitor;
     if (capacitorState.HP < activationInfo.activationCost) return false;
 
     // MUTATION!
@@ -364,43 +399,58 @@ export default class Simulator {
   };
 }
 class Summary extends Stat {
-  static getSummaries = (slots, situation) => {
-    const fit = Fit.apply(slots);
-    const shipSummary = Summary.getSummary_ship(fit, situation);
-    const moduleSummaries = {};
+  static addSummaries = (slots, situation) => {
+    const _slots = JSON.parse(JSON.stringify(slots));
+    const fit = Fit.apply(_slots);
+
+    if (!!_slots) _slots["summary"] = Summary.getSummary_ship(fit, situation);
+
     Fit.mapSlots(
       fit,
       (slot) => {
         if (!slot.item) return false;
 
-        Summary.#getSummaries_discriminate(slot).forEach((summary) => {
-          if (!moduleSummaries[summary.path])
-            moduleSummaries[summary.path] = [];
-          moduleSummaries[summary.path].push(summary);
-        });
+        const summary = Summary.#getSummaries_modules(slot);
+        const _slot = !!summary && SimFit.toPath(_slots, summary.path);
+        if (!!_slot) _slot["summary"] = summary;
       },
       {
         isIterate: {
           highSlots: true,
           midSlots: true,
           lowSlots: true,
+        },
+      }
+    );
+    Fit.mapSlots(
+      fit,
+      (slot) => {
+        if (!slot.item) return false;
+
+        const summary = Summary.#getSummaries_drones(slot, situation);
+        const _slot = !!summary && SimFit.toPath(_slots, summary.path);
+        if (!!_slot) _slot["summary"] = summary;
+      },
+      {
+        isIterate: {
           droneSlots: true,
         },
       }
     );
-    return { ship: shipSummary, ...moduleSummaries };
+    return _slots;
   };
 
-  static #getSummaries_discriminate = (slot) => {
+  static #getSummaries_modules = (slot) => {
     if (!slot?.item?.typeEffectsStats) return false;
     const item = slot.item;
-    const charge = slot.charge || slot.item;
+    const charge = slot.charge;
 
-    return item.typeEffectsStats
+    const path = slot.item.domainID.split(".").slice(0, 2).join(".");
+    const summary = item.typeEffectsStats
       .map((efft) => {
         const activationDataSet = Summary.createActivationDataSet(slot);
         let summary = {};
-        let path = false;
+        let operation = false;
 
         switch (efft.effectID) {
           case 101: // effectID: 101, effectName: "useMissiles"
@@ -409,7 +459,7 @@ class Summary extends Stat {
           case 6995: // effectID: 6995, effectName: "targetDisintegratorAttack"
             summary = Summary.getSummary_damage(item, charge);
             if (!summary.damagePerAct.alpha) return false;
-            path = "damage";
+            operation = "damage";
             break;
           case 4: // effectID: 4, effectName: "shieldBoosting"
           case 26: // effectID: 26, effectName: "structureRepair"
@@ -417,21 +467,96 @@ class Summary extends Stat {
           case 27: // effectID: 27, effectName: "armorRepair"
           case 5275: // effectID: 5275, effectName: "fueledArmorRepair"
             summary = Summary.getSummary_defense(item, charge);
-            path = "defense";
+            operation = "defense";
             break;
           case 48: //effectID: 48, effectName: "powerBooster"
           case 6187: //effectID: 6187, effectName: "energyNeutralizerFalloff"
           case 6197: //effectID: 6197, effectName: "energyNosferatuFalloff"
           case 6148: // effectID: 6184, effectName: "shipModuleRemoteCapacitorTransmitter"
             summary = Summary.getSummary_capacitor(item, charge);
-            path = "capacitor";
+            operation = "capacitor";
             break;
           default:
             return false;
         }
-        return { ...summary, ...activationDataSet, path };
+        return { ...summary, ...activationDataSet, operation, path };
       })
-      .filter((efft) => !!efft);
+      .filter((summary) => !!summary);
+
+    if (summary.length > 1)
+      console.error(
+        "ERR: more than one summary produced in single module",
+        slot
+      );
+    else return summary[0] || false;
+  };
+  static #getSummaries_drones = (slot) => {
+    if (!slot?.item?.typeEffectsStats) return false;
+    const item = slot.item;
+    const isSentry = slot.item.marketGroupID === 911; // marketGroupID: 911 "marketGroupName": "Sentry Drones"
+
+    const path = slot.item.domainID.split(".").slice(0, 2).join(".");
+    // These functions from Stat class is targeted for ship. modified to fit in drone in this case
+    const defense = this.defense_resistance({ ship: slot.item });
+    const capacitor = this.capacitor_getChargeInfo({ ship: slot.item });
+
+    const misc = this.miscellaneous({ ship: slot.item });
+    const orbitVelocity = findAttributebyID(slot.item, 508); // attributeID: 508, attributeName: "Orbit Velocity"
+    const orbitRange = findAttributebyID(slot.item, 416); //attributeID: 416, attributeName: "entityFlyRange"
+    const maximumVelocity = findAttributebyID(slot.item, 37); // attributeID: 37, attributeName: "Maximum Velocity"
+    misc.propulsion = {
+      ...misc.propulsion,
+      orbitVelocity,
+      orbitRange,
+      maximumVelocity,
+    };
+
+    const droneSumamry = {
+      load: {
+        armor: { HP: defense.armor.HP },
+        shield: { HP: defense.shield.HP },
+        structure: { HP: defense.structure.HP },
+        capacitor: { HP: capacitor.HP },
+      },
+      capacity: { ...defense, ...misc, capacitor },
+    };
+    const moduleSummary = item.typeEffectsStats
+      .map((efft) => {
+        const activationDataSet = Summary.createActivationDataSet(slot);
+        let summary = {};
+        let operation = false;
+
+        switch (efft.effectID) {
+          case 101: // effectID: 101, effectName: "useMissiles"
+          case 34: // effectID: 34, effectName: "projectileFired"
+          case 10: // effectID: 10, effectName: "targetAttack"
+          case 6995: // effectID: 6995, effectName: "targetDisintegratorAttack"
+            summary = Summary.getSummary_drone(item);
+            if (!summary.damagePerAct.alpha) return false;
+            operation = "damage";
+            break;
+          default:
+            return false;
+        }
+        return { ...summary, ...activationDataSet, operation, path };
+      })
+      .filter((summary) => !!summary);
+
+    const situation_decription =
+      "Currently situation is not calculated BUT! always hitted by smart bomb";
+
+    if (moduleSummary.length > 1)
+      console.error(
+        "ERR: more than one summary produced in single module",
+        slot
+      );
+    else
+      return {
+        ...droneSumamry,
+        ...moduleSummary[0],
+        situation_decription,
+        isSentry,
+      };
   };
   static createActivationDataSet = (slot) => {
     const activationInfo = this.getActivationInfo(slot.item, slot.charge);
@@ -444,6 +569,7 @@ class Summary extends Stat {
         nextActivation: 0,
         nextActivationTick: 0,
         activationLeft: activationInfo.activationLimit,
+        typeCount: activationInfo.typeCount,
       },
     };
   };
@@ -469,17 +595,23 @@ class Summary extends Stat {
 
     const damagePerAct = this.damage_damagePerAct(item, charge);
     const range = this.damage_range(item, charge);
-    const slot = { item, charge };
 
-    return { damagePerAct, range, slot };
+    return { damagePerAct, range };
+  }
+  static getSummary_drone(item) {
+    if (!item) return false;
+
+    const damagePerAct = this.damage_damagePerAct(item, item);
+    const range = this.damage_range(item, item);
+
+    return { damagePerAct, range };
   }
   static getSummary_defense(item, charge) {
     if (!item) return false;
 
     const bonusPerAct = this.defense_getBonusPerAct(item, charge);
-    const slot = { item, charge };
 
-    return { bonusPerAct, slot };
+    return { bonusPerAct: { self: bonusPerAct } };
   }
   static getSummary_capacitor(item, charge) {
     if (!item) return false;
@@ -501,15 +633,12 @@ class Summary extends Stat {
     const optimalRange = findAttributebyID(item, 54); //attributeID: 54, attributeName: "Optimal Range"
     const falloffRange = findAttributebyID(item, 2044); //attributeID: 2044, attributeName: "Effectiveness Falloff"
 
-    const slot = { item, charge };
-
     return {
       bonusPerAct: { self: bonusPerAct_self, target: bonusPerAct_target },
       range: { optimalRange, falloffRange },
       isNosferatuBloodRaiderOverriden,
       isCapacitorTransmitter,
       isNosferatu,
-      slot,
     };
   }
 }
@@ -536,24 +665,25 @@ class EveMath {
     return ((10 * Cmax) / Tchg) * (Math.sqrt(Cnow / Cmax) - Cnow / Cmax) || 0;
   }
   static getTurretAcurracy(summary, owner, target) {
-    const onBoardVector = owner.ship.situation.vector;
-    const hostileVector = target.ship.situation.vector;
+    const onBoardVector = owner.summary.situation.vector;
+    const hostileVector = target.summary.situation.vector;
     const distanceVector = {
       x:
-        target.ship.situation.anchors.anchor1X -
-        owner.ship.situation.anchors.anchor1X,
+        target.summary.situation.anchors.anchor1X -
+        owner.summary.situation.anchors.anchor1X,
       y:
-        target.ship.situation.anchors.anchor1Y -
-        owner.ship.situation.anchors.anchor1Y,
+        target.summary.situation.anchors.anchor1Y -
+        owner.summary.situation.anchors.anchor1Y,
     };
     const distance =
       Math.sqrt(Math.pow(distanceVector.x, 2) + Math.pow(distanceVector.y, 2)) /
       100;
 
-    const trackingValue = summary.range.tracking;
+    const trackingValue =
+      summary.range.tracking * (40000 / summary.range.signatureResolution);
     const optimalRange = summary.range.optimalRange;
     const fallOffRange = summary.range.optimalRange;
-    const signatureRadius = target.ship.capacity.misc.signatureRadius;
+    const signatureRadius = target.summary.capacity.misc.signatureRadius;
 
     const _angularVelocity = EveMath.#getTurretAcurracy_angularVelocuty(
       distance,
@@ -567,22 +697,25 @@ class EveMath {
       signatureRadius
     );
 
-    const _distancePart = EveMath.#getTurretAcurracy_distancePart(
+    const trackingModifier = Math.pow(0.5, _trackingPart);
+    const rangeModifier = EveMath.getRangeModifier(summary, owner, target);
+    /*  const _distancePart = EveMath.#getTurretAcurracy_distancePart(
       optimalRange,
       fallOffRange,
       distance
-    );
+    ); */
 
-    return Math.pow(0.5, _trackingPart + _distancePart).toFixed(3);
+    /* return (Math.pow(0.5, _trackingPart + _distancePart)).toFixed(3); */
+    return (trackingModifier * rangeModifier).toFixed(3);
   }
   static getLauncherAccuracy(summary, owner, target) {
     const distanceVector = {
       x:
-        target.ship.situation.anchors.anchor1X -
-        owner.ship.situation.anchors.anchor1X,
+        target.summary.situation.anchors.anchor1X -
+        owner.summary.situation.anchors.anchor1X,
       y:
-        target.ship.situation.anchors.anchor1Y -
-        owner.ship.situation.anchors.anchor1Y,
+        target.summary.situation.anchors.anchor1Y -
+        owner.summary.situation.anchors.anchor1Y,
     };
     const distance =
       Math.sqrt(Math.pow(distanceVector.x, 2) + Math.pow(distanceVector.y, 2)) /
@@ -590,15 +723,96 @@ class EveMath {
 
     return summary.range.optimalRange < distance * 1000 ? 0 : 1;
   }
+  static getDroneAccracy(summary, owner, target) {
+    // owner is owner of drone! which is ship
+    if (summary.isSentry)
+      return EveMath.getTurretAcurracy(summary, owner, target);
+
+    const targetUnitVector = EveMath.#common_makeUnitVector(
+      target.summary.situation.vector
+    );
+    const targetVelocity =
+      Math.sqrt(
+        Math.pow(target.summary.situation.vector.x, 2) +
+          Math.pow(target.summary.situation.vector.y, 2)
+      ) * 3;
+    const isChasing =
+      summary.capacity.propulsion.orbitVelocity < targetVelocity;
+    if (isChasing) {
+      const droneAccuracyModifier = EveMath.#getDroneAccracy_getAccuracyModifier(
+        summary,
+        targetVelocity
+      );
+      const absoluteVelocity = summary.capacity.propulsion.orbitVelocity;
+      const droneVector = {
+        x: targetUnitVector.x * (absoluteVelocity / 3), // Currently 1px = 3m/s
+        y: targetUnitVector.y * (absoluteVelocity / 3),
+      };
+      const droneSituationsummary = {
+        summary: {
+          situation: {
+            anchors: {
+              anchor1X:
+                target.summary.situation.anchors.anchor1X -
+                (targetUnitVector.x * summary.capacity.propulsion.orbitRange) /
+                  10, // Currently 1px = 10m
+              anchor1Y:
+                target.summary.situation.anchors.anchor1Y -
+                (targetUnitVector.y * summary.capacity.propulsion.orbitRange) /
+                  10,
+            },
+            vector: droneVector,
+          },
+        },
+      };
+      return (
+        EveMath.getTurretAcurracy(summary, droneSituationsummary, target) *
+        droneAccuracyModifier
+      );
+    } else {
+      const absoluteVelocity =
+        summary.capacity.propulsion.orbitVelocity + targetVelocity;
+      const droneVector = {
+        x: targetUnitVector.x * (absoluteVelocity / 3), // Currently 1px = 3m/s
+        y: targetUnitVector.y * (absoluteVelocity / 3),
+      }; // drone positions at perpendicular to targetVector
+      const droneSituationsummary = {
+        summary: {
+          situation: {
+            anchors: {
+              anchor1X:
+                target.summary.situation.anchors.anchor1X +
+                (targetUnitVector.y * summary.capacity.propulsion.orbitRange) /
+                  10, // Currently 1px = 10m
+              anchor1Y:
+                target.summary.situation.anchors.anchor1Y -
+                (targetUnitVector.x * summary.capacity.propulsion.orbitRange) /
+                  10,
+            },
+            vector: droneVector,
+          },
+        },
+      };
+      return EveMath.getTurretAcurracy(summary, droneSituationsummary, target);
+    }
+  }
+  static #getDroneAccracy_getAccuracyModifier = (summary, targetVelocity) => {
+    // Estimated modifier - drone movement is too complicated simplify the situation when target velocity is higher than orbit velocity
+    //prettier-ignore
+    const value = 1 -targetVelocity /
+        (summary.capacity.propulsion.maximumVelocity - summary.capacity.propulsion.orbitVelocity);
+    if (value >= 1) return 1;
+    return value >= 0 ? value : 0.01;
+  };
   static getLauncherDamageModifier(summary, target) {
-    const signatureRadius = target.ship.capacity.misc.signatureRadius;
+    const signatureRadius = target.summary.capacity.misc.signatureRadius;
     const explosionRadius = summary.range.explosionRadius;
     const explosionVelocity = summary.range.explosionVelocity;
     const damageReductionFactor = summary.range.damageReductionFactor;
     const targetVelocity =
       Math.sqrt(
-        Math.pow(target.ship.situation.vector.x, 2) +
-          Math.pow(target.ship.situation.vector.y, 2)
+        Math.pow(target.summary.situation.vector.x, 2) +
+          Math.pow(target.summary.situation.vector.y, 2)
       ) * 3;
 
     const simplePart = signatureRadius / explosionRadius;
@@ -617,11 +831,11 @@ class EveMath {
   static getRangeModifier(summary, owner, target) {
     const distanceVector = {
       x:
-        target.ship.situation.anchors.anchor1X -
-        owner.ship.situation.anchors.anchor1X,
+        target.summary.situation.anchors.anchor1X -
+        owner.summary.situation.anchors.anchor1X,
       y:
-        target.ship.situation.anchors.anchor1Y -
-        owner.ship.situation.anchors.anchor1Y,
+        target.summary.situation.anchors.anchor1Y -
+        owner.summary.situation.anchors.anchor1Y,
     };
     const distance =
       Math.sqrt(Math.pow(distanceVector.x, 2) + Math.pow(distanceVector.y, 2)) /
@@ -664,7 +878,7 @@ class EveMath {
       EveMath.#getTurretAcurracy_validateVector(hostileVector)
     ) {
       const perpendicularVector = { x: -distanceVector.y, y: distanceVector.x };
-      const perpendicularUnitVector = EveMath.#getTurretAcurracy_makeUnitVector(
+      const perpendicularUnitVector = EveMath.#common_makeUnitVector(
         perpendicularVector
       );
       const hostileOrbitalVelocity = EveMath.#getTurretAcurracy_innerProduct(
@@ -683,12 +897,12 @@ class EveMath {
   static #getTurretAcurracy_innerProduct = (unitVector, velocityVector) => {
     return unitVector.x * velocityVector.x + unitVector.y * velocityVector.y;
   };
-  static #getTurretAcurracy_makeUnitVector = (vector) => {
-    const length = Math.sqrt(Math.pow(vector.x, 2) + Math.pow(vector.y, 2));
-    return { x: vector.x / length, y: vector.y / length };
-  };
   static #getTurretAcurracy_validateVector = (vector) => {
     if (vector.x !== undefined && vector.y !== undefined) return true;
     else return false;
+  };
+  static #common_makeUnitVector = (vector) => {
+    const length = Math.sqrt(Math.pow(vector.x, 2) + Math.pow(vector.y, 2));
+    return { x: vector.x / length, y: vector.y / length };
   };
 }

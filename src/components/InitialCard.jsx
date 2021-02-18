@@ -119,8 +119,8 @@ export default function InitialCard(props) {
   );
 
   const [situation, setSituation] = useState();
-  const [fit, setFit] = useState();
-  const [fit1, setFit1] = useState();
+  const [slots, setSlots] = useState();
+  const [slots1, setSlots1] = useState();
 
   useEffect(() => {
     setWidth(window.innerWidth);
@@ -132,10 +132,6 @@ export default function InitialCard(props) {
       window.removeEventListener("resize", handleRender);
     };
   }, []);
-
-  useEffect(() => {
-    if (!!fit && !!fit1) Simulator.test(fit, fit1, situation);
-  }, [fit, fit1, situation]);
 
   return (
     <div style={{ display: "flex", flexDirection: "row-reverse" }}>
@@ -150,7 +146,7 @@ export default function InitialCard(props) {
         <Grid xs={12} container item justify="center"></Grid>
         <Grid xs={12} container item justify="center">
           <FitCard
-            setFit={setFit}
+            setSlots={setSlots}
             backgroundColor={theme.palette.property.blue}
             color={theme.palette.background.paper}
             tag={"fit"}
@@ -161,7 +157,7 @@ export default function InitialCard(props) {
         </Grid>
         <Grid xs={12} container item justify="center">
           <FitCard
-            setFit={setFit1}
+            setSlots={setSlots1}
             backgroundColor={theme.palette.property.red}
             color={theme.palette.background.paper}
             tag={"fit1"}
@@ -169,6 +165,16 @@ export default function InitialCard(props) {
             dispatchDrawersOpen={dispatchDrawersOpen}
             cache={props.cache}
           />
+        </Grid>
+        <Grid xs={12} container item justify="center">
+          <Button
+            onClick={() => {
+              if (!!slots && !!slots1) Simulator.test(slots, slots1, situation);
+            }}
+            fullWidth
+          >
+            Simulate
+          </Button>
         </Grid>
         <Grid xs={12} container item justify="center">
           <ShipCanvas setSituation={setSituation} />

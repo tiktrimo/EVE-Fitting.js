@@ -84,10 +84,6 @@ export default function FitCard(props) {
 
   const [stat, setStat] = useState(Stat.defaultStat);
 
-  useEffect(() => {
-    if (!!props.setFit) props.setFit(fit);
-  }, [fit]);
-
   const isInitialRender = useRef(true);
   useEffect(() => {
     if (!isInitialRender.current && !isSyncing.current) {
@@ -134,6 +130,7 @@ export default function FitCard(props) {
         fitID={fitID}
         setFitID={setFitID}
         setFit={setFit}
+        setSlots={props.setSlots}
         cache={props.cache}
       />
     </React.Fragment>

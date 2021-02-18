@@ -247,12 +247,13 @@ export default class Stat {
     ); //effectID: 40, effectName: "launcherFitted"
     const isDrone = item?.typeDroneSize !== undefined;
 
-    if (isTurretFitted) {
+    if (isTurretFitted || isDrone) {
       const optimalRange = findAttributebyID(item, 54); //attributeID: 54, attributeName: "Optimal Range"
       const falloffRange = findAttributebyID(item, 158); //attributeID: 158, attributeName: "Accuracy falloff "
       const tracking = findAttributebyID(item, 160); // attributeID: 160, attributeName: "Turret Tracking"
+      const signatureResolution = findAttributebyID(item, 620); // attributeID: 620, attributeName: "Signature Resolution"
 
-      return { optimalRange, falloffRange, tracking };
+      return { optimalRange, falloffRange, tracking, signatureResolution };
     } else if (isLauncherFitted) {
       const maximumVelocity = findAttributebyID(charge, 37); //attributeID: 37, attributeName: "Maximum Velocity"
       const filghtTime = findAttributebyID(charge, 281); //attributeID: 281, attributeName: "Maximum Flight Time"
@@ -263,16 +264,6 @@ export default class Stat {
 
       //prettier-ignore
       return { optimalRange, falloffRange: 0, explosionVelocity, explosionRadius, damageReductionFactor };
-    } else if (isDrone) {
-      const optimalRange = findAttributebyID(item, 54); //attributeID: 54, attributeName: "Optimal Range"
-      const falloffRange = findAttributebyID(item, 158); //attributeID: 158, attributeName: "Accuracy falloff "
-      const tracking = findAttributebyID(item, 160); // attributeID: 160, attributeName: "Turret Tracking"
-      const orbitVelocity = findAttributebyID(item, 508); // attributeID: 508, attributeName: "Orbit Velocity"
-      const orbitRange = findAttributebyID(item, 416); //attributeID: 416, attributeName: "entityFlyRange"
-      const maximumVelocity = findAttributebyID(item, 37); // attributeID: 37, attributeName: "Maximum Velocity"
-
-      //prettier-ignore
-      return { optimalRange, falloffRange, tracking, orbitRange, orbitVelocity, maximumVelocity };
     } else return { optimalRange: 0, falloffRange: 0 };
   };
 
@@ -732,6 +723,7 @@ export default class Stat {
   static getActivationInfo(item, charge) {
     if (!item) return { duration: 0, e_duration: 0 };
 
+    const typeCount = item.typeCount || 1;
     const activationCost = findAttributebyID(item, 6) || 0; //attributeID: 6, attributeName: "Activation Cost"
     const reloadTime = (findAttributebyID(item, 1795) || undefined) / 1000; //attributeID: 1795, attributeName: "Reload Time"
     const activationTime =
@@ -744,6 +736,7 @@ export default class Stat {
         activationLimit: Infinity,
         reloadTime: 0,
         activationCost,
+        typeCount,
       };
     if (!Fit.validateChargeSlot({ item, charge }))
       return {
@@ -752,6 +745,7 @@ export default class Stat {
         activationLimit: 0,
         reloadTime: 0,
         activationCost,
+        typeCount,
       };
 
     const itemCapacity = item.capacity;
@@ -774,6 +768,7 @@ export default class Stat {
       activationLimit,
       reloadTime,
       activationCost,
+      typeCount,
     };
   }
   static #getActivationInfo_isTypeNeedCharge = (type) => {

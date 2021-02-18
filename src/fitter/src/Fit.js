@@ -73,6 +73,7 @@ export default class Fit {
     }, []);
   };
   static #mapSlots_slots = function (slots, callback) {
+    if (!slots) return [];
     return slots.map((slot) => {
       return callback(slot);
     });
@@ -293,7 +294,7 @@ export default class Fit {
   };
   static #applyBoard_modIsModApplicable = function (targetMod, applyMod) {
     if (!Fit.#applyBoard_modIsStateApplicable(applyMod)) {
-      /*  if (
+      if (
         !(
           applyMod.typeState === "activation" &&
           applyMod.effectCategory === "overload"
@@ -305,7 +306,7 @@ export default class Fit {
           targetMod,
           "<-",
           applyMod
-        ); */ //TESTETS
+        ); //TESTETS
       return false;
     }
     switch (applyMod.domain) {
@@ -330,13 +331,13 @@ export default class Fit {
       /*    case "structureID":
         return false; */
       default:
-        /* console.log("UNKNOWN", targetMod, "<-", applyMod); */
+        console.error("UNKNOWN", targetMod, "<-", applyMod);
         return true;
     }
   };
   static #applyBoard_modIsTypeApplicable = function (type, mod) {
     if (!Fit.#applyBoard_modIsStateApplicable(mod)) {
-      /* if (
+      if (
         !(mod.typeState === "activation" && mod.effectCategory === "overload")
       )
         console.log(
@@ -345,7 +346,7 @@ export default class Fit {
           type,
           "<-",
           mod
-        );  */ //TESTETS
+        ); //TESTETS
       return false;
     }
     if (type.domainID === undefined) console.log("domainID missing", type);
@@ -398,7 +399,7 @@ export default class Fit {
       case "structureID":
         return false;
       default:
-        /* console.log("UNKNOWN", type, "<-", mod); */ //TESTETS
+        console.error("UNKNOWN", type, "<-", mod); //TESTETS
         return true;
     }
   };

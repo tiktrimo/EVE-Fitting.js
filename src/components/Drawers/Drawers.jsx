@@ -179,6 +179,7 @@ export default function Drawers(props) {
     setExportFitText(EFT.buildTextFromFit(appliedFit));
     props.setFit(appliedFit);
     props.setFitID(EFT.buildCompareTextFromFit(slots));
+    props.setSlots(slots);
   }, [EFT.buildCompareTextFromFit(slots)]);
 
   return (

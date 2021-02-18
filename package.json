@@ -45,6 +45,6 @@
     ]
   },
   "devDependencies": {
-    "@babel/core": "^7.10.5"
+    "@babel/core": "^7.12.16"
   }
 }
