@@ -723,7 +723,6 @@ export default class Stat {
   static getActivationInfo(item, charge) {
     if (!item) return { duration: 0, e_duration: 0 };
 
-    const typeCount = item.typeCount || 1;
     const activationCost = findAttributebyID(item, 6) || 0; //attributeID: 6, attributeName: "Activation Cost"
     const reloadTime = (findAttributebyID(item, 1795) || undefined) / 1000; //attributeID: 1795, attributeName: "Reload Time"
     const activationTime =
@@ -736,7 +735,6 @@ export default class Stat {
         activationLimit: Infinity,
         reloadTime: 0,
         activationCost,
-        typeCount,
       };
     if (!Fit.validateChargeSlot({ item, charge }))
       return {
@@ -745,7 +743,6 @@ export default class Stat {
         activationLimit: 0,
         reloadTime: 0,
         activationCost,
-        typeCount,
       };
 
     const itemCapacity = item.capacity;
@@ -768,7 +765,6 @@ export default class Stat {
       activationLimit,
       reloadTime,
       activationCost,
-      typeCount,
     };
   }
   static #getActivationInfo_isTypeNeedCharge = (type) => {

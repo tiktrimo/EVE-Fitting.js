@@ -1,9 +1,34 @@
 import Fit from "../../../../fitter/src/Fit";
-import { findAttributebyID } from "../../../../services/dataManipulation/findAttributes";
-import Stat from "./Stat";
+import EveMath from "./EveMath";
+import Summary from "./Summary";
 
 export default class Simulator {
   static test(slots, fit1, situation) {
+    /* let stack = 0;
+    const owner = { summary: { load: { capacitor: { HP: 2000 } } } };
+    const summary = {
+      activationState: {
+        isActive: true,
+        lastActivation: 0,
+        nextActivation: 0,
+        nextActivationTick: 0,
+        activationLeft: 30,
+      },
+      activationInfo: {
+        duration: 0.2765,
+        reloadTime: 10,
+        activationLimit: 30,
+      },
+    };
+    for (let i = 0; i < 100; i++) {
+      const activation = Simulator.manageActivationState(owner, summary, i);
+      stack += activation.length;
+      console.log(
+        activation.length,
+        activation,
+        activation?.[activation.length - 1]?.time
+      );
+    } */
     const summaries1 = Summary.addSummaries(slots, situation.onboard);
     const summaries2 = Summary.addSummaries(fit1, situation.hostile);
     console.log(summaries1, summaries2);
@@ -88,7 +113,7 @@ export default class Simulator {
   //Currently target boost (remote armor repair is nor possible)
   static activateDefense = (summary, owner, target, tick) => {
     //prettier-ignore
-    const numOfActivation = Simulator.manageActivationState(owner,summary,tick);
+    const numOfActivation = Simulator.simulateActivation(owner,summary,tick).length;
     if (numOfActivation == 0) return false;
 
     for (let i = 0; i < numOfActivation; i++) {
@@ -109,7 +134,7 @@ export default class Simulator {
 
   static activateDamage = (summary, owner, target, tick) => {
     //prettier-ignore
-    const numOfActivation = Simulator.manageActivationState(owner,summary,tick);
+    const numOfActivation = Simulator.simulateActivation(owner,summary,tick).length;
     if (numOfActivation == 0) return false;
     for (let i = 0; i < numOfActivation; i++) {
       //prettier-ignore
@@ -271,7 +296,7 @@ export default class Simulator {
 
   static activateCapacitor = (summary, owner, target, tick) => {
     //prettier-ignore
-    const numOfActivation = Simulator.manageActivationState(owner,summary,tick);
+    const numOfActivation = Simulator.simulateActivation(owner,summary,tick).length;
     if (numOfActivation == 0) return false;
 
     for (let i = 0; i < numOfActivation; i++) {
@@ -355,17 +380,18 @@ export default class Simulator {
     return isCapacitorBooster ? 1 : rangeModifier;
   };
 
-  static manageActivationState = (owner, summary, tick) => {
+  static simulateActivation = (owner, summary, tick) => {
+    const currentTime = summary.activationState.nextActivation;
     const state = summary.activationState;
     const info = summary.activationInfo;
     if (state.isActive && state.nextActivationTick < tick)
       console.warn("ERR: Tick is not in sync"); //TODO: for testing, check tick is okay
-    if (!state.isActive || state.nextActivationTick !== tick) return 0;
+    if (!state.isActive || state.nextActivationTick !== tick) return [];
     //prettier-ignore
-    const activationCost = Simulator.#manageActivationState_capcitor(owner, summary);
+    const activationCost = Simulator.#simulateActivation_capcitor(owner, summary);
     if (activationCost === false) {
       state.isActive = false; // TODO: for testing, auto off if capacitor is out. make ai control capacitor
-      return 0;
+      return [];
     }
 
     // MUTATION!
@@ -377,19 +403,24 @@ export default class Simulator {
       state.nextActivation =
         state.lastActivation + info.duration + info.reloadTime;
       state.activationLeft = info.activationLimit;
-    } else state.nextActivation = state.lastActivation + info.duration;
+    } else
+      state.nextActivation = Number(
+        (state.lastActivation + info.duration).toFixed(10)
+      );
+
     state.nextActivationTick = Math.floor(state.nextActivation);
 
     // Check if next activation is in same tick
-    let subSecActivation = 0;
+    let subSecActivation = [];
     if (state.nextActivationTick === tick)
-      subSecActivation = Simulator.manageActivationState(owner, summary, tick);
+      subSecActivation = Simulator.simulateActivation(owner, summary, tick);
 
-    return (1 + subSecActivation) * state.typeCount;
+    return [{ time: currentTime, summary }, ...subSecActivation];
   };
-  static #manageActivationState_capcitor = (owner, summary) => {
+  static #simulateActivation_capcitor = (summary) => {
     const activationInfo = summary.activationInfo;
-    const capacitorState = owner.summary.load.capacitor;
+    const capacitorState =
+      summary.load.capacitor || summary.root.load.capacitor;
     if (capacitorState.HP < activationInfo.activationCost) return false;
 
     // MUTATION!
@@ -398,511 +429,124 @@ export default class Simulator {
     return activationInfo.activationCost;
   };
 }
-class Summary extends Stat {
-  static addSummaries = (slots, situation) => {
-    const _slots = JSON.parse(JSON.stringify(slots));
-    const fit = Fit.apply(_slots);
+class HAL {
+  static manageSchedules(schedules) {
+    schedules.forEach((schedule) => {
+      switch (schedule.summary.operation) {
+        case "damage":
+          Simulator.activateDamage(
+            schedule.summary,
+            schedule.summary.root,
+            schedule.summary.target
+          );
+      }
+    });
+  }
+  static manageSchedules_validateCapacitor(summary) {
+    const activationInfo = summary.activationInfo;
+    const capacitorState =
+      summary?.load?.capacitor || summary.root.load.capacitor;
 
-    if (!!_slots) _slots["summary"] = Summary.getSummary_ship(fit, situation);
+    if (capacitorState.HP < activationInfo.activationCost) return false;
+    else return true;
+  }
+  static manageSchedules_validateStructure(summary) {
+    const structureHP = summary?.load?.structure?.HP;
+    const rootStructureHP = summary.root.load.structure.HP;
 
-    Fit.mapSlots(
-      fit,
+    if (structureHP <= 0 || rootStructureHP <= 0) return false;
+    else return true;
+  }
+
+  static getSchedules(slots, target, tick) {
+    HAL.#getSchedules_setTarget(slots, target);
+    return Fit.mapSlots(
+      slots,
       (slot) => {
         if (!slot.item) return false;
 
-        const summary = Summary.#getSummaries_modules(slot);
-        const _slot = !!summary && SimFit.toPath(_slots, summary.path);
-        if (!!_slot) _slot["summary"] = summary;
+        return HAL.#getSchedules_getFragment(slot, tick);
       },
       {
         isIterate: {
           highSlots: true,
           midSlots: true,
           lowSlots: true,
+          droneSlots: true,
         },
       }
-    );
+    )
+      .reduce((acc, fragment) => {
+        if (!fragment) return acc;
+        return acc.concat(fragment);
+      }, [])
+      .sort((a, b) => a.time - b.time);
+  }
+  static #getSchedules_setTarget = (slots, target) => {
     Fit.mapSlots(
-      fit,
+      slots,
       (slot) => {
-        if (!slot.item) return false;
-
-        const summary = Summary.#getSummaries_drones(slot, situation);
-        const _slot = !!summary && SimFit.toPath(_slots, summary.path);
-        if (!!_slot) _slot["summary"] = summary;
+        let _target = false;
+        switch (slot?.summary?.operation) {
+          case "damage":
+          case "defense":
+          case "capacitor":
+            _target = target;
+            break;
+          default:
+            _target = false;
+            break;
+        }
+        slot.summary["target"] = _target;
       },
       {
         isIterate: {
+          highSlots: true,
+          midSlots: true,
+          lowSlots: true,
           droneSlots: true,
         },
       }
     );
-    return _slots;
   };
+  static #getSchedules_getFragment = (summary, tick) => {
+    const _summary = JSON.parse(JSON.stringify(summary));
+    const fragment = HAL.#getSchedules_getFragmentRecursion(_summary, tick);
+    return fragment.map((schedule) => {
+      schedule["summary"] = summary;
+      return schedule;
+    });
+  };
+  static #getSchedules_getFragmentRecursion = (summary, tick) => {
+    const currentTime = summary.activationState.nextActivation;
+    const state = summary.activationState;
+    const info = summary.activationInfo;
+    if (!state.isActive || state.nextActivationTick !== tick) return [];
+    //prettier-ignore TODO: for testing, check tick is okay
+    if (state.isActive && state.nextActivationTick < tick)
+      console.warn("ERR: Tick is not in sync");
 
-  static #getSummaries_modules = (slot) => {
-    if (!slot?.item?.typeEffectsStats) return false;
-    const item = slot.item;
-    const charge = slot.charge;
+    // MUTATION!
+    state.activationLeft--;
+    state.lastActivation = state.nextActivation;
 
-    const path = slot.item.domainID.split(".").slice(0, 2).join(".");
-    const summary = item.typeEffectsStats
-      .map((efft) => {
-        const activationDataSet = Summary.createActivationDataSet(slot);
-        let summary = {};
-        let operation = false;
-
-        switch (efft.effectID) {
-          case 101: // effectID: 101, effectName: "useMissiles"
-          case 34: // effectID: 34, effectName: "projectileFired"
-          case 10: // effectID: 10, effectName: "targetAttack"
-          case 6995: // effectID: 6995, effectName: "targetDisintegratorAttack"
-            summary = Summary.getSummary_damage(item, charge);
-            if (!summary.damagePerAct.alpha) return false;
-            operation = "damage";
-            break;
-          case 4: // effectID: 4, effectName: "shieldBoosting"
-          case 26: // effectID: 26, effectName: "structureRepair"
-          case 4936: // effectID: 4936, effectName: "fueledShieldBoosting"
-          case 27: // effectID: 27, effectName: "armorRepair"
-          case 5275: // effectID: 5275, effectName: "fueledArmorRepair"
-            summary = Summary.getSummary_defense(item, charge);
-            operation = "defense";
-            break;
-          case 48: //effectID: 48, effectName: "powerBooster"
-          case 6187: //effectID: 6187, effectName: "energyNeutralizerFalloff"
-          case 6197: //effectID: 6197, effectName: "energyNosferatuFalloff"
-          case 6148: // effectID: 6184, effectName: "shipModuleRemoteCapacitorTransmitter"
-            summary = Summary.getSummary_capacitor(item, charge);
-            operation = "capacitor";
-            break;
-          default:
-            return false;
-        }
-        return { ...summary, ...activationDataSet, operation, path };
-      })
-      .filter((summary) => !!summary);
-
-    if (summary.length > 1)
-      console.error(
-        "ERR: more than one summary produced in single module",
-        slot
+    // Check if ammo left is 0, set time
+    if (state.activationLeft === 0) {
+      state.nextActivation =
+        state.lastActivation + info.duration + info.reloadTime;
+      state.activationLeft = info.activationLimit;
+    } else
+      state.nextActivation = Number(
+        (state.lastActivation + info.duration).toFixed(10)
       );
-    else return summary[0] || false;
-  };
-  static #getSummaries_drones = (slot) => {
-    if (!slot?.item?.typeEffectsStats) return false;
-    const item = slot.item;
-    const isSentry = slot.item.marketGroupID === 911; // marketGroupID: 911 "marketGroupName": "Sentry Drones"
 
-    const path = slot.item.domainID.split(".").slice(0, 2).join(".");
-    // These functions from Stat class is targeted for ship. modified to fit in drone in this case
-    const defense = this.defense_resistance({ ship: slot.item });
-    const capacitor = this.capacitor_getChargeInfo({ ship: slot.item });
+    state.nextActivationTick = Math.floor(state.nextActivation);
 
-    const misc = this.miscellaneous({ ship: slot.item });
-    const orbitVelocity = findAttributebyID(slot.item, 508); // attributeID: 508, attributeName: "Orbit Velocity"
-    const orbitRange = findAttributebyID(slot.item, 416); //attributeID: 416, attributeName: "entityFlyRange"
-    const maximumVelocity = findAttributebyID(slot.item, 37); // attributeID: 37, attributeName: "Maximum Velocity"
-    misc.propulsion = {
-      ...misc.propulsion,
-      orbitVelocity,
-      orbitRange,
-      maximumVelocity,
-    };
+    // Check if next activation is in same tick
+    let subSecSchedule = [];
+    if (state.nextActivationTick === tick)
+      subSecSchedule = HAL.#getSchedules_getFragmentRecursion(summary, tick);
 
-    const droneSumamry = {
-      load: {
-        armor: { HP: defense.armor.HP },
-        shield: { HP: defense.shield.HP },
-        structure: { HP: defense.structure.HP },
-        capacitor: { HP: capacitor.HP },
-      },
-      capacity: { ...defense, ...misc, capacitor },
-    };
-    const moduleSummary = item.typeEffectsStats
-      .map((efft) => {
-        const activationDataSet = Summary.createActivationDataSet(slot);
-        let summary = {};
-        let operation = false;
-
-        switch (efft.effectID) {
-          case 101: // effectID: 101, effectName: "useMissiles"
-          case 34: // effectID: 34, effectName: "projectileFired"
-          case 10: // effectID: 10, effectName: "targetAttack"
-          case 6995: // effectID: 6995, effectName: "targetDisintegratorAttack"
-            summary = Summary.getSummary_drone(item);
-            if (!summary.damagePerAct.alpha) return false;
-            operation = "damage";
-            break;
-          default:
-            return false;
-        }
-        return { ...summary, ...activationDataSet, operation, path };
-      })
-      .filter((summary) => !!summary);
-
-    const situation_decription =
-      "Currently situation is not calculated BUT! always hitted by smart bomb";
-
-    if (moduleSummary.length > 1)
-      console.error(
-        "ERR: more than one summary produced in single module",
-        slot
-      );
-    else
-      return {
-        ...droneSumamry,
-        ...moduleSummary[0],
-        situation_decription,
-        isSentry,
-      };
-  };
-  static createActivationDataSet = (slot) => {
-    const activationInfo = this.getActivationInfo(slot.item, slot.charge);
-
-    return {
-      activationInfo,
-      activationState: {
-        isActive: false,
-        lastActivation: 0,
-        nextActivation: 0,
-        nextActivationTick: 0,
-        activationLeft: activationInfo.activationLimit,
-        typeCount: activationInfo.typeCount,
-      },
-    };
-  };
-  static getSummary_ship = (fit, situation) => {
-    const defense = this.defense_resistance(fit);
-    const misc = this.miscellaneous(fit);
-    const capacitor = this.capacitor_getChargeInfo(fit);
-
-    return {
-      load: {
-        armor: { HP: defense.armor.HP },
-        shield: { HP: defense.shield.HP },
-        structure: { HP: defense.structure.HP },
-        capacitor: { HP: capacitor.HP },
-      },
-      capacity: { ...defense, ...misc, capacitor },
-      situation: situation,
-    };
-  };
-
-  static getSummary_damage(item, charge) {
-    if (!item) return false;
-
-    const damagePerAct = this.damage_damagePerAct(item, charge);
-    const range = this.damage_range(item, charge);
-
-    return { damagePerAct, range };
-  }
-  static getSummary_drone(item) {
-    if (!item) return false;
-
-    const damagePerAct = this.damage_damagePerAct(item, item);
-    const range = this.damage_range(item, item);
-
-    return { damagePerAct, range };
-  }
-  static getSummary_defense(item, charge) {
-    if (!item) return false;
-
-    const bonusPerAct = this.defense_getBonusPerAct(item, charge);
-
-    return { bonusPerAct: { self: bonusPerAct } };
-  }
-  static getSummary_capacitor(item, charge) {
-    if (!item) return false;
-    const booster_bonusPerAct = findAttributebyID(charge, 67) || 0; //attributeID: 67, attributeName: "Capacitor Bonus"
-    const transfer_bonusPerAct = findAttributebyID(item, 90) || 0; // attributeID: 90, attributeName: "Energy transfer amount"
-    const neut_bonusPerAct = findAttributebyID(item, 97) || 0; // attributeID: 97, attributeName: "Neutralization Amount"
-
-    const isNosferatuBloodRaiderOverriden = findAttributebyID(item, 1945) === 1; //attributeID: 1945, attributeName: "nosOverride"
-    const isCapacitorTransmitter = !!findAttributebyID(item, 3423); //attributeID: 182, attributeName: "Primary Skill required" (3423: capacitor emission system)
-    const isNosferatu = !isCapacitorTransmitter && !!transfer_bonusPerAct;
-
-    const bonusPerAct_self = isCapacitorTransmitter
-      ? 0
-      : booster_bonusPerAct + transfer_bonusPerAct;
-    const bonusPerAct_target = isCapacitorTransmitter
-      ? transfer_bonusPerAct
-      : -transfer_bonusPerAct - neut_bonusPerAct;
-
-    const optimalRange = findAttributebyID(item, 54); //attributeID: 54, attributeName: "Optimal Range"
-    const falloffRange = findAttributebyID(item, 2044); //attributeID: 2044, attributeName: "Effectiveness Falloff"
-
-    return {
-      bonusPerAct: { self: bonusPerAct_self, target: bonusPerAct_target },
-      range: { optimalRange, falloffRange },
-      isNosferatuBloodRaiderOverriden,
-      isCapacitorTransmitter,
-      isNosferatu,
-    };
-  }
-}
-
-class SimFit extends Fit {
-  static changeStateOfModule(slots, path, state) {
-    if (!["overload", "activation", "passive", "offline"].includes(state))
-      return false;
-
-    const targetSlot = this.toPath(slots, path);
-    if (!targetSlot || !targetSlot.item) return false;
-
-    targetSlot.item.typeState = state;
-    const fit = this.apply(slots);
-    return fit;
-  }
-  static toPath(slots, path) {
-    return path.split(".").reduce((p, c) => (p && p[c]) || undefined, slots);
-  }
-}
-
-class EveMath {
-  static getAmbientChargeRateMath(Cmax, Cnow, Tchg) {
-    return ((10 * Cmax) / Tchg) * (Math.sqrt(Cnow / Cmax) - Cnow / Cmax) || 0;
-  }
-  static getTurretAcurracy(summary, owner, target) {
-    const onBoardVector = owner.summary.situation.vector;
-    const hostileVector = target.summary.situation.vector;
-    const distanceVector = {
-      x:
-        target.summary.situation.anchors.anchor1X -
-        owner.summary.situation.anchors.anchor1X,
-      y:
-        target.summary.situation.anchors.anchor1Y -
-        owner.summary.situation.anchors.anchor1Y,
-    };
-    const distance =
-      Math.sqrt(Math.pow(distanceVector.x, 2) + Math.pow(distanceVector.y, 2)) /
-      100;
-
-    const trackingValue =
-      summary.range.tracking * (40000 / summary.range.signatureResolution);
-    const optimalRange = summary.range.optimalRange;
-    const fallOffRange = summary.range.optimalRange;
-    const signatureRadius = target.summary.capacity.misc.signatureRadius;
-
-    const _angularVelocity = EveMath.#getTurretAcurracy_angularVelocuty(
-      distance,
-      distanceVector,
-      onBoardVector,
-      hostileVector
-    );
-    const _trackingPart = EveMath.#getTurretAcurracy_trackingPart(
-      _angularVelocity,
-      trackingValue,
-      signatureRadius
-    );
-
-    const trackingModifier = Math.pow(0.5, _trackingPart);
-    const rangeModifier = EveMath.getRangeModifier(summary, owner, target);
-    /*  const _distancePart = EveMath.#getTurretAcurracy_distancePart(
-      optimalRange,
-      fallOffRange,
-      distance
-    ); */
-
-    /* return (Math.pow(0.5, _trackingPart + _distancePart)).toFixed(3); */
-    return (trackingModifier * rangeModifier).toFixed(3);
-  }
-  static getLauncherAccuracy(summary, owner, target) {
-    const distanceVector = {
-      x:
-        target.summary.situation.anchors.anchor1X -
-        owner.summary.situation.anchors.anchor1X,
-      y:
-        target.summary.situation.anchors.anchor1Y -
-        owner.summary.situation.anchors.anchor1Y,
-    };
-    const distance =
-      Math.sqrt(Math.pow(distanceVector.x, 2) + Math.pow(distanceVector.y, 2)) /
-      100;
-
-    return summary.range.optimalRange < distance * 1000 ? 0 : 1;
-  }
-  static getDroneAccracy(summary, owner, target) {
-    // owner is owner of drone! which is ship
-    if (summary.isSentry)
-      return EveMath.getTurretAcurracy(summary, owner, target);
-
-    const targetUnitVector = EveMath.#common_makeUnitVector(
-      target.summary.situation.vector
-    );
-    const targetVelocity =
-      Math.sqrt(
-        Math.pow(target.summary.situation.vector.x, 2) +
-          Math.pow(target.summary.situation.vector.y, 2)
-      ) * 3;
-    const isChasing =
-      summary.capacity.propulsion.orbitVelocity < targetVelocity;
-    if (isChasing) {
-      const droneAccuracyModifier = EveMath.#getDroneAccracy_getAccuracyModifier(
-        summary,
-        targetVelocity
-      );
-      const absoluteVelocity = summary.capacity.propulsion.orbitVelocity;
-      const droneVector = {
-        x: targetUnitVector.x * (absoluteVelocity / 3), // Currently 1px = 3m/s
-        y: targetUnitVector.y * (absoluteVelocity / 3),
-      };
-      const droneSituationsummary = {
-        summary: {
-          situation: {
-            anchors: {
-              anchor1X:
-                target.summary.situation.anchors.anchor1X -
-                (targetUnitVector.x * summary.capacity.propulsion.orbitRange) /
-                  10, // Currently 1px = 10m
-              anchor1Y:
-                target.summary.situation.anchors.anchor1Y -
-                (targetUnitVector.y * summary.capacity.propulsion.orbitRange) /
-                  10,
-            },
-            vector: droneVector,
-          },
-        },
-      };
-      return (
-        EveMath.getTurretAcurracy(summary, droneSituationsummary, target) *
-        droneAccuracyModifier
-      );
-    } else {
-      const absoluteVelocity =
-        summary.capacity.propulsion.orbitVelocity + targetVelocity;
-      const droneVector = {
-        x: targetUnitVector.x * (absoluteVelocity / 3), // Currently 1px = 3m/s
-        y: targetUnitVector.y * (absoluteVelocity / 3),
-      }; // drone positions at perpendicular to targetVector
-      const droneSituationsummary = {
-        summary: {
-          situation: {
-            anchors: {
-              anchor1X:
-                target.summary.situation.anchors.anchor1X +
-                (targetUnitVector.y * summary.capacity.propulsion.orbitRange) /
-                  10, // Currently 1px = 10m
-              anchor1Y:
-                target.summary.situation.anchors.anchor1Y -
-                (targetUnitVector.x * summary.capacity.propulsion.orbitRange) /
-                  10,
-            },
-            vector: droneVector,
-          },
-        },
-      };
-      return EveMath.getTurretAcurracy(summary, droneSituationsummary, target);
-    }
-  }
-  static #getDroneAccracy_getAccuracyModifier = (summary, targetVelocity) => {
-    // Estimated modifier - drone movement is too complicated simplify the situation when target velocity is higher than orbit velocity
-    //prettier-ignore
-    const value = 1 -targetVelocity /
-        (summary.capacity.propulsion.maximumVelocity - summary.capacity.propulsion.orbitVelocity);
-    if (value >= 1) return 1;
-    return value >= 0 ? value : 0.01;
-  };
-  static getLauncherDamageModifier(summary, target) {
-    const signatureRadius = target.summary.capacity.misc.signatureRadius;
-    const explosionRadius = summary.range.explosionRadius;
-    const explosionVelocity = summary.range.explosionVelocity;
-    const damageReductionFactor = summary.range.damageReductionFactor;
-    const targetVelocity =
-      Math.sqrt(
-        Math.pow(target.summary.situation.vector.x, 2) +
-          Math.pow(target.summary.situation.vector.y, 2)
-      ) * 3;
-
-    const simplePart = signatureRadius / explosionRadius;
-    const complexPart = Math.pow(
-      (signatureRadius * explosionVelocity) /
-        (explosionRadius * targetVelocity),
-      damageReductionFactor
-    );
-
-    return Math.min(1, simplePart, complexPart);
-  }
-  static getTurretRandomDamageModifier() {
-    const randomDamageModifier = Math.random();
-    return randomDamageModifier < 0.01 ? 3 : randomDamageModifier + 0.49;
-  }
-  static getRangeModifier(summary, owner, target) {
-    const distanceVector = {
-      x:
-        target.summary.situation.anchors.anchor1X -
-        owner.summary.situation.anchors.anchor1X,
-      y:
-        target.summary.situation.anchors.anchor1Y -
-        owner.summary.situation.anchors.anchor1Y,
-    };
-    const distance =
-      Math.sqrt(Math.pow(distanceVector.x, 2) + Math.pow(distanceVector.y, 2)) /
-      100;
-
-    const optimal = summary.range.optimalRange;
-    const falloff = summary.range.falloffRange;
-    if (distance * 1000 > optimal + 3 * falloff) return 0;
-
-    const denominator = falloff;
-    const numerator = Math.max(0, distance * 1000 - optimal);
-    const _distancePart = Math.pow(numerator / denominator, 2);
-
-    return Math.pow(0.5, _distancePart);
-  }
-
-  static #getTurretAcurracy_trackingPart = (
-    angularVelocity,
-    trackingValue,
-    signatureRadius
-  ) => {
-    const denominator = trackingValue * signatureRadius;
-    const numerator = angularVelocity * 40000;
-    return Math.pow(numerator / denominator, 2);
-  };
-  static #getTurretAcurracy_distancePart = (optimal, fallOff, distance) => {
-    const denominator = fallOff;
-    const numerator = Math.max(0, distance * 1000 - optimal);
-    return Math.pow(numerator / denominator, 2);
-  };
-  static #getTurretAcurracy_angularVelocuty = (
-    distance,
-    distanceVector,
-    onBoardVector,
-    hostileVector
-  ) => {
-    if (
-      EveMath.#getTurretAcurracy_validateVector(distanceVector) &&
-      EveMath.#getTurretAcurracy_validateVector(onBoardVector) &&
-      EveMath.#getTurretAcurracy_validateVector(hostileVector)
-    ) {
-      const perpendicularVector = { x: -distanceVector.y, y: distanceVector.x };
-      const perpendicularUnitVector = EveMath.#common_makeUnitVector(
-        perpendicularVector
-      );
-      const hostileOrbitalVelocity = EveMath.#getTurretAcurracy_innerProduct(
-        perpendicularUnitVector,
-        hostileVector
-      );
-      const onBoardOrbitalVelocity = EveMath.#getTurretAcurracy_innerProduct(
-        perpendicularUnitVector,
-        onBoardVector
-      );
-      const trueObitalVelocity =
-        (hostileOrbitalVelocity - onBoardOrbitalVelocity) * 3;
-      return trueObitalVelocity / (distance * 1000);
-    } else return false;
-  };
-  static #getTurretAcurracy_innerProduct = (unitVector, velocityVector) => {
-    return unitVector.x * velocityVector.x + unitVector.y * velocityVector.y;
-  };
-  static #getTurretAcurracy_validateVector = (vector) => {
-    if (vector.x !== undefined && vector.y !== undefined) return true;
-    else return false;
-  };
-  static #common_makeUnitVector = (vector) => {
-    const length = Math.sqrt(Math.pow(vector.x, 2) + Math.pow(vector.y, 2));
-    return { x: vector.x / length, y: vector.y / length };
+    return [{ time: currentTime }, ...subSecSchedule];
   };
 }
