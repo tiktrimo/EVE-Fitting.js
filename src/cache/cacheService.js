@@ -12,12 +12,12 @@ export default class cacheService {
   get(key, storeFunction) {
     const value = this.cache.get(key);
     if (value) {
-      /*       console.log(`${key}: Cache Operation[GET]`); */
+      /* console.log(`${key}: Cache Operation[GET]`); */
       return Promise.resolve(value);
     }
 
     return storeFunction().then((result) => {
-      /*       console.log(`${key}: Cache set`); */
+      /* console.log(`${key}: Cache set[GET_NETWORK]`); */
       this.cache.set(key, result);
       return result;
     });

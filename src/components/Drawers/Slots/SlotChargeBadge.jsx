@@ -67,7 +67,6 @@ export default function SlotChargeBadge(props) {
     } else if (
       !Fit.validateChargeSlot({ item: props.item, charge: props.charge })
     ) {
-      console.log("NO!");
       // Charge not compatible
       setBadgeColor({
         color: theme.palette.background.paper,

@@ -4,49 +4,31 @@ import Summary from "./Summary";
 
 export default class Simulator {
   static test(slots, fit1, situation) {
-    /* let stack = 0;
-    const owner = { summary: { load: { capacitor: { HP: 2000 } } } };
-    const summary = {
-      activationState: {
-        isActive: true,
-        lastActivation: 0,
-        nextActivation: 0,
-        nextActivationTick: 0,
-        activationLeft: 30,
+    const summarizedSlots1 = Summary.addSummaries(slots, situation.onboard);
+    const summarizedSlots2 = Summary.addSummaries(fit1, situation.hostile);
+    console.log(summarizedSlots1, summarizedSlots2);
+
+    Fit.mapSlots(
+      summarizedSlots1,
+      (slot) => {
+        if (!slot?.summary?.activationState) return false;
+        slot.summary.activationState.isActive = true;
+        slot.summary.activationState.nextActivationTick = 0;
+        slot.summary.activationState.nextActivation = 0;
       },
-      activationInfo: {
-        duration: 0.2765,
-        reloadTime: 10,
-        activationLimit: 30,
-      },
-    };
-    for (let i = 0; i < 100; i++) {
-      const activation = Simulator.manageActivationState(owner, summary, i);
-      stack += activation.length;
-      console.log(
-        activation.length,
-        activation,
-        activation?.[activation.length - 1]?.time
-      );
-    } */
-    const summaries1 = Summary.addSummaries(slots, situation.onboard);
-    const summaries2 = Summary.addSummaries(fit1, situation.hostile);
-    console.log(summaries1, summaries2);
-    summaries1.summary.load.shield.HP = 100;
-    if (!!summaries1?.midSlots?.[0]?.summary) {
-      summaries1.midSlots[0].summary.activationState.isActive = true;
-      summaries1.midSlots[0].summary.activationState.nextActivation = 0;
-      summaries1.midSlots[0].summary.activationState.nextActivationTick = 0;
-      for (let i = 0; i < 100; i++) {
-        Simulator.activateDefense(
-          summaries1.midSlots[0].summary,
-          summaries1,
-          summaries2,
-          i
-        );
-        console.log(summaries1.summary.load.shield.HP);
+      {
+        isIterate: {
+          highSlots: true,
+          midSlots: true,
+          lowSlots: true,
+          droneSlots: true,
+        },
       }
-    }
+    );
+
+    HAL.manageSchedules(
+      HAL.getSchedules(summarizedSlots1, summarizedSlots2, 0)
+    );
   }
 
   static simulate_oneTick = (owner, target, tick) => {
@@ -73,7 +55,7 @@ export default class Simulator {
           highSlots: true,
           midSlots: true,
           lowSlots: true,
-          droneSlots: true,
+          droneSlots: true /*  */,
         },
       }
     );
@@ -111,46 +93,44 @@ export default class Simulator {
     return ambientChargeRate;
   };
   //Currently target boost (remote armor repair is nor possible)
-  static activateDefense = (summary, owner, target, tick) => {
+  static activateDefense = (summary) => {
+    const owner = summary.root;
     //prettier-ignore
-    const numOfActivation = Simulator.simulateActivation(owner,summary,tick).length;
+    /*  const numOfActivation = Simulator.simulateActivation(owner,summary,tick).length;
     if (numOfActivation == 0) return false;
 
-    for (let i = 0; i < numOfActivation; i++) {
-      // MUTATION!
-      owner.summary.load.shield.HP += summary.bonusPerAct.self.shield;
-      if (owner.summary.capacity.shield.HP < owner.summary.load.shield.HP)
-        owner.summary.load.shield.HP = owner.summary.capacity.shield.HP;
+    for (let i = 0; i < numOfActivation; i++) { */
+    // MUTATION!
+    owner.summary.load.shield.HP += summary.bonusPerAct.self.shield;
+    if (owner.summary.capacity.shield.HP < owner.summary.load.shield.HP)
+      owner.summary.load.shield.HP = owner.summary.capacity.shield.HP;
 
-      owner.summary.load.armor.HP += summary.bonusPerAct.self.armor;
-      if (owner.summary.capacity.armor.HP < owner.summary.load.armor.HP)
-        owner.summary.load.armor.HP = owner.summary.capacity.armor.HP;
+    owner.summary.load.armor.HP += summary.bonusPerAct.self.armor;
+    if (owner.summary.capacity.armor.HP < owner.summary.load.armor.HP)
+      owner.summary.load.armor.HP = owner.summary.capacity.armor.HP;
 
-      owner.summary.load.structure.HP += summary.bonusPerAct.self.structure;
-      if (owner.summary.capacity.structure.HP < owner.summary.load.structure.HP)
-        owner.summary.load.structure.HP = owner.summary.capacity.structure.HP;
-    }
+    owner.summary.load.structure.HP += summary.bonusPerAct.self.structure;
+    if (owner.summary.capacity.structure.HP < owner.summary.load.structure.HP)
+      owner.summary.load.structure.HP = owner.summary.capacity.structure.HP;
+    /*  } */
   };
 
-  static activateDamage = (summary, owner, target, tick) => {
+  static activateDamage = (summary) => {
+    const owner = summary.isDrone ? summary : summary.root;
+    const target = summary.target;
     //prettier-ignore
-    const numOfActivation = Simulator.simulateActivation(owner,summary,tick).length;
-    if (numOfActivation == 0) return false;
-    for (let i = 0; i < numOfActivation; i++) {
-      //prettier-ignore
-      const situationalModifiedSummary = Simulator.#activateDamage_getSituationalModifiedSummary(summary, owner, target);
-      //prettier-ignore
-      const alpha = Simulator.activateDamage_getAlpha(situationalModifiedSummary, target);
+    const situationalModifiedSummary = Simulator.#activateDamage_getSituationalModifiedSummary(summary, owner, target);
+    //prettier-ignore
+    const alpha = Simulator.activateDamage_getAlpha(situationalModifiedSummary, target);
 
-      // MUTATION!
-      target.summary.load.shield.HP -= alpha.shield;
-      if (target.summary.load.shield.HP < 0) target.summary.load.shield.HP = 0;
-      target.summary.load.armor.HP -= alpha.armor;
-      if (target.summary.load.armor.HP < 0) target.summary.load.armor.HP = 0;
-      target.summary.load.structure.HP -= alpha.structure;
-      if (target.summary.load.structure.HP < 0)
-        target.summary.load.structure.HP = 0;
-    }
+    // MUTATION!
+    target.summary.load.shield.HP -= alpha.shield;
+    if (target.summary.load.shield.HP < 0) target.summary.load.shield.HP = 0;
+    target.summary.load.armor.HP -= alpha.armor;
+    if (target.summary.load.armor.HP < 0) target.summary.load.armor.HP = 0;
+    target.summary.load.structure.HP -= alpha.structure;
+    if (target.summary.load.structure.HP < 0)
+      target.summary.load.structure.HP = 0;
   };
   static activateDamage_getAlpha = (summary, target) => {
     if (!summary.damagePerAct.alpha)
@@ -270,7 +250,7 @@ export default class Simulator {
     };
   };
   static #activateDamage_getSituationalMul = (summary, owner, target) => {
-    if (!!summary.capacity.propulsion.orbitRange) {
+    if (summary.isDrone) {
       //prettier-ignore
       const droneAccuracy = EveMath.getDroneAccracy(summary, owner, target);
 
@@ -294,32 +274,26 @@ export default class Simulator {
     } else return 0;
   };
 
-  static activateCapacitor = (summary, owner, target, tick) => {
+  static activateCapacitor = (summary) => {
+    const owner = summary.root;
+    const target = summary.target;
     //prettier-ignore
-    const numOfActivation = Simulator.simulateActivation(owner,summary,tick).length;
-    if (numOfActivation == 0) return false;
+    const situationalModifiedSummary = Simulator.#activateCapacitor_getSituationalModifiedSummary(summary, owner, target);
 
-    for (let i = 0; i < numOfActivation; i++) {
-      //prettier-ignore
-      const situationalModifiedSummary = Simulator.#activateCapacitor_getSituationalModifiedSummary(summary, owner, target);
+    // MUTATION!
+    target.summary.load.capacitor.HP +=
+      situationalModifiedSummary.bonusPerAct.target;
+    if (target.summary.load.capacitor.HP < 0)
+      target.summary.load.capacitor.HP = 0;
+    if (target.summary.capacity.capacitor.HP < target.summary.load.capacitor.HP)
+      target.summary.load.capacitor.HP = target.summary.capacity.capacitor.HP;
 
-      // MUTATION!
-      target.summary.load.capacitor.HP +=
-        situationalModifiedSummary.bonusPerAct.target;
-      if (target.summary.load.capacitor.HP < 0)
-        target.summary.load.capacitor.HP = 0;
-      if (
-        target.summary.capacity.capacitor.HP < target.summary.load.capacitor.HP
-      )
-        target.summary.load.capacitor.HP = target.summary.capacity.capacitor.HP;
-
-      owner.summary.load.capacitor.HP +=
-        situationalModifiedSummary.bonusPerAct.owner;
-      if (owner.summary.load.capacitor.HP < 0)
-        owner.summary.load.capacitor.HP = 0;
-      if (owner.summary.capacity.capacitor.HP < owner.summary.load.capacitor.HP)
-        owner.summary.load.capacitor.HP = owner.summary.capacity.capacitor.HP;
-    }
+    owner.summary.load.capacitor.HP +=
+      situationalModifiedSummary.bonusPerAct.owner;
+    if (owner.summary.load.capacitor.HP < 0)
+      owner.summary.load.capacitor.HP = 0;
+    if (owner.summary.capacity.capacitor.HP < owner.summary.load.capacitor.HP)
+      owner.summary.load.capacitor.HP = owner.summary.capacity.capacitor.HP;
   };
   static #activateCapacitor_getSituationalModifiedSummary = (
     summary,
@@ -430,18 +404,35 @@ export default class Simulator {
   };
 }
 class HAL {
+  //TODO: DEBUG HAL!!!!!
   static manageSchedules(schedules) {
     schedules.forEach((schedule) => {
-      switch (schedule.summary.operation) {
-        case "damage":
-          Simulator.activateDamage(
-            schedule.summary,
-            schedule.summary.root,
-            schedule.summary.target
-          );
-      }
+      const isCapacitorValidated = HAL.manageSchedules_validateCapacitor(
+        schedule.summary
+      );
+      const isStructureValidated = HAL.manageSchedules_validateStructure(
+        schedule.summary
+      );
+      if (!isCapacitorValidated || !isStructureValidated) return false;
+
+      HAL.#manageSchedules_executeSchedule(schedule);
     });
   }
+  static #manageSchedules_executeSchedule = (schedule) => {
+    switch (schedule.summary.operation) {
+      case "damage":
+        Simulator.activateDamage(schedule.summary);
+        break;
+      case "defense":
+        Simulator.activateDefense(schedule.summary);
+        break;
+      case "capacitor":
+        Simulator.activateCapacitor(schedule.summary);
+        break;
+      default:
+        break;
+    }
+  };
   static manageSchedules_validateCapacitor(summary) {
     const activationInfo = summary.activationInfo;
     const capacitorState =
@@ -458,14 +449,13 @@ class HAL {
     else return true;
   }
 
-  static getSchedules(slots, target, tick) {
-    HAL.#getSchedules_setTarget(slots, target);
+  static getSchedules(summarizedSlots, target, tick) {
+    HAL.#getSchedules_setTarget(summarizedSlots, target);
     return Fit.mapSlots(
-      slots,
-      (slot) => {
-        if (!slot.item) return false;
-
-        return HAL.#getSchedules_getFragment(slot, tick);
+      summarizedSlots,
+      (summarizedSlot) => {
+        if (!summarizedSlot.summary) return false;
+        return HAL.#getSchedules_getFragment(summarizedSlot.summary, tick);
       },
       {
         isIterate: {
@@ -482,12 +472,13 @@ class HAL {
       }, [])
       .sort((a, b) => a.time - b.time);
   }
-  static #getSchedules_setTarget = (slots, target) => {
+  static #getSchedules_setTarget = (summarizedSlots, target) => {
     Fit.mapSlots(
-      slots,
-      (slot) => {
+      summarizedSlots,
+      (summarizedSlot) => {
+        if (!summarizedSlot.summary) return false;
         let _target = false;
-        switch (slot?.summary?.operation) {
+        switch (summarizedSlot?.summary?.operation) {
           case "damage":
           case "defense":
           case "capacitor":
@@ -497,7 +488,7 @@ class HAL {
             _target = false;
             break;
         }
-        slot.summary["target"] = _target;
+        summarizedSlot.summary["target"] = _target;
       },
       {
         isIterate: {
@@ -518,10 +509,14 @@ class HAL {
     });
   };
   static #getSchedules_getFragmentRecursion = (summary, tick) => {
+    if (
+      !summary?.activationState?.isActive ||
+      summary?.activationState?.nextActivationTick !== tick
+    )
+      return [];
     const currentTime = summary.activationState.nextActivation;
     const state = summary.activationState;
     const info = summary.activationInfo;
-    if (!state.isActive || state.nextActivationTick !== tick) return [];
     //prettier-ignore TODO: for testing, check tick is okay
     if (state.isActive && state.nextActivationTick < tick)
       console.warn("ERR: Tick is not in sync");

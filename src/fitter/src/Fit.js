@@ -314,8 +314,8 @@ export default class Fit {
         switch (applyMod.func) {
           case "ItemModifier":
             return targetMod.domainID === applyMod.domainID;
-          default:
-            return false;
+          /* default:
+            return false; */
         }
       case "shipID":
         switch (applyMod.func) {
@@ -325,14 +325,19 @@ export default class Fit {
             return targetMod.typeGroupID === applyMod.groupID;
           case "LocationRequiredSkillModifier":
             return targetMod?.typeSkills?.includes(applyMod.skillTypeID);
-          default:
-            return false;
+          /* default:
+            return false; */
+        }
+      case "charID":
+        switch (applyMod.func) {
+          case "OwnerRequiredSkillModifier":
+            return targetMod?.typeSkills?.includes(applyMod.skillTypeID);
         }
       /*    case "structureID":
         return false; */
       default:
-        console.error("UNKNOWN", targetMod, "<-", applyMod);
-        return true;
+        console.error("MOD_APPLICABLE_UNKNOWN", targetMod, "<-", applyMod);
+        return false;
     }
   };
   static #applyBoard_modIsTypeApplicable = function (type, mod) {
@@ -355,9 +360,8 @@ export default class Fit {
         switch (mod.func) {
           case "ItemModifier":
             return type.domainID === mod.domainID;
-          default:
-            /*  console.log("UNKNOWN", type, "<-", mod); */ //TESTETS
-            return false;
+          /* default:
+            return false; */
         }
       case "shipID":
         switch (mod.func) {
@@ -369,9 +373,8 @@ export default class Fit {
             return (
               !!type.typeSkills && type.typeSkills.includes(mod.skillTypeID)
             );
-          default:
-            /* console.log("UNKNOWN", type, "<-", mod); */ //TESTETS
-            return false;
+          /* default:
+            return false; */
         }
       case "charID":
         switch (mod.func) {
@@ -381,9 +384,8 @@ export default class Fit {
             );
           case "ItemModifier":
             return true;
-          default:
-            /* console.log("UNKNOWN", type, "<-", mod); */ //TESTETS
-            return false;
+          /* default:
+            return false; */
         }
       case "otherID":
         switch (mod.func) {
@@ -392,15 +394,14 @@ export default class Fit {
               type.domainID.split(".")[0] === mod.domainID.split(".")[0] &&
               type.domainID.split(".")[1] === mod.domainID.split(".")[1]
             );
-          default:
-            /* console.log("UNKNOWN", type, "<-", mod); */ //TESTETS
-            return false;
+          /* default:
+            return false; */
         }
       case "structureID":
         return false;
       default:
-        console.error("UNKNOWN", type, "<-", mod); //TESTETS
-        return true;
+        console.error("TYPE_APPLICABLE_UNKNOWN", type, "<-", mod); //TESTETS
+        return false;
     }
   };
   static #applyBoard_modIsStateApplicable = function (mod) {

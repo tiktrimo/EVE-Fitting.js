@@ -77,8 +77,21 @@ export default class Summary extends Stat {
     const item = slot.item;
     const charge = slot.charge;
 
-    const path = slot.item.domainID.split(".").slice(0, 2).join("."); //eg)highSlots.1
-    const summary = item.typeEffectsStats
+    const structureHP = findAttributebyID(item, 9); //attributeID: 9, attributeName: "Structure Hitpoints"
+    const heatDamage = findAttributebyID(item, 1211); // attributeID: 1211, attributeName: "Heat Damage"
+
+    const moduleSummary = {
+      load: {
+        structure: { HP: structureHP },
+      },
+      capacity: {
+        structure: { HP: structureHP },
+        misc: { heatDamage: heatDamage },
+      },
+    };
+
+    const path = item.domainID.split(".").slice(0, 2).join("."); //eg)highSlots.1
+    const effectSummary = item.typeEffectsStats
       .map((efft) => {
         const activationDataSet = Summary.createActivationDataSet(slot);
         let summary = {};
@@ -111,38 +124,36 @@ export default class Summary extends Stat {
           default:
             return false;
         }
-        return { ...summary, ...activationDataSet, operation, path };
+        return { ...summary, ...activationDataSet, operation };
       })
       .filter((summary) => !!summary);
 
-    if (summary.length > 1)
+    if (effectSummary.length > 1)
       console.error(
         "ERR: more than one summary produced in single module",
         slot
       );
-    else return summary[0] || false;
+    else return { ...moduleSummary, ...effectSummary[0], path };
   };
   static #getSummaries_drones = (slot) => {
     if (!slot?.item?.typeEffectsStats) return false;
     const item = slot.item;
-    const isSentry = slot.item.marketGroupID === 911; // marketGroupID: 911 "marketGroupName": "Sentry Drones"
+    const isSentry = item.marketGroupID === 911; // marketGroupID: 911 "marketGroupName": "Sentry Drones"
 
-    const path = slot.item.domainID.split(".").slice(0, 2).join(".");
     // These functions from Stat class is targeted for ship. modified to fit in drone in this case
-    const defense = this.defense_resistance({ ship: slot.item });
-    const capacitor = this.capacitor_getChargeInfo({ ship: slot.item });
+    const defense = this.defense_resistance({ ship: item });
+    const capacitor = this.capacitor_getChargeInfo({ ship: item });
 
-    const misc = this.miscellaneous({ ship: slot.item });
-    const orbitVelocity = findAttributebyID(slot.item, 508); // attributeID: 508, attributeName: "Orbit Velocity"
-    const orbitRange = findAttributebyID(slot.item, 416); //attributeID: 416, attributeName: "entityFlyRange"
-    const maximumVelocity = findAttributebyID(slot.item, 37); // attributeID: 37, attributeName: "Maximum Velocity"
+    const misc = this.miscellaneous({ ship: item });
+    const orbitVelocity = findAttributebyID(item, 508); // attributeID: 508, attributeName: "Orbit Velocity"
+    const orbitRange = findAttributebyID(item, 416); //attributeID: 416, attributeName: "entityFlyRange"
+    const maximumVelocity = findAttributebyID(item, 37); // attributeID: 37, attributeName: "Maximum Velocity"
     misc.propulsion = {
       ...misc.propulsion,
       orbitVelocity,
       orbitRange,
       maximumVelocity,
     };
-
     const droneSumamry = {
       load: {
         armor: { HP: defense.armor.HP },
@@ -152,7 +163,8 @@ export default class Summary extends Stat {
       },
       capacity: { ...defense, ...misc, capacitor },
     };
-    const moduleSummary = item.typeEffectsStats
+    const path = item.domainID.split(".").slice(0, 2).join(".");
+    const effectSummary = item.typeEffectsStats
       .map((efft) => {
         const activationDataSet = Summary.createActivationDataSet(slot);
         let summary = {};
@@ -170,14 +182,14 @@ export default class Summary extends Stat {
           default:
             return false;
         }
-        return { ...summary, ...activationDataSet, operation, path };
+        return { ...summary, ...activationDataSet, operation };
       })
       .filter((summary) => !!summary);
 
     const situation_decription =
       "Currently situation is not calculated BUT! always hitted by smart bomb";
 
-    if (moduleSummary.length > 1)
+    if (effectSummary.length > 1)
       console.error(
         "ERR: more than one summary produced in single module",
         slot
@@ -185,9 +197,11 @@ export default class Summary extends Stat {
     else
       return {
         ...droneSumamry,
-        ...moduleSummary[0],
+        ...effectSummary[0],
         situation_decription,
         isSentry,
+        isDrone: true,
+        path,
       };
   };
   static createActivationDataSet = (slot) => {

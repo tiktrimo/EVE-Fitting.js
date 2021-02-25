@@ -198,6 +198,7 @@ export default function Drawers(props) {
       />
 
       <FittingDrawer
+        tag={props.tag}
         fit={fit}
         slots={slots}
         open={props.open}

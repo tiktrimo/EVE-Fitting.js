@@ -6,7 +6,7 @@ import { translateVariant } from "../Drawers";
 import { getSlotCount } from "../FittingDrawer/FittingDrawer.jsx";
 import Fit from "../../../fitter/src/Fit";
 import { findAttributebyID } from "../../../services/dataManipulation/findAttributes";
-import { Avatar, Divider, makeStyles, Typography } from "@material-ui/core";
+import { Avatar, Divider, makeStyles } from "@material-ui/core";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -46,6 +46,10 @@ export default function Slots(props) {
   const [isLoop, setIsLoop] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [session, setSession] = useState(0);
+
+  useEffect(() => {
+    /* console.log(localStorage.getItem(`${props.tag}//${props.variant}`)); */
+  }, []);
 
   useEffect(() => {
     if (!!props.importFitText || props.variant === "SHIP") return undefined;
@@ -157,10 +161,11 @@ export default function Slots(props) {
 
       if (sessionData === false || sessionData !== session) {
         //prettier-ignore
-        console.log( "FETCH ERROR:SESSION MISFETCHED", props.variant, {sessionData, session, fetchedData, rawItems, rawCharges} );
+        console.error( "SESSION_MISFETCHED", props.variant, {sessionData, session, fetchedData, rawItems, rawCharges} );
         return undefined;
-      } else
+      } else {
         processFetchedData(props, fetchedData, rawItems, rawCharges, setters);
+      }
       setIsLoading(false);
     })(props, rawItems, rawCharges, session + 1);
   }, [checkData(rawItems, rawCharges)]);
@@ -319,6 +324,7 @@ function processFetchedData(props, data, rawItems, rawCharges, setters) {
       rawItems[index]["typeState"] = itemState;
   });
 
+  /* localStorage.setItem(`${props.tag}//${props.variant}`, payload); */
   props.dispatchSlots({ type: props.variant, payload: payload });
   setters.setFetchedCharges([...rawCharges]); // If validation of charge fails, set rawCharge as false value
   setters.setFetchedItems([...rawItems]);
