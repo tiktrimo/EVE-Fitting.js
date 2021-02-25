@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import Slot from "./Slot";
 import { useState, useEffect } from "react";
 import EFT from "../services/EFT";
@@ -46,9 +46,17 @@ export default function Slots(props) {
   const [isLoop, setIsLoop] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [session, setSession] = useState(0);
+  const sessionRef = useRef(0);
 
   useEffect(() => {
-    /* console.log(localStorage.getItem(`${props.tag}//${props.variant}`)); */
+    const savedSlots = JSON.parse(
+      localStorage.getItem(`${props.tag}//${props.variant}`)
+    );
+    savedSlots.forEach((slot) => {
+      if (slot.item) props.cache.set(`typeID/${slot.item.typeID}`, slot.item);
+      if (slot.charge)
+        props.cache.set(`typeID/${slot.charge.typeID}`, slot.charge);
+    });
   }, []);
 
   useEffect(() => {
@@ -149,6 +157,7 @@ export default function Slots(props) {
 
   //Fetched items, charges input
   useEffect(() => {
+    sessionRef.current = sessionRef.current + 1;
     setSession(session + 1);
     setIsLoading(true);
     (async function (props, rawItems, rawCharges, session) {
@@ -273,8 +282,7 @@ function importSlots(props, setters) {
     setters.setRawItems(items);
     setters.setRawCharges(charges);
 
-    props.importStateFlag[props.variant] = true;
-    props.setImportStateFlag({ ...props.importStateFlag });
+    props.dispatchImportStateFlag({ type: props.variant });
   })(props.importFitText);
 }
 function getSlotCountAtImport(fit, fitFromText, props) {
@@ -324,7 +332,10 @@ function processFetchedData(props, data, rawItems, rawCharges, setters) {
       rawItems[index]["typeState"] = itemState;
   });
 
-  /* localStorage.setItem(`${props.tag}//${props.variant}`, payload); */
+  localStorage.setItem(
+    `${props.tag}//${props.variant}`,
+    JSON.stringify(payload)
+  );
   props.dispatchSlots({ type: props.variant, payload: payload });
   setters.setFetchedCharges([...rawCharges]); // If validation of charge fails, set rawCharge as false value
   setters.setFetchedItems([...rawItems]);

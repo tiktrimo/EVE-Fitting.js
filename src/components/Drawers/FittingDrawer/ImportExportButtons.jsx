@@ -51,7 +51,7 @@ export default function ImportExportButtons(props) {
       if (text === false) return setTitle("Permission denied");
       setText(text);
       props.setImportFitText(text);
-      props.setImportStateFlag(importInitializeFlag);
+      props.dispatchImportStateFlag({ type: "START" });
       props.cache.wait("/typeIDsTable").then((typeIDs) => {
         const IDs = EFT.extractIDs(text, typeIDs);
         if (!IDs || IDs.length === 0) setTitle("Unvalid EFT");
@@ -59,7 +59,7 @@ export default function ImportExportButtons(props) {
         fittingLazyFetch(props.cache, IDs);
       });
     });
-  }, [props.setImportFitText, props.setImportStateFlag, props.cache]);
+  }, [props.setImportFitText, props.dispatchImportStateFlag, props.cache]);
 
   return (
     <React.Fragment>

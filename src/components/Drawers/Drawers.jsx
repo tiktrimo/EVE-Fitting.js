@@ -165,21 +165,32 @@ export default function Drawers(props) {
   }, [props.open]);
 
   useEffect(() => {
-    console.log(
+    /* console.log(
       "∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨FitCalc∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨"
     );
-    console.time("Fit Stat Calculation");
+    console.time("Fit Stat Calculation"); */
     const appliedFit = Fit.apply(slots);
-    console.timeEnd("Fit Stat Calculation");
+    /*  console.timeEnd("Fit Stat Calculation");
     console.log(appliedFit);
     console.log(
       `∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧`
-    );
+    ); */
     setFit(appliedFit);
-    setExportFitText(EFT.buildTextFromFit(appliedFit));
     props.setFit(appliedFit);
     props.setFitID(EFT.buildCompareTextFromFit(slots));
     props.setSlots(slots);
+
+    const appliedFitExportText = EFT.buildTextFromFit(appliedFit);
+    const appliedSlotsModified = { ...slots, skills: undefined };
+    setExportFitText(appliedFitExportText);
+    localStorage.setItem(
+      `${props.tag}SLOTS`,
+      JSON.stringify(appliedSlotsModified)
+    );
+    localStorage.setItem(
+      `${props.tag}EFT`,
+      JSON.stringify(appliedFitExportText)
+    );
   }, [EFT.buildCompareTextFromFit(slots)]);
 
   return (

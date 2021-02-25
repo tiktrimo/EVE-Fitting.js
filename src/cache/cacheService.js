@@ -8,6 +8,10 @@ export default class cacheService {
       useClones: false,
     });
   }
+  set(key, value) {
+    if (!this.cache.get(key)) this.cache.set(key, value);
+    console.log(key, ": Cache Operation[SET]");
+  }
 
   get(key, storeFunction) {
     const value = this.cache.get(key);
