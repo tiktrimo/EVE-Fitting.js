@@ -69,15 +69,6 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const importFinishFlag = {
-  SHIP: true,
-  MISC_SLOT: true,
-  HIGH_SLOT: true,
-  MID_SLOT: true,
-  LOW_SLOT: true,
-  RIG_SLOT: true,
-  DRONE_SLOT: true,
-};
 export const importInitializeFlag = {
   SHIP: false,
   MISC_SLOT: false,
@@ -106,10 +97,17 @@ export default function FittingDrawer(props) {
   const [importFitText, setImportFitText] = useState(false);
   const [importStateFlag, dispatchImportStateFlag] = useReducer(
     importStateFlagReducer,
-    importFinishFlag
+    importInitializeFlag
   );
 
   const childRef = useRef(null);
+
+  useEffect(() => {
+    //If import is finished
+    if (!Object.values(importStateFlag).includes(false)) {
+      setImportFitText(false);
+    }
+  }, [importStateFlag]);
 
   useEffect(() => {
     const savedSlots = JSON.parse(localStorage.getItem(`${props.tag}SLOTS`));
@@ -117,14 +115,14 @@ export default function FittingDrawer(props) {
     console.log(props.tag, savedSlots, savedEFT);
     if (!savedSlots?.ship?.typeID || !savedEFT) return;
 
-    props.cache.set(`/typeIDs/${savedSlots.ship.typeID}`);
+    props.cache.set(`typeID/${savedSlots.ship.typeID}`, savedSlots.ship);
     Fit.mapSlots(
       savedSlots,
-      () => {
-        if (!!savedSlots?.item?.typeID)
-          props.cache.set(`/typeIDs/${savedSlots.item.typeID}`);
-        if (!!savedSlots?.charge?.typeID)
-          props.cache.set(`/typeIDs/${savedSlots.charge.typeID}`);
+      (slot) => {
+        if (!!slot?.item?.typeID)
+          props.cache.set(`typeID/${slot.item.typeID}`, slot.item);
+        if (!!slot?.charge?.typeID)
+          props.cache.set(`typeID/${slot.charge.typeID}`, slot.charge);
       },
       {
         isIterate: {
@@ -140,15 +138,7 @@ export default function FittingDrawer(props) {
 
     setImportFitText(savedEFT);
     dispatchImportStateFlag({ type: "START" });
-    console.log("ASSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS");
   }, []);
-  console.log(props.tag, importFitText);
-  useEffect(() => {
-    //If import is finished
-    if (!Object.values(importStateFlag).includes(false)) {
-      setImportFitText(false);
-    }
-  }, [importStateFlag]);
 
   return (
     <React.Fragment>

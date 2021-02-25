@@ -187,10 +187,7 @@ export default function Drawers(props) {
       `${props.tag}SLOTS`,
       JSON.stringify(appliedSlotsModified)
     );
-    localStorage.setItem(
-      `${props.tag}EFT`,
-      JSON.stringify(appliedFitExportText)
-    );
+    localStorage.setItem(`${props.tag}EFT`, appliedFitExportText);
   }, [EFT.buildCompareTextFromFit(slots)]);
 
   return (

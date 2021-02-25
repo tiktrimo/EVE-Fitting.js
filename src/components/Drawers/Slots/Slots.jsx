@@ -45,19 +45,7 @@ export default function Slots(props) {
   const [activeSlotNumber, setActiveSlotNumber] = useState(0);
   const [isLoop, setIsLoop] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
-  const [session, setSession] = useState(0);
   const sessionRef = useRef(0);
-
-  useEffect(() => {
-    const savedSlots = JSON.parse(
-      localStorage.getItem(`${props.tag}//${props.variant}`)
-    );
-    savedSlots.forEach((slot) => {
-      if (slot.item) props.cache.set(`typeID/${slot.item.typeID}`, slot.item);
-      if (slot.charge)
-        props.cache.set(`typeID/${slot.charge.typeID}`, slot.charge);
-    });
-  }, []);
 
   useEffect(() => {
     if (!!props.importFitText || props.variant === "SHIP") return undefined;
@@ -158,7 +146,6 @@ export default function Slots(props) {
   //Fetched items, charges input
   useEffect(() => {
     sessionRef.current = sessionRef.current + 1;
-    setSession(session + 1);
     setIsLoading(true);
     (async function (props, rawItems, rawCharges, session) {
       const data = await Promise.all(
@@ -168,15 +155,18 @@ export default function Slots(props) {
       const sessionData = data[data.length - 1];
       const fetchedData = data.slice(0, data.length - 1);
 
-      if (sessionData === false || sessionData !== session) {
+      if (sessionData !== sessionRef.current) {
         //prettier-ignore
-        console.error( "SESSION_MISFETCHED", props.variant, {sessionData, session, fetchedData, rawItems, rawCharges} );
+        console.error( "ERROR_SESSION_COUNT_DEFECTED", props.variant, {FETCHED_SESSION: sessionData, VALID_SESSION: sessionRef.current, fetchedData} );
         return undefined;
+      } else if (fetchedData === false) {
+        //prettier-ignore
+        console.warn("WARN_ITEM_CHARGE_COUNT_DEFECTED", props.variant, {rawItems, rawCharges})
       } else {
         processFetchedData(props, fetchedData, rawItems, rawCharges, setters);
       }
       setIsLoading(false);
-    })(props, rawItems, rawCharges, session + 1);
+    })(props, rawItems, rawCharges, sessionRef.current);
   }, [checkData(rawItems, rawCharges)]);
 
   if (props.slotCount > 0)
@@ -292,7 +282,8 @@ function getSlotCountAtImport(fit, fitFromText, props) {
   else return getSlotCount(fit, props.variant);
 }
 function createFetchPromises(props, rawItems, rawCharges, session) {
-  if (rawItems.length !== rawCharges.length) return [Promise.resolve(false)];
+  if (rawItems.length !== rawCharges.length)
+    return [Promise.resolve(false), Promise.resolve(session)];
 
   const promisesItem = rawItems.map((rawItem) => {
     if (rawItem === false) return Promise.resolve(false);
@@ -332,10 +323,6 @@ function processFetchedData(props, data, rawItems, rawCharges, setters) {
       rawItems[index]["typeState"] = itemState;
   });
 
-  localStorage.setItem(
-    `${props.tag}//${props.variant}`,
-    JSON.stringify(payload)
-  );
   props.dispatchSlots({ type: props.variant, payload: payload });
   setters.setFetchedCharges([...rawCharges]); // If validation of charge fails, set rawCharge as false value
   setters.setFetchedItems([...rawItems]);

@@ -36,11 +36,11 @@ export default class cacheService {
       function check(count, cache) {
         return () => {
           const value = cache.get(key);
-          /* console.log(key, count); */
           if (value !== undefined || count > 120) {
             /*  console.log(`${key}: Cache Operation[WAIT]`); */
             return resolve(value);
           }
+          /* console.log(key, count); */
           setTimeout(check(count++, cache), 100);
         };
       }
