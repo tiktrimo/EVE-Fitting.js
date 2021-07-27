@@ -12,7 +12,9 @@ import GitHubIcon from "@material-ui/icons/GitHub";
 import WbSunnyIcon from "@material-ui/icons/WbSunny";
 import Brightness2Icon from "@material-ui/icons/Brightness2";
 import ShipCanvas from "./simpleEdition/ShipCanvas";
-import Simulator from "./FitCard/Stats/services/Simulator";
+
+// eslint-disable-next-line import/no-webpack-loader-syntax
+import worker from "workerize-loader!./FitCard/Stats/services/SimWorker";
 
 const useStyles = makeStyles((theme) => ({
   modeButton: {
@@ -109,6 +111,7 @@ function drawersOpenReducer(state, action) {
   }
 }
 
+const simWorkerInst = worker();
 export default function InitialCard(props) {
   const theme = useTheme();
   const [width, setWidth] = useState(0);
@@ -121,6 +124,25 @@ export default function InitialCard(props) {
   const [situation, setSituation] = useState();
   const [slots, setSlots] = useState();
   const [slots1, setSlots1] = useState();
+
+  /*  const [simWorker, setSimWorker] = useState(
+    new WebWorker(
+      URL.createObjectURL(
+        new Blob(
+          [
+            "(",
+
+            function () {
+              Simulator.test();
+            }.toString(),
+
+            ")()",
+          ],
+          { type: "application/javascript" }
+        )
+      )
+    )
+  ); */
 
   useEffect(() => {
     setWidth(window.innerWidth);
@@ -169,7 +191,9 @@ export default function InitialCard(props) {
         <Grid xs={12} container item justify="center">
           <Button
             onClick={() => {
-              if (!!slots && !!slots1) Simulator.test(slots, slots1, situation);
+              /*  if (!!slots && !!slots1)
+                simWorker.postMessage({ msg: "simulator" }); */
+              if (!!slots && !!slots1) simWorkerInst.expensive(1);
             }}
             fullWidth
           >

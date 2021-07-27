@@ -721,7 +721,14 @@ export default class Stat {
   };
 
   static getActivationInfo(item, charge) {
-    if (!item) return { duration: 0, e_duration: 0 };
+    if (!item)
+      return {
+        duration: Infinity,
+        e_duration: Infinity,
+        activationLimit: 0,
+        reloadTime: 0,
+        activationCost: 0,
+      };
 
     const activationCost = findAttributebyID(item, 6) || 0; //attributeID: 6, attributeName: "Activation Cost"
     const reloadTime = (findAttributebyID(item, 1795) || undefined) / 1000; //attributeID: 1795, attributeName: "Reload Time"

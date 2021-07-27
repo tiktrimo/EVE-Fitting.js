@@ -4,7 +4,8 @@ import Summary from "./Summary";
 
 export default class Simulator {
   static test(slots, fit1, situation) {
-    const summarizedSlots1 = Summary.addSummaries(slots, situation.onboard);
+    const tt = 1;
+    /* const summarizedSlots1 = Summary.addSummaries(slots, situation.onboard);
     const summarizedSlots2 = Summary.addSummaries(fit1, situation.hostile);
     console.log(summarizedSlots1, summarizedSlots2);
 
@@ -26,9 +27,13 @@ export default class Simulator {
       }
     );
 
-    HAL.manageSchedules(
-      HAL.getSchedules(summarizedSlots1, summarizedSlots2, 0)
+    console.log(
+      "CAPACITOR_BY_LEVEL",
+      HAL.manageActivation_getCapUsageRateByPriorityLevel(summarizedSlots1)
     );
+    const schedule = HAL.getSchedules(summarizedSlots1, summarizedSlots2, 0);
+    summarizedSlots1.summary.load.capacitor.HP = 10;
+    HAL.manageSchedules(schedule, summarizedSlots1, situation.onboard); */
   }
 
   static simulate_oneTick = (owner, target, tick) => {
@@ -38,6 +43,7 @@ export default class Simulator {
       fit,
       (slot) => {
         if (!slot.summary) return false;
+
         switch (slot.summary.operation) {
           case "damage":
             Simulator.activateDamage(slot.summary, owner, target, tick);
@@ -55,7 +61,7 @@ export default class Simulator {
           highSlots: true,
           midSlots: true,
           lowSlots: true,
-          droneSlots: true /*  */,
+          droneSlots: true,
         },
       }
     );
@@ -95,11 +101,7 @@ export default class Simulator {
   //Currently target boost (remote armor repair is nor possible)
   static activateDefense = (summary) => {
     const owner = summary.root;
-    //prettier-ignore
-    /*  const numOfActivation = Simulator.simulateActivation(owner,summary,tick).length;
-    if (numOfActivation == 0) return false;
 
-    for (let i = 0; i < numOfActivation; i++) { */
     // MUTATION!
     owner.summary.load.shield.HP += summary.bonusPerAct.self.shield;
     if (owner.summary.capacity.shield.HP < owner.summary.load.shield.HP)
@@ -354,21 +356,14 @@ export default class Simulator {
     return isCapacitorBooster ? 1 : rangeModifier;
   };
 
-  static simulateActivation = (owner, summary, tick) => {
-    const currentTime = summary.activationState.nextActivation;
+  static simulateActivation = (summary) => {
+    const capacitorState =
+      summary.load.capacitor || summary.root.summary.load.capacitor;
     const state = summary.activationState;
     const info = summary.activationInfo;
-    if (state.isActive && state.nextActivationTick < tick)
-      console.warn("ERR: Tick is not in sync"); //TODO: for testing, check tick is okay
-    if (!state.isActive || state.nextActivationTick !== tick) return [];
-    //prettier-ignore
-    const activationCost = Simulator.#simulateActivation_capcitor(owner, summary);
-    if (activationCost === false) {
-      state.isActive = false; // TODO: for testing, auto off if capacitor is out. make ai control capacitor
-      return [];
-    }
 
     // MUTATION!
+    capacitorState.HP -= info.activationCost;
     state.activationLeft--;
     state.lastActivation = state.nextActivation;
 
@@ -384,71 +379,10 @@ export default class Simulator {
 
     state.nextActivationTick = Math.floor(state.nextActivation);
 
-    // Check if next activation is in same tick
-    let subSecActivation = [];
-    if (state.nextActivationTick === tick)
-      subSecActivation = Simulator.simulateActivation(owner, summary, tick);
-
-    return [{ time: currentTime, summary }, ...subSecActivation];
-  };
-  static #simulateActivation_capcitor = (summary) => {
-    const activationInfo = summary.activationInfo;
-    const capacitorState =
-      summary.load.capacitor || summary.root.load.capacitor;
-    if (capacitorState.HP < activationInfo.activationCost) return false;
-
-    // MUTATION!
-    capacitorState.HP -= activationInfo.activationCost;
-
-    return activationInfo.activationCost;
+    return summary;
   };
 }
 class HAL {
-  //TODO: DEBUG HAL!!!!!
-  static manageSchedules(schedules) {
-    schedules.forEach((schedule) => {
-      const isCapacitorValidated = HAL.manageSchedules_validateCapacitor(
-        schedule.summary
-      );
-      const isStructureValidated = HAL.manageSchedules_validateStructure(
-        schedule.summary
-      );
-      if (!isCapacitorValidated || !isStructureValidated) return false;
-
-      HAL.#manageSchedules_executeSchedule(schedule);
-    });
-  }
-  static #manageSchedules_executeSchedule = (schedule) => {
-    switch (schedule.summary.operation) {
-      case "damage":
-        Simulator.activateDamage(schedule.summary);
-        break;
-      case "defense":
-        Simulator.activateDefense(schedule.summary);
-        break;
-      case "capacitor":
-        Simulator.activateCapacitor(schedule.summary);
-        break;
-      default:
-        break;
-    }
-  };
-  static manageSchedules_validateCapacitor(summary) {
-    const activationInfo = summary.activationInfo;
-    const capacitorState =
-      summary?.load?.capacitor || summary.root.load.capacitor;
-
-    if (capacitorState.HP < activationInfo.activationCost) return false;
-    else return true;
-  }
-  static manageSchedules_validateStructure(summary) {
-    const structureHP = summary?.load?.structure?.HP;
-    const rootStructureHP = summary.root.load.structure.HP;
-
-    if (structureHP <= 0 || rootStructureHP <= 0) return false;
-    else return true;
-  }
-
   static getSchedules(summarizedSlots, target, tick) {
     HAL.#getSchedules_setTarget(summarizedSlots, target);
     return Fit.mapSlots(
@@ -501,12 +435,31 @@ class HAL {
     );
   };
   static #getSchedules_getFragment = (summary, tick) => {
-    const _summary = JSON.parse(JSON.stringify(summary));
+    const _summary = HAL.#getSchedules_copySummary(summary);
     const fragment = HAL.#getSchedules_getFragmentRecursion(_summary, tick);
     return fragment.map((schedule) => {
       schedule["summary"] = summary;
       return schedule;
     });
+  };
+  static #getSchedules_copySummary = (summary) => {
+    const _summary = JSON.parse(
+      JSON.stringify({ ...summary, root: undefined, target: undefined })
+    );
+    if (!!_summary?.activationState)
+      Object.keys(_summary.activationState).forEach((key) => {
+        if (_summary.activationState[key] === null)
+          // MUTATION!!
+          _summary.activationState[key] = Infinity;
+      });
+    if (!!_summary?.activationInfo)
+      Object.keys(_summary.activationInfo).forEach((key) => {
+        if (_summary.activationInfo[key] === null)
+          // MUTATION!!
+          _summary.activationInfo[key] = Infinity;
+      });
+
+    return _summary;
   };
   static #getSchedules_getFragmentRecursion = (summary, tick) => {
     if (
@@ -544,4 +497,88 @@ class HAL {
 
     return [{ time: currentTime }, ...subSecSchedule];
   };
+
+  static manageSchedules(schedules, summarizedSlot, situation) {
+    schedules.forEach((schedule) => {
+      if (!HAL.manageSchedules_validate(schedule.summary)) {
+        // MUTATION!
+        schedule.summary.activationState.isActive = false;
+        if (schedule.summary.operation === "temporary")
+          Summary.updateSummaries(summarizedSlot, situation);
+      } // TODO: loop through schedules with tick is moving
+
+      HAL.#manageSchedules_executeSchedule(schedule);
+    });
+  }
+  static #manageSchedules_executeSchedule = (schedule) => {
+    Simulator.simulateActivation(schedule.summary);
+    switch (schedule.summary.operation) {
+      case "damage":
+        Simulator.activateDamage(schedule.summary);
+        break;
+      case "defense":
+        Simulator.activateDefense(schedule.summary);
+        break;
+      case "capacitor":
+        Simulator.activateCapacitor(schedule.summary);
+        break;
+      default:
+        break;
+    }
+  };
+  static manageSchedules_validate(summary) {
+    if (!summary || !summary.activationState.isActive) return false;
+
+    const isCapacitorValidated = HAL.manageSchedules_validateCapacitor(summary);
+    const isStructureValidated = HAL.manageSchedules_validateStructure(summary);
+    if (!isCapacitorValidated || !isStructureValidated) return false;
+
+    return true;
+  }
+  static manageSchedules_validateCapacitor(summary) {
+    const activationInfo = summary.activationInfo;
+    const capacitorState =
+      summary?.load?.capacitor || summary.root.summary.load.capacitor;
+
+    if (capacitorState.HP < activationInfo.activationCost) return false;
+    else return true;
+  }
+  static manageSchedules_validateStructure(summary) {
+    const structureHP = summary?.load?.structure?.HP;
+    const rootStructureHP = summary.root.summary.load.structure.HP;
+
+    if (structureHP <= 0 || rootStructureHP <= 0) return false;
+    else return true;
+  }
+
+  static manageActivation(summarizedSlots, schedule) {}
+  static manageActivation_getCapUsageRateByPriorityLevel(summarizedSlots) {
+    return [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((activationPriority) => {
+      let capUsageRateAccumulator = 0;
+      Fit.mapSlots(
+        summarizedSlots,
+        (slot) => {
+          const info = slot?.summary?.activationInfo;
+          const state = slot?.summary?.activationState;
+          if (!info || !state || state.activationPriority > activationPriority)
+            return 0;
+          const capUsageRate = info.activationCost / info.duration || 0;
+          capUsageRateAccumulator += capUsageRate;
+        },
+        {
+          isIterate: {
+            highSlots: true,
+            midSlots: true,
+            lowSlots: true,
+          },
+        }
+      );
+
+      return { activationPriority, capUsageRate: capUsageRateAccumulator };
+    });
+  }
 }
+
+export const main = () => {
+  Simulator.test();
+};

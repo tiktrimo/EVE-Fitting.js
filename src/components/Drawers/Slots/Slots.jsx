@@ -156,12 +156,10 @@ export default function Slots(props) {
       const fetchedData = data.slice(0, data.length - 1);
 
       if (sessionData !== sessionRef.current) {
-        //prettier-ignore
-        console.error( "ERROR_SESSION_COUNT_DEFECTED", props.variant, {FETCHED_SESSION: sessionData, VALID_SESSION: sessionRef.current, fetchedData} );
+        /* console.error( "ERROR_SESSION_COUNT_DEFECTED", props.variant, {FETCHED_SESSION: sessionData, VALID_SESSION: sessionRef.current, fetchedData} ); */
         return undefined;
       } else if (fetchedData === false) {
-        //prettier-ignore
-        console.warn("WARN_ITEM_CHARGE_COUNT_DEFECTED", props.variant, {rawItems, rawCharges})
+        /* console.warn("WARN_ITEM_CHARGE_COUNT_DEFECTED", props.variant, {rawItems, rawCharges}) */
       } else {
         processFetchedData(props, fetchedData, rawItems, rawCharges, setters);
       }

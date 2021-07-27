@@ -2,7 +2,103 @@ import { findAttributebyID } from "../../../../services/dataManipulation/findAtt
 import Fit from "../../../../fitter/src/Fit";
 import Stat from "./Stat";
 
+const capPrioritySet = {
+  alwaysOn: 0,
+  mostTrivial: 10,
+  turretDamage: 1,
+  shieldHarden: 2,
+  shieldBoost: 2,
+  shieldBoostAncillaryFueled: 2,
+  shieldBoostAncillary: 5,
+  armorHardener: 2,
+  armorBoost: 2,
+  armorBoostAncillaryFueled: 3,
+  armorBoostAncillary: 5,
+  damageControl: 0,
+  structureBoost: 1,
+  capacitorNeutralizer: 3,
+  capacitorTransmitter: 4,
+};
+
 export default class Summary extends Stat {
+  static updateSummaries = (summarizedSlots, situation) => {
+    Fit.mapSlots(
+      summarizedSlots,
+      (slot) => {
+        if (!slot.item) return;
+        /*  if (slot?.summary?.activationState?.isActive === false) */
+        // MUTATION!!
+        slot.item.typeState = "passive";
+        /*  else if (slot?.summary?.activationState?.isActive === true); */
+        // MUTATION!!
+        /*   slot.item.typeState = "activation"; */
+      },
+      {
+        isIterate: {
+          highSlots: true,
+          midSlots: true,
+          lowSlots: true,
+          droneSlots: true,
+        },
+      }
+    );
+
+    const fit = Fit.apply(summarizedSlots);
+    const shipSummary = Summary.getSummary_ship(fit, situation);
+    shipSummary.load = summarizedSlots.summary.load;
+    // MUTATION!!
+    Object.assign(summarizedSlots.summary, shipSummary);
+
+    Fit.mapSlots(
+      fit,
+      (slot) => {
+        if (!slot.item) return false;
+
+        const summary = Summary.#getSummaries_modules(slot);
+        const _slot = SimFit.toPath(summarizedSlots, summary.path);
+        if (!summary || !_slot) return false;
+
+        if (summary.activationState)
+          summary.activationState = _slot.summary.activationState;
+        if (!!summary.load) summary.load = _slot.summary.load;
+
+        // MUTATION!!
+        Object.assign(_slot.summary, summary);
+      },
+      {
+        isIterate: {
+          highSlots: true,
+          midSlots: true,
+          lowSlots: true,
+        },
+      }
+    );
+    Fit.mapSlots(
+      fit,
+      (slot) => {
+        if (!slot.item) return false;
+
+        const summary = Summary.#getSummaries_drones(slot);
+        const _slot = SimFit.toPath(summarizedSlots, summary.path);
+        if (!summary || !_slot) return false;
+
+        if (summary.activationState)
+          summary.activationState = _slot.summary.activationState;
+        if (!!summary.load) summary.load = _slot.summary.load;
+
+        // MUTATION!!
+        Object.assign(_slot.summary, summary);
+      },
+      {
+        isIterate: {
+          droneSlots: true,
+        },
+      }
+    );
+
+    return summarizedSlots;
+  };
+
   static addSummaries = (slots, situation) => {
     const _slots = Summary.addSummaries_duplicateSlots(slots);
     const fit = Fit.apply(_slots);
@@ -15,7 +111,7 @@ export default class Summary extends Stat {
         if (!slot.item) return false;
 
         const summary = Summary.#getSummaries_modules(slot);
-        summary["root"] = _slots.summary;
+        summary["root"] = _slots;
         const _slot = !!summary && SimFit.toPath(_slots, summary.path);
         if (!!_slot) _slot["summary"] = summary;
       },
@@ -32,8 +128,8 @@ export default class Summary extends Stat {
       (slot) => {
         if (!slot.item) return false;
 
-        const summary = Summary.#getSummaries_drones(slot, situation);
-        summary["root"] = _slots.summary;
+        const summary = Summary.#getSummaries_drones(slot);
+        summary["root"] = _slots;
         const _slot = !!summary && SimFit.toPath(_slots, summary.path);
         if (!!_slot) _slot["summary"] = summary;
       },
@@ -90,13 +186,12 @@ export default class Summary extends Stat {
       },
     };
 
+    const activationDataSet = Summary.createActivationDataSet(slot);
     const path = item.domainID.split(".").slice(0, 2).join("."); //eg)highSlots.1
     const effectSummary = item.typeEffectsStats
       .map((efft) => {
-        const activationDataSet = Summary.createActivationDataSet(slot);
         let summary = {};
         let operation = false;
-
         switch (efft.effectID) {
           case 101: // effectID: 101, effectName: "useMissiles"
           case 34: // effectID: 34, effectName: "projectileFired"
@@ -121,9 +216,20 @@ export default class Summary extends Stat {
             summary = Summary.getSummary_capacitor(item, charge);
             operation = "capacitor";
             break;
+          case 5230: // effectID: 5230, effectName: "modifyActiveShieldResonancePostPercent"
+          case 4928: // effectID: 4928, effectName: "adaptiveArmorHardener" //TODO: reactive armor bonus should be calculated
+          case 5231: // effectID: 5231, effectName: "modifyActiveArmorResonancePostPercent"
+          case 7012: // effectID: 7012, effectName: "moduleBonusAssaultDamageControl"
+            operation = "temporary";
+            break;
           default:
             return false;
         }
+
+        const activationPriority = Summary.getActivationPriority(efft);
+        activationDataSet.activationState["activationPriority"] =
+          activationPriority;
+
         return { ...summary, ...activationDataSet, operation };
       })
       .filter((summary) => !!summary);
@@ -218,6 +324,56 @@ export default class Summary extends Stat {
       },
     };
   };
+  static getActivationPriority = (efft) => {
+    let activationPriority = 10;
+    switch (efft.effectID) {
+      case 6197: //effectID: 6197, effectName: "energyNosferatuFalloff"
+      case 48: //effectID: 48, effectName: "powerBooster"
+        activationPriority = capPrioritySet.alwaysOn;
+        break;
+      case 101: // effectID: 101, effectName: "useMissiles"
+      case 34: // effectID: 34, effectName: "projectileFired"
+      case 10: // effectID: 10, effectName: "targetAttack"
+      case 6995: // effectID: 6995, effectName: "targetDisintegratorAttack"
+        activationPriority = capPrioritySet.turretDamage;
+        break;
+      case 4: // effectID: 4, effectName: "shieldBoosting"
+        activationPriority = capPrioritySet.shieldBoost;
+        break;
+      case 26: // effectID: 26, effectName: "structureRepair"
+        activationPriority = capPrioritySet.structureBoost;
+        break;
+      case 4936: // effectID: 4936, effectName: "fueledShieldBoosting"
+        activationPriority = capPrioritySet.shieldBoostAncillaryFueled;
+        break;
+      case 27: // effectID: 27, effectName: "armorRepair"
+        activationPriority = capPrioritySet.armorBoost;
+        break;
+      case 5275: // effectID: 5275, effectName: "fueledArmorRepair"
+        activationPriority = capPrioritySet.armorBoostAncillaryFueled;
+        break;
+      case 6187: //effectID: 6187, effectName: "energyNeutralizerFalloff"
+        activationPriority = capPrioritySet.capacitorNeutralizer;
+        break;
+      case 6148: // effectID: 6184, effectName: "shipModuleRemoteCapacitorTransmitter"
+        activationPriority = capPrioritySet.capacitorTransmitter;
+        break;
+      case 5230: // effectID: 5230, effectName: "modifyActiveShieldResonancePostPercent"
+        activationPriority = capPrioritySet.shieldHardener;
+        break;
+      case 4928: // effectID: 4928, effectName: "adaptiveArmorHardener"
+      case 5231: // effectID: 5231, effectName: "modifyActiveArmorResonancePostPercent"
+        activationPriority = capPrioritySet.armorHardener;
+        break;
+      case 7012: // effectID: 7012, effectName: "moduleBonusAssaultDamageControl"
+        activationPriority = capPrioritySet.damageControl;
+        break;
+      default:
+        activationPriority = capPrioritySet.mostTrivial;
+    }
+
+    return activationPriority;
+  };
   static getSummary_ship = (fit, situation) => {
     const defense = this.defense_resistance(fit);
     const misc = this.miscellaneous(fit);
@@ -301,6 +457,7 @@ class SimFit extends Fit {
     return fit;
   }
   static toPath(slots, path) {
+    if (!slots || !path) return {};
     return path.split(".").reduce((p, c) => (p && p[c]) || undefined, slots);
   }
 }

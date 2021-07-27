@@ -10,7 +10,7 @@ export default class cacheService {
   }
   set(key, value) {
     if (!this.cache.get(key)) this.cache.set(key, value);
-    console.log(key, ": Cache Operation[SET]");
+    /* console.log(key, ": Cache Operation[SET]"); */
   }
 
   get(key, storeFunction) {

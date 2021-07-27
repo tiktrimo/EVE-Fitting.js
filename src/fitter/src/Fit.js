@@ -294,7 +294,7 @@ export default class Fit {
   };
   static #applyBoard_modIsModApplicable = function (targetMod, applyMod) {
     if (!Fit.#applyBoard_modIsStateApplicable(applyMod)) {
-      if (
+      /*  if (
         !(
           applyMod.typeState === "activation" &&
           applyMod.effectCategory === "overload"
@@ -306,7 +306,7 @@ export default class Fit {
           targetMod,
           "<-",
           applyMod
-        ); //TESTETS
+        ); */ //TESTETS
       return false;
     }
     switch (applyMod.domain) {
@@ -342,7 +342,7 @@ export default class Fit {
   };
   static #applyBoard_modIsTypeApplicable = function (type, mod) {
     if (!Fit.#applyBoard_modIsStateApplicable(mod)) {
-      if (
+      /* if (
         !(mod.typeState === "activation" && mod.effectCategory === "overload")
       )
         console.log(
@@ -351,7 +351,7 @@ export default class Fit {
           type,
           "<-",
           mod
-        ); //TESTETS
+        ); */ //TESTETS
       return false;
     }
     if (type.domainID === undefined) console.log("domainID missing", type);

@@ -112,7 +112,7 @@ export default function FittingDrawer(props) {
   useEffect(() => {
     const savedSlots = JSON.parse(localStorage.getItem(`${props.tag}SLOTS`));
     const savedEFT = localStorage.getItem(`${props.tag}EFT`);
-    console.log(props.tag, savedSlots, savedEFT);
+    /* console.log(props.tag, savedSlots, savedEFT); */
     if (!savedSlots?.ship?.typeID || !savedEFT) return;
 
     props.cache.set(`typeID/${savedSlots.ship.typeID}`, savedSlots.ship);
