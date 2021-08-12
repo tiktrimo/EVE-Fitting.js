@@ -1,6 +1,5 @@
 import Simulator from "./Simulator";
 
-export const expensive = (e) => {
-  Simulator.test();
-  console.log("working");
+export const simulate = (slots, slots1, situation) => {
+  Simulator.test(slots, slots1, situation);
 };

@@ -15,6 +15,7 @@ import ShipCanvas from "./simpleEdition/ShipCanvas";
 
 // eslint-disable-next-line import/no-webpack-loader-syntax
 import worker from "workerize-loader!./FitCard/Stats/services/SimWorker";
+import SimulationPanel from "./SimulationPanel/SimulationPanel";
 
 const useStyles = makeStyles((theme) => ({
   modeButton: {
@@ -122,27 +123,8 @@ export default function InitialCard(props) {
   );
 
   const [situation, setSituation] = useState();
-  const [slots, setSlots] = useState();
+  const [slots0, setSlots0] = useState();
   const [slots1, setSlots1] = useState();
-
-  /*  const [simWorker, setSimWorker] = useState(
-    new WebWorker(
-      URL.createObjectURL(
-        new Blob(
-          [
-            "(",
-
-            function () {
-              Simulator.test();
-            }.toString(),
-
-            ")()",
-          ],
-          { type: "application/javascript" }
-        )
-      )
-    )
-  ); */
 
   useEffect(() => {
     setWidth(window.innerWidth);
@@ -168,7 +150,7 @@ export default function InitialCard(props) {
         <Grid xs={12} container item justify="center"></Grid>
         <Grid xs={12} container item justify="center">
           <FitCard
-            setSlots={setSlots}
+            setSlots={setSlots0}
             backgroundColor={theme.palette.property.blue}
             color={theme.palette.background.paper}
             tag={"fit"}
@@ -191,14 +173,18 @@ export default function InitialCard(props) {
         <Grid xs={12} container item justify="center">
           <Button
             onClick={() => {
-              /*  if (!!slots && !!slots1)
+              /*  if (!!slots0 && !!slots1)
                 simWorker.postMessage({ msg: "simulator" }); */
-              if (!!slots && !!slots1) simWorkerInst.expensive(1);
+              if (!!slots0 && !!slots1)
+                simWorkerInst.simulate(slots0, slots1, situation);
             }}
             fullWidth
           >
             Simulate
           </Button>
+        </Grid>
+        <Grid xs={12} container item justify="center">
+          <SimulationPanel slotsSet={[slots0, slots1]} />
         </Grid>
         <Grid xs={12} container item justify="center">
           <ShipCanvas setSituation={setSituation} />

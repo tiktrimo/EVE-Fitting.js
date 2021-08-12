@@ -4,8 +4,7 @@ import Summary from "./Summary";
 
 export default class Simulator {
   static test(slots, fit1, situation) {
-    const tt = 1;
-    /* const summarizedSlots1 = Summary.addSummaries(slots, situation.onboard);
+    const summarizedSlots1 = Summary.addSummaries(slots, situation.onboard);
     const summarizedSlots2 = Summary.addSummaries(fit1, situation.hostile);
     console.log(summarizedSlots1, summarizedSlots2);
 
@@ -29,11 +28,18 @@ export default class Simulator {
 
     console.log(
       "CAPACITOR_BY_LEVEL",
-      HAL.manageActivation_getCapUsageRateByPriorityLevel(summarizedSlots1)
+      HAL.manageActivation_getCapUsageLevels(summarizedSlots1)
     );
-    const schedule = HAL.getSchedules(summarizedSlots1, summarizedSlots2, 0);
-    summarizedSlots1.summary.load.capacitor.HP = 10;
-    HAL.manageSchedules(schedule, summarizedSlots1, situation.onboard); */
+    const capLog = [];
+    for (let i = 0; i < 2; i++) {
+      const schedules = HAL.getSchedules(summarizedSlots1, summarizedSlots2, i);
+      console.log(schedules);
+      HAL.manageSchedules(schedules, summarizedSlots1, situation.onboard);
+
+      capLog.push({ x: i, y: summarizedSlots1.summary.load.capacitor.HP });
+    }
+
+    console.log(capLog);
   }
 
   static simulate_oneTick = (owner, target, tick) => {
@@ -505,6 +511,8 @@ class HAL {
         schedule.summary.activationState.isActive = false;
         if (schedule.summary.operation === "temporary")
           Summary.updateSummaries(summarizedSlot, situation);
+
+        return;
       } // TODO: loop through schedules with tick is moving
 
       HAL.#manageSchedules_executeSchedule(schedule);
@@ -551,10 +559,36 @@ class HAL {
     else return true;
   }
 
-  static manageActivation(summarizedSlots, schedule) {}
-  static manageActivation_getCapUsageRateByPriorityLevel(summarizedSlots) {
+  // currently on halt. no ai included
+  static manageActivation(summarizedSlots, tick) {
+    // Find out current tick's cap usage amount
+    const capUsage = 0;
+    Fit.mapSlots(
+      summarizedSlots,
+      (summarizedSlot) => {
+        if (summarizedSlot.summary.activationState.nextActivationTick != tick)
+          return false;
+
+        capUsage += summarizedSlot.summary.activationInfo.activationCost;
+      },
+      {
+        isIterate: {
+          highSlots: true,
+          midSlots: true,
+          lowSlots: true,
+        },
+      }
+    );
+
+    if (
+      summarizedSlots.summary.load.capacitor.HP - capUsage <
+      summarizedSlots.summary.capacity.capacitor.HP * 0.3
+    )
+      return;
+  }
+  static manageActivation_getCapUsageLevels = (summarizedSlots) => {
     return [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((activationPriority) => {
-      let capUsageRateAccumulator = 0;
+      const capUsageRates = [];
       Fit.mapSlots(
         summarizedSlots,
         (slot) => {
@@ -563,7 +597,7 @@ class HAL {
           if (!info || !state || state.activationPriority > activationPriority)
             return 0;
           const capUsageRate = info.activationCost / info.duration || 0;
-          capUsageRateAccumulator += capUsageRate;
+          capUsageRates.push({ capUsageRate, slot });
         },
         {
           isIterate: {
@@ -574,11 +608,7 @@ class HAL {
         }
       );
 
-      return { activationPriority, capUsageRate: capUsageRateAccumulator };
+      return { activationPriority, capUsageRates };
     });
-  }
+  };
 }
-
-export const main = () => {
-  Simulator.test();
-};

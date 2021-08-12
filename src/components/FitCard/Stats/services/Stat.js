@@ -449,7 +449,8 @@ export default class Stat {
     };
   };
   static #defense_resistance_decimal_fix = (attr) => {
-    return 100 - attr.value * 100;
+    const value = 100 - attr.value * 100;
+    return value > 0 ? value : 0;
   };
   static defense_getSummary = (item, charge) => {
     if (!item) return false;

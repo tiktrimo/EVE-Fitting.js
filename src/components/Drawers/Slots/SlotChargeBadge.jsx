@@ -52,6 +52,7 @@ export default function SlotChargeBadge(props) {
     },
     [props.index, props.variant, props.item]
   );
+
   useEffect(() => {
     if (props.count !== undefined && props.count.constructor === Number) {
       // count of item

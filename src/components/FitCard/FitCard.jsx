@@ -15,6 +15,7 @@ import Stat from "./Stats/services/Stat";
 
 const useStyles = makeStyles((theme) => ({
   editButton: {
+    color: theme.palette.button.color,
     fontSize: 26,
     fontWeight: 1000,
     letterSpacing: -1.5,
@@ -61,13 +62,7 @@ const EditButton = (props) => {
         </Avatar>
       </Grid>
       <Grid item xs={10}>
-        <Typography
-          className={classes.editButton}
-          style={{
-            color: props.color,
-          }}
-          align="center"
-        >
+        <Typography className={classes.editButton} align="center">
           {getFitCardTitle(props.open, props.fit.ship?.typeName)}
         </Typography>
       </Grid>

@@ -7,7 +7,9 @@ import Fit from "../../fitter/src/Fit";
 import StatDrawer from "./Stats/StatDrawer.jsx";
 import EFT from "./services/EFT.js";
 import ListDrawers from "./ListDrawer/ListDrawers.jsx";
-import Simulator from "../FitCard/Stats/services/Simulator.js";
+// eslint-disable-next-line import/no-webpack-loader-syntax
+import worker from "workerize-loader!../../fitter/src/FitWorker";
+const fitWorker = worker();
 
 const initialSlots = {
   skills: false,
@@ -165,29 +167,31 @@ export default function Drawers(props) {
   }, [props.open]);
 
   useEffect(() => {
-    /* console.log(
+    (async () => {
+      /* console.log(
       "∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨FitCalc∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨"
     );
     console.time("Fit Stat Calculation"); */
-    const appliedFit = Fit.apply(slots);
-    /*  console.timeEnd("Fit Stat Calculation");
+      const appliedFit = await fitWorker.fit(slots);
+      /*  console.timeEnd("Fit Stat Calculation");
     console.log(appliedFit);
     console.log(
       `∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧`
     ); */
-    setFit(appliedFit);
-    props.setFit(appliedFit);
-    props.setFitID(EFT.buildCompareTextFromFit(slots));
-    props.setSlots(slots);
+      setFit(appliedFit);
+      props.setFit(appliedFit);
+      props.setFitID(EFT.buildCompareTextFromFit(slots));
+      props.setSlots(slots);
 
-    const appliedFitExportText = EFT.buildTextFromFit(appliedFit);
-    const appliedSlotsModified = { ...slots, skills: undefined };
-    setExportFitText(appliedFitExportText);
-    localStorage.setItem(
-      `${props.tag}SLOTS`,
-      JSON.stringify(appliedSlotsModified)
-    );
-    localStorage.setItem(`${props.tag}EFT`, appliedFitExportText);
+      const appliedFitExportText = EFT.buildTextFromFit(appliedFit);
+      const appliedSlotsModified = { ...slots, skills: undefined };
+      setExportFitText(appliedFitExportText);
+      localStorage.setItem(
+        `${props.tag}SLOTS`,
+        JSON.stringify(appliedSlotsModified)
+      );
+      localStorage.setItem(`${props.tag}EFT`, appliedFitExportText);
+    })();
   }, [EFT.buildCompareTextFromFit(slots)]);
 
   return (
