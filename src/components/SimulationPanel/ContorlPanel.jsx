@@ -21,7 +21,7 @@ export default function ContorlPanel(props) {
       //prettier-ignore
       const shieldDelta = Simulator.simulate_passive_shield_getDelta(props.summaries);
       props.dispatchSummaries({
-        type: "capacitor_shield_passive_charge",
+        type: "summary_load_apply_delta",
         payload: { capacitorDelta, shieldDelta },
       });
     },

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Button,
   CircularProgress,
@@ -34,20 +34,24 @@ export default function ModuleActivation(props) {
   )();
   const theme = useTheme();
 
-  const [activationCounter, setActivationCounter] = useState(0);
   const [flip, setFlip] = useState(false);
-  const [isActivating, setIsActivating] = useState(false);
+  const [activationCounter, setActivationCounter] = useState(0);
 
   useProgressCircleInterval(
     () => {
-      if (props.moduleSet[0].summary.activationState.isActive == true) {
+      if (props.isActivating) {
         setActivationCounter(activationCounter + 100);
         setFlip(!flip);
-        setIsActivating(true);
+
+        // change state of moduleSet
+        props.dispatchSummaries({
+          type: "moduleSet_update_activation",
+          payload: { moduleSet: props.moduleSet, isActive: true },
+        });
 
         // dispatch activation cost
         props.dispatchSummaries({
-          type: "capacitor_active_discharge",
+          type: "summary_load_apply_delta",
           payload: {
             capacitorDelta:
               -props.moduleSet[0].summary.activationInfo.activationCost *
@@ -60,9 +64,13 @@ export default function ModuleActivation(props) {
           type: "activationLeft_active_discharge",
           payload: { moduleSet: props.moduleSet },
         });
-      } else setIsActivating(false);
+      } else
+        props.dispatchSummaries({
+          type: "moduleSet_update_activation",
+          payload: { moduleSet: props.moduleSet, isActive: false },
+        });
     },
-    props.moduleSet[0].summary.activationState.isActive
+    props.isActivating
       ? props.moduleSet[0].summary.activationInfo.duration * 1000
       : null
   );
@@ -77,8 +85,8 @@ export default function ModuleActivation(props) {
     });
 
     if (props.moduleSet[0].summary.activationState.activationLeft === 0)
-      props.moduleSet[0].summary.activationState.isActive = false;
-  }, getInstaActivationDelay(props.moduleSet[0].summary));
+      props.setIsActivating(false);
+  }, getInstaActivationDelay(props.moduleSet[0].summary, props.isActivating));
 
   useLazyActivationInterval(() => {
     props.moduleSet.forEach((module) => {
@@ -88,7 +96,7 @@ export default function ModuleActivation(props) {
         props.dispatchTargetSummaries
       );
     });
-  }, getLazyActivationDelay(props.moduleSet[0].summary));
+  }, getLazyActivationDelay(props.moduleSet[0].summary, props.isActivating));
 
   return (
     <React.Fragment>
@@ -97,7 +105,9 @@ export default function ModuleActivation(props) {
         thickness={2}
         style={{
           color:
-            !isActivating || !flip ? "transparent" : theme.palette.text.primary,
+            !props.moduleSet[0].summary.activationState.isActive || !flip
+              ? "transparent"
+              : theme.palette.text.primary,
         }}
         className={classes.circularProrgess}
         classes={{
@@ -111,7 +121,9 @@ export default function ModuleActivation(props) {
         thickness={2}
         style={{
           color:
-            !isActivating || flip ? "transparent" : theme.palette.text.primary,
+            !props.moduleSet[0].summary.activationState.isActive || flip
+              ? "transparent"
+              : theme.palette.text.primary,
         }}
         className={classes.circularProrgess}
         classes={{
@@ -128,44 +140,40 @@ function activateModule(summary, dispatchSummaries, dispatchTargetSummaries) {
   switch (summary.operation) {
     case "damage":
       dispatchTargetSummaries({
-        type: "damage",
+        type: "summary_load_apply_delta",
         payload: Simulator.simulate_damage_getDelta(summary),
       });
       break;
     case "defense":
       dispatchSummaries({
-        type: "defense",
+        type: "summary_load_apply_delta",
         payload: Simulator.simulate_defense_getDelta(summary),
       });
       break;
     case "capacitor":
       const delta = Simulator.simulate_capacitor_getDelta(summary);
       dispatchSummaries({
-        type: "capacitor",
+        type: "summary_load_apply_delta",
         payload: { capacitorDelta: delta.self.capacitorDelta },
       });
       dispatchTargetSummaries({
-        type: "capacitor",
+        type: "summary_load_apply_delta",
         payload: { capacitorDelta: delta.target.capacitorDelta },
       });
       break;
   }
 }
-function getInstaActivationDelay(summary) {
+function getInstaActivationDelay(summary, isActivating) {
   if (
     summary.bonusPerAct?.self.armor > 0 ||
     summary.bonusPerAct?.self.structure > 0
   )
     return null;
 
-  return summary.activationState.isActive
-    ? summary.activationInfo.duration * 1000
-    : null;
+  return isActivating ? summary.activationInfo.duration * 1000 : null;
 }
-function getLazyActivationDelay(summary) {
+function getLazyActivationDelay(summary, isActivating) {
   if (getInstaActivationDelay(summary) != null) return null;
 
-  return summary.activationState.isActive
-    ? summary.activationInfo.duration * 1000
-    : null;
+  return isActivating ? summary.activationInfo.duration * 1000 : null;
 }

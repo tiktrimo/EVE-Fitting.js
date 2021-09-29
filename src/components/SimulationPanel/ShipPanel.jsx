@@ -6,11 +6,17 @@ import Summary from "../FitCard/Stats/services/Summary";
 import ContorlPanel from "./ContorlPanel";
 import ShipStatusPanel from "./ShipStatusPanel";
 
-//TODO: Finish temporary operation
 const summariesReducer = (state, action) => {
   switch (action.type) {
     case "initialize":
       return action.payload;
+
+    case "moduleSet_update_activation":
+      action.payload.moduleSet.forEach((module) => {
+        module.summary.activationState.isActive = action.payload.isActive;
+      });
+
+      return { ...state };
 
     case "activationLeft_active_discharge":
       action.payload.moduleSet.forEach((module) => {
@@ -27,36 +33,16 @@ const summariesReducer = (state, action) => {
 
       return { ...state };
 
-    case "capacitor_shield_passive_charge":
-      state.summary.load.capacitor.HP = calculateHP(state, action, "capacitor");
-      state.summary.load.shield.HP = calculateHP(state, action, "shield");
-
-      return { ...state };
-
-    case "capacitor_active_discharge":
-      state.summary.load.capacitor.HP = calculateHP(state, action, "capacitor");
-
-      return { ...state };
-
-    case "damage":
+    case "summary_load_apply_delta":
       state.summary.load.shield.HP = calculateHP(state, action, "shield");
       state.summary.load.armor.HP = calculateHP(state, action, "armor");
       state.summary.load.structure.HP = calculateHP(state, action, "structure");
-
-      return { ...state };
-
-    case "defense":
-      state.summary.load.shield.HP = calculateHP(state, action, "shield");
-      state.summary.load.armor.HP = calculateHP(state, action, "armor");
-      state.summary.load.structure.HP = calculateHP(state, action, "structure");
-
-      return { ...state };
-
-    case "capacitor":
       state.summary.load.capacitor.HP = calculateHP(state, action, "capacitor");
 
       return { ...state };
+
     default:
+      console.log("ERR NO KNOWN CASE IN ShipPanel.js");
       return state;
   }
 };
@@ -78,8 +64,6 @@ export default function ShipPanel(props) {
     //prettier-ignore
     _summaries.resistanceTable = Summary.getResistanceTable(_summaries, props.slots);
     _summaries.skills = undefined;
-
-    console.log(_summaries);
 
     dispatchSummaries({ type: "initialize", payload: _summaries });
     props.shareSummaries(_summaries);
@@ -112,6 +96,8 @@ function calculateHP(state, action, type) {
   const currentValue = state.summary.load[`${type}`].HP;
   const deltaValue = action.payload[`${type}Delta`];
   const maxValue = state.summary.capacity[`${type}`].HP;
+
+  if (!deltaValue) return currentValue;
 
   const result = currentValue + deltaValue;
   if (result > maxValue) return maxValue;

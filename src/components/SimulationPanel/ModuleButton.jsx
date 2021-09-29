@@ -52,33 +52,33 @@ const useStyles = makeStyles((theme) => ({
 export default function ModuleButton(props) {
   const classes = useStyles();
 
-  const [, render] = useState();
   const [isReloading, setIsReloading] = useState(false);
+  const [isActivating, setIsActivating] = useState(false);
 
   return (
     <div style={{ position: "relative" }}>
       <ModuleReloading
-        summary={props.moduleSet[0].summary}
         moduleSet={props.moduleSet}
         dispatchSummaries={props.dispatchSummaries}
         setIsReloading={setIsReloading}
       />
       <ModuleActivation
-        summary={props.moduleSet[0].summary}
         moduleSet={props.moduleSet}
         dispatchSummaries={props.dispatchSummaries}
         dispatchTargetSummaries={props.dispatchTargetSummaries}
+        isActivating={isActivating}
+        setIsActivating={setIsActivating}
       />
       <ModuleButtonChargeBadge
         count={props.moduleSet[0].summary.activationState.activationLeft}
         onClick={() => {
-          if (!isReloading) activateModuleSet(props.moduleSet, render);
+          if (!isReloading) setIsActivating(!isActivating);
         }}
       >
         <Avatar
           style={{ cursor: "pointer" }}
           onClick={() => {
-            if (!isReloading) activateModuleSet(props.moduleSet, render);
+            if (!isReloading) setIsActivating(!isActivating);
           }}
           className={classes.rootAvatarDefault}
         >
@@ -110,12 +110,4 @@ function feedSource(itemID, chargeID) {
         src={`https://images.evetech.net/types/${chargeID}/icon?size=64`}
       />
     );
-}
-function activateModuleSet(moduleSet, forceRender) {
-  // ewww.. mutation
-  moduleSet.forEach((module) => {
-    module.summary.activationState.isActive =
-      !module.summary.activationState.isActive;
-  });
-  forceRender({});
 }
