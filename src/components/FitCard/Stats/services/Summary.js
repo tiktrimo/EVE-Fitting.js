@@ -21,7 +21,7 @@ const capPrioritySet = {
 };
 
 export default class Summary extends Stat {
-  static updateSummaries = (summarizedSlots, situation) => {
+  static updateSummaries = (summarizedSlots, location) => {
     Fit.mapSlots(
       summarizedSlots,
       (slot) => {
@@ -44,66 +44,42 @@ export default class Summary extends Stat {
     );
 
     const fit = Fit.apply(summarizedSlots);
-    const shipSummary = Summary.getSummary_ship(fit, situation);
+    const shipSummary = Summary.getSummary_ship(fit, location);
     shipSummary.load = summarizedSlots.summary.load;
-    // MUTATION!!
-    Object.assign(summarizedSlots.summary, shipSummary);
-
-    Fit.mapSlots(
-      fit,
-      (slot) => {
-        if (!slot.item) return false;
-
-        const summary = Summary.#getSummaries_modules(slot);
-        const _slot = SimFit.toPath(summarizedSlots, summary.path);
-        if (!summary || !_slot) return false;
-
-        if (summary.activationState)
-          summary.activationState = _slot.summary.activationState;
-        if (!!summary.load) summary.load = _slot.summary.load;
-
-        // MUTATION!!
-        Object.assign(_slot.summary, summary);
-      },
-      {
-        isIterate: {
-          highSlots: true,
-          midSlots: true,
-          lowSlots: true,
-        },
-      }
-    );
-    Fit.mapSlots(
-      fit,
-      (slot) => {
-        if (!slot.item) return false;
-
-        const summary = Summary.#getSummaries_drones(slot);
-        const _slot = SimFit.toPath(summarizedSlots, summary.path);
-        if (!summary || !_slot) return false;
-
-        if (summary.activationState)
-          summary.activationState = _slot.summary.activationState;
-        if (!!summary.load) summary.load = _slot.summary.load;
-
-        // MUTATION!!
-        Object.assign(_slot.summary, summary);
-      },
-      {
-        isIterate: {
-          droneSlots: true,
-        },
-      }
-    );
 
     return summarizedSlots;
   };
 
-  static addSummaries = (slots, situation) => {
+  static getSummaries = (slots, location) => {
     const _slots = Summary.addSummaries_duplicateSlots(slots);
-    const fit = Fit.apply(_slots);
+    const blankSlots = {
+      highSlots: Array.from(slots.highSlots, () => ({})),
+      midSlots: Array.from(slots.midSlots, () => ({})),
+      lowSlots: Array.from(slots.lowSlots, () => ({})),
+      // Create drone number of blank object array
+      droneSlots: slots.droneSlots.reduce((acc, droneSlot) => {
+        if (!droneSlot.item) return acc;
+        //prettier-ignore
+        return [...acc, ...Array.from(new Array(droneSlot.item.typeCount).fill(false),() => ({}))];
+      }, []),
+    };
 
-    if (!!_slots) _slots["summary"] = Summary.getSummary_ship(fit, situation);
+    const fit = Fit.apply(_slots);
+    const summaries = Summary.addSummaries(fit, blankSlots, location);
+
+    return summaries;
+  };
+  static getSummarizedSlots = (slots, location) => {
+    const _slots = Summary.addSummaries_duplicateSlots(slots);
+
+    const fit = Fit.apply(_slots);
+    const summarizedSlots = Summary.addSummaries(fit, _slots, location);
+
+    return summarizedSlots;
+  };
+
+  static addSummaries = (fit, targetSlots, location) => {
+    if (!!fit) targetSlots["summary"] = Summary.getSummary_ship(fit, location);
 
     Fit.mapSlots(
       fit,
@@ -111,8 +87,8 @@ export default class Summary extends Stat {
         if (!slot.item) return false;
 
         const summary = Summary.#getSummaries_modules(slot);
-        summary["root"] = _slots;
-        const _slot = !!summary && SimFit.toPath(_slots, summary.path);
+        summary["root"] = targetSlots;
+        const _slot = !!summary && SimFit.toPath(targetSlots, summary.path);
         if (!!_slot) _slot["summary"] = summary;
       },
       {
@@ -129,8 +105,8 @@ export default class Summary extends Stat {
         if (!slot.item) return false;
 
         const summary = Summary.#getSummaries_drones(slot);
-        summary["root"] = _slots;
-        const _slot = !!summary && SimFit.toPath(_slots, summary.path);
+        summary["root"] = targetSlots;
+        const _slot = !!summary && SimFit.toPath(targetSlots, summary.path);
         if (!!_slot) _slot["summary"] = summary;
       },
       {
@@ -139,7 +115,7 @@ export default class Summary extends Stat {
         },
       }
     );
-    return _slots;
+    return targetSlots;
   };
   static addSummaries_duplicateSlots = (slots) => {
     const _droneSlots = Summary.addSummaries_duplicateDroneSlots(slots);
@@ -167,6 +143,60 @@ export default class Summary extends Stat {
       return acc.concat(_slots);
     }, []);
   };
+
+  static getResistanceTable = (summaries, slots) => {
+    const _slots = JSON.parse(JSON.stringify(slots));
+
+    const resistanceSlots = Fit.mapSlots(
+      summaries,
+      (slot) => {
+        if (slot?.summary?.operation === "resistance") return slot;
+        else return false;
+      },
+      {
+        isIterate: {
+          midSlots: true,
+          lowSlots: true,
+        },
+      }
+    ).filter((slot) => !!slot);
+
+    if (resistanceSlots.length === 0) return {};
+    const records = Summary.getResistanceTable_getRecords(resistanceSlots, "");
+
+    const resistanceTable = {};
+    records.forEach((record) => {
+      Summary.getResistanceTable_applyState(_slots, record);
+
+      const fit = Fit.apply(_slots);
+      resistanceTable[record] = this.defense_resistance(fit);
+      delete resistanceTable[record].shield.HP;
+      delete resistanceTable[record].armor.HP;
+      delete resistanceTable[record].structure.HP;
+    });
+
+    return resistanceTable;
+  };
+  static getResistanceTable_getRecords(resistanceSlots, record) {
+    if (resistanceSlots.length === 0) return [record.slice(0, -1)];
+
+    const activeRecord = Summary.getResistanceTable_getRecords(
+      resistanceSlots.slice(1),
+      record.concat(`${resistanceSlots[0].summary.path}.activation|`)
+    );
+
+    const passiveRecord = Summary.getResistanceTable_getRecords(
+      resistanceSlots.slice(1),
+      record.concat(`${resistanceSlots[0].summary.path}.passive|`)
+    );
+    return [...activeRecord, ...passiveRecord];
+  }
+  static getResistanceTable_applyState(slots, record) {
+    record.split("|").forEach((recordFrag) => {
+      const [slotType, slotNum, state] = recordFrag.split(".");
+      slots[slotType][slotNum].item.typeState = state;
+    });
+  }
 
   static #getSummaries_modules = (slot) => {
     if (!slot?.item?.typeEffectsStats) return false;
@@ -220,7 +250,7 @@ export default class Summary extends Stat {
           case 4928: // effectID: 4928, effectName: "adaptiveArmorHardener" //TODO: reactive armor bonus should be calculated
           case 5231: // effectID: 5231, effectName: "modifyActiveArmorResonancePostPercent"
           case 7012: // effectID: 7012, effectName: "moduleBonusAssaultDamageControl"
-            operation = "temporary";
+            operation = "resistance";
             break;
           default:
             return false;
@@ -230,7 +260,14 @@ export default class Summary extends Stat {
         activationDataSet.activationState["activationPriority"] =
           activationPriority;
 
-        return { ...summary, ...activationDataSet, operation };
+        return {
+          ...summary,
+          ...activationDataSet,
+          operation,
+          itemID: item.typeID,
+          chargeID: charge.typeID,
+          description: `${item.typeName},${charge.typeName}`,
+        };
       })
       .filter((summary) => !!summary);
 
@@ -288,12 +325,18 @@ export default class Summary extends Stat {
           default:
             return false;
         }
-        return { ...summary, ...activationDataSet, operation };
+        return {
+          ...summary,
+          ...activationDataSet,
+          operation,
+          itemID: item.typeID,
+          description: `${item.typeName}`,
+        };
       })
       .filter((summary) => !!summary);
 
     const situation_decription =
-      "Currently situation is not calculated BUT! always hitted by smart bomb";
+      "Currently location is not calculated BUT! always hitted by smart bomb";
 
     if (effectSummary.length > 1)
       console.error(
@@ -374,7 +417,7 @@ export default class Summary extends Stat {
 
     return activationPriority;
   };
-  static getSummary_ship = (fit, situation) => {
+  static getSummary_ship = (fit, location) => {
     const defense = this.defense_resistance(fit);
     const misc = this.miscellaneous(fit);
     const capacitor = this.capacitor_getChargeInfo(fit);
@@ -387,7 +430,8 @@ export default class Summary extends Stat {
         capacitor: { HP: capacitor.HP },
       },
       capacity: { ...defense, ...misc, capacitor },
-      situation: situation,
+      location: location,
+      description: `${fit.ship.typeName}`,
     };
   };
 

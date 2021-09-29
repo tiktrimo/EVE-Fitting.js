@@ -1,8 +1,9 @@
-import { Avatar, makeStyles } from "@material-ui/core";
+import { Avatar, Button, makeStyles } from "@material-ui/core";
 import React from "react";
 import { useState } from "react";
 import ModuleButtonChargeBadge from "./ModuleButtonChargeBadge";
-import ModuleCircularProgress from "./ModuleCircularProgress";
+import ModuleActivation from "./ModuleActivation";
+import ModuleReloading from "./ModuleReloading";
 
 const useStyles = makeStyles((theme) => ({
   rootDiv: {
@@ -11,15 +12,6 @@ const useStyles = makeStyles((theme) => ({
     top: 0,
     width: 40,
     height: 40,
-  },
-  rootAvatarHover: {
-    width: 40,
-    height: 40,
-    marginLeft: 10,
-    marginTop: 4,
-    backgroundColor: theme.palette.action.hover,
-    border: `0.1px solid ${theme.palette.divider}`,
-    marginRight: 20,
   },
   rootAvatarDefault: {
     width: 40,
@@ -55,57 +47,75 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+// TODO: change activating mechanism isActive => pure / isActivating in ModuleActivation => Visual
+
 export default function ModuleButton(props) {
   const classes = useStyles();
 
-  const [isHover, setIsHover] = useState(false);
+  const [, render] = useState();
+  const [isReloading, setIsReloading] = useState(false);
 
   return (
     <div style={{ position: "relative" }}>
-      <ModuleCircularProgress summary={props.slot.summary} />
+      <ModuleReloading
+        summary={props.moduleSet[0].summary}
+        moduleSet={props.moduleSet}
+        dispatchSummaries={props.dispatchSummaries}
+        setIsReloading={setIsReloading}
+      />
+      <ModuleActivation
+        summary={props.moduleSet[0].summary}
+        moduleSet={props.moduleSet}
+        dispatchSummaries={props.dispatchSummaries}
+        dispatchTargetSummaries={props.dispatchTargetSummaries}
+      />
       <ModuleButtonChargeBadge
-        count={props.slot.summary.activationState.activationLeft}
+        count={props.moduleSet[0].summary.activationState.activationLeft}
+        onClick={() => {
+          if (!isReloading) activateModuleSet(props.moduleSet, render);
+        }}
       >
         <Avatar
           style={{ cursor: "pointer" }}
           onClick={() => {
-            props.slot.summary.activationState.isActive =
-              !props.slot.summary.activationState.isActive;
+            if (!isReloading) activateModuleSet(props.moduleSet, render);
           }}
-          className={
-            isHover ? classes.rootAvatarHover : classes.rootAvatarDefault
-          }
+          className={classes.rootAvatarDefault}
         >
-          <div
-            onMouseEnter={() => {
-              setIsHover(true);
-            }}
-            onMouseLeave={() => {
-              setIsHover(false);
-            }}
-          >
-            {feedSource(props.slot?.item, props.slot?.charge)}
-          </div>
+          <Button>
+            {feedSource(
+              props.moduleSet[0]?.summary.itemID,
+              props.moduleSet[0]?.summary.chargeID
+            )}
+          </Button>
         </Avatar>
       </ModuleButtonChargeBadge>
     </div>
   );
 }
-function feedSource(item, charge) {
-  if (!!item && !charge)
+function feedSource(itemID, chargeID) {
+  if (!!itemID && !chargeID)
     return (
       <img
         draggable="false"
-        style={{ width: "100%", height: "100%" }}
-        src={`https://images.evetech.net/types/${item?.typeID}/icon?size=64`}
+        style={{ width: "85%", height: "85%", marginLeft: -2 }}
+        src={`https://images.evetech.net/types/${itemID}/icon?size=64`}
       />
     );
-  else if (!!item && !!charge)
+  else if (!!itemID && !!chargeID)
     return (
       <img
         draggable="false"
-        style={{ width: "100%", height: "100%" }}
-        src={`https://images.evetech.net/types/${charge?.typeID}/icon?size=64`}
+        style={{ width: "85%", height: "85%", marginLeft: -2 }}
+        src={`https://images.evetech.net/types/${chargeID}/icon?size=64`}
       />
     );
+}
+function activateModuleSet(moduleSet, forceRender) {
+  // ewww.. mutation
+  moduleSet.forEach((module) => {
+    module.summary.activationState.isActive =
+      !module.summary.activationState.isActive;
+  });
+  forceRender({});
 }

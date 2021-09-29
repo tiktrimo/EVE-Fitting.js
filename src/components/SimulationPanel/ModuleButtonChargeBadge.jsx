@@ -1,6 +1,7 @@
 import {
   Avatar,
   Badge,
+  Button,
   makeStyles,
   Typography,
   useTheme,
@@ -29,20 +30,23 @@ export default function ModuleButtonChargeBadge(props) {
 
   return (
     <Badge
+      style={{ cursor: "pointer" }}
       overlap="circle"
       anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
       badgeContent={
         props.count != Infinity ? (
-          <Avatar className={classes.rootAvatar}>
-            <Typography
-              style={{
-                color: theme.palette.text.primary,
-                fontSize: 9,
-                marginLeft: -1,
-              }}
-            >
-              {props.count}
-            </Typography>
+          <Avatar className={classes.rootAvatar} onClick={props.onClick}>
+            <Button>
+              <Typography
+                style={{
+                  color: theme.palette.text.primary,
+                  fontSize: 9,
+                  marginLeft: -1,
+                }}
+              >
+                {props.count}
+              </Typography>
+            </Button>
           </Avatar>
         ) : undefined
       }

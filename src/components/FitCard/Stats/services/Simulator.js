@@ -4,9 +4,15 @@ import Summary from "./Summary";
 
 export default class Simulator {
   static test(slots, fit1, situation) {
-    const summarizedSlots1 = Summary.addSummaries(slots, situation.onboard);
-    const summarizedSlots2 = Summary.addSummaries(fit1, situation.hostile);
-    console.log(summarizedSlots1, summarizedSlots2);
+    const summarizedSlots1 = Summary.getSummarizedSlots(
+      slots,
+      situation.onboard
+    );
+    const summarizedSlots2 = Summary.getSummarizedSlots(
+      fit1,
+      situation.hostile
+    );
+    console.log(summarizedSlots1, summarizedSlots2, situation);
 
     Fit.mapSlots(
       summarizedSlots1,
@@ -74,6 +80,18 @@ export default class Simulator {
   };
   static simulate_capacitor = (target) => {
     const capacitorState = target.summary.load.capacitor;
+    const delta = Simulator.simulate_capacitor_getDelta(target);
+
+    // MUTATION!
+    capacitorState.HP += delta;
+    if (capacitorState.HP === 0) capacitorState.HP = 1;
+
+    return delta;
+  };
+  static simulate_passive_capacitor_getDelta = (target) => {
+    if (target.summary.load.capacitor.HP <= 0) return 1;
+
+    const capacitorState = target.summary.load.capacitor;
     const capacitorInfo = target.summary.capacity.capacitor;
 
     const ambientChargeRate = EveMath.getAmbientChargeRateMath(
@@ -82,13 +100,21 @@ export default class Simulator {
       capacitorInfo.bonusRate
     );
 
-    // MUTATION!
-    capacitorState.HP += ambientChargeRate;
-    if (capacitorState.HP === 0) capacitorState.HP = 1;
-
     return ambientChargeRate;
   };
   static simulate_shield = (target) => {
+    const shieldState = target.summary.load.shield;
+    const delta = Simulator.simulate_capacitor_getDelta(target);
+
+    // MUTATION!
+    shieldState.HP += delta;
+    if (shieldState.HP === 0) shieldState.HP += 1;
+
+    return delta;
+  };
+  static simulate_passive_shield_getDelta = (target) => {
+    if (target.summary.load.shield.HP <= 0) return 1;
+
     const shieldState = target.summary.load.shield;
     const shieldInfo = target.summary.capacity.shield;
 
@@ -98,13 +124,17 @@ export default class Simulator {
       shieldInfo.bonusRate
     );
 
-    // MUTATION!
-    shieldState.HP += ambientChargeRate;
-    if (shieldState.HP === 0) shieldState.HP += 1;
-
     return ambientChargeRate;
   };
-  //Currently target boost (remote armor repair is nor possible)
+
+  //Currently target boost (remote armor repair is not possible
+  static simulate_defense_getDelta = (summary) => {
+    return {
+      armorDelta: summary.bonusPerAct.self.armor,
+      shieldDelta: summary.bonusPerAct.self.shield,
+      structureDelta: summary.bonusPerAct.self.structure,
+    };
+  };
   static activateDefense = (summary) => {
     const owner = summary.root;
 
@@ -123,7 +153,7 @@ export default class Simulator {
     /*  } */
   };
 
-  static activateDamage = (summary) => {
+  static simulate_damage_getDelta = (summary) => {
     const owner = summary.isDrone ? summary : summary.root;
     const target = summary.target;
     //prettier-ignore
@@ -131,6 +161,19 @@ export default class Simulator {
     //prettier-ignore
     const alpha = Simulator.activateDamage_getAlpha(situationalModifiedSummary, target);
 
+    return {
+      armorDelta: -alpha.armor,
+      shieldDelta: -alpha.shield,
+      structureDelta: -alpha.structure,
+    };
+  };
+  static activateDamage = (summary) => {
+    const owner = summary.isDrone ? summary : summary.root;
+    const target = summary.target;
+    //prettier-ignore
+    const situationalModifiedSummary = Simulator.#activateDamage_getSituationalModifiedSummary(summary, owner, target);
+    //prettier-ignore
+    const alpha = Simulator.activateDamage_getAlpha(situationalModifiedSummary, target);
     // MUTATION!
     target.summary.load.shield.HP -= alpha.shield;
     if (target.summary.load.shield.HP < 0) target.summary.load.shield.HP = 0;
@@ -282,6 +325,22 @@ export default class Simulator {
     } else return 0;
   };
 
+  static simulate_capacitor_getDelta = (summary) => {
+    const owner = summary.root;
+    const target = summary.target;
+    //prettier-ignore
+    const situationalModifiedSummary = Simulator.#activateCapacitor_getSituationalModifiedSummary(summary, owner, target);
+
+    return {
+      target: {
+        capacitorDelta: situationalModifiedSummary.bonusPerAct.target,
+      },
+      self: {
+        capacitorDelta: situationalModifiedSummary.bonusPerAct.owner,
+      },
+    };
+  };
+
   static activateCapacitor = (summary) => {
     const owner = summary.root;
     const target = summary.target;
@@ -349,19 +408,26 @@ export default class Simulator {
   static #activateCapacitor_getSituationalMul = (summary, owner, target) => {
     const rangeModifier = EveMath.getRangeModifier(summary, owner, target);
 
-    const isCapacitorBooster = summary.slot.item?.typeEffectsStats?.reduce(
-      (acc, efft) => {
-        if (efft.effectID === 48)
-          //effectID: 48, effectName: "powerBooster"
-          return true;
-        return acc;
-      },
-      false
-    );
+    const isCapacitorBooster =
+      !summary.isNosferatuBloodRaiderOverriden &&
+      !summary.isCapacitorTransmitter &&
+      !summary.isNosferatu;
 
     return isCapacitorBooster ? 1 : rangeModifier;
   };
 
+  static simulateActivationCapUse = (summary) => {
+    const capacitorState =
+      summary.load.capacitor || summary.root.summary.load.capacitor;
+    const state = summary.activationState;
+    const info = summary.activationInfo;
+
+    // MUTATION!
+    capacitorState.HP -= info.activationCost;
+    state.activationLeft--;
+
+    return summary;
+  };
   static simulateActivation = (summary) => {
     const capacitorState =
       summary.load.capacitor || summary.root.summary.load.capacitor;
@@ -388,9 +454,9 @@ export default class Simulator {
     return summary;
   };
 }
-class HAL {
+export class HAL {
   static getSchedules(summarizedSlots, target, tick) {
-    HAL.#getSchedules_setTarget(summarizedSlots, target);
+    HAL.getSchedules_setTarget(summarizedSlots, target);
     return Fit.mapSlots(
       summarizedSlots,
       (summarizedSlot) => {
@@ -412,7 +478,7 @@ class HAL {
       }, [])
       .sort((a, b) => a.time - b.time);
   }
-  static #getSchedules_setTarget = (summarizedSlots, target) => {
+  static getSchedules_setTarget = (summarizedSlots, target) => {
     Fit.mapSlots(
       summarizedSlots,
       (summarizedSlot) => {
@@ -504,13 +570,13 @@ class HAL {
     return [{ time: currentTime }, ...subSecSchedule];
   };
 
-  static manageSchedules(schedules, summarizedSlot, situation) {
+  static manageSchedules(schedules, summarizedSlot, location) {
     schedules.forEach((schedule) => {
       if (!HAL.manageSchedules_validate(schedule.summary)) {
         // MUTATION!
         schedule.summary.activationState.isActive = false;
-        if (schedule.summary.operation === "temporary")
-          Summary.updateSummaries(summarizedSlot, situation);
+        if (schedule.summary.operation === "resistance")
+          Summary.updateSummaries(summarizedSlot, location);
 
         return;
       } // TODO: loop through schedules with tick is moving

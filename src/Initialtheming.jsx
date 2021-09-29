@@ -1,7 +1,7 @@
 import InitialFetch from "./InitialFetch";
 import { MuiThemeProvider, createMuiTheme } from "@material-ui/core/styles";
 import { red, orange, blue, blueGrey, green } from "@material-ui/core/colors";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 const lightTheme = createMuiTheme({
   palette: {

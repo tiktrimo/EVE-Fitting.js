@@ -3,15 +3,15 @@ export default class EveMath {
     return ((10 * Cmax) / Tchg) * (Math.sqrt(Cnow / Cmax) - Cnow / Cmax) || 0;
   }
   static getTurretAcurracy(summary, owner, target) {
-    const onBoardVector = owner.summary.situation.vector;
-    const hostileVector = target.summary.situation.vector;
+    const onBoardVector = owner.summary.location.vector;
+    const hostileVector = target.summary.location.vector;
     const distanceVector = {
       x:
-        target.summary.situation.anchors.anchor1X -
-        owner.summary.situation.anchors.anchor1X,
+        target.summary.location.anchors.anchor1X -
+        owner.summary.location.anchors.anchor1X,
       y:
-        target.summary.situation.anchors.anchor1Y -
-        owner.summary.situation.anchors.anchor1Y,
+        target.summary.location.anchors.anchor1Y -
+        owner.summary.location.anchors.anchor1Y,
     };
     const distance =
       Math.sqrt(Math.pow(distanceVector.x, 2) + Math.pow(distanceVector.y, 2)) /
@@ -41,11 +41,11 @@ export default class EveMath {
   static getLauncherAccuracy(summary, owner, target) {
     const distanceVector = {
       x:
-        target.summary.situation.anchors.anchor1X -
-        owner.summary.situation.anchors.anchor1X,
+        target.summary.location.anchors.anchor1X -
+        owner.summary.location.anchors.anchor1X,
       y:
-        target.summary.situation.anchors.anchor1Y -
-        owner.summary.situation.anchors.anchor1Y,
+        target.summary.location.anchors.anchor1Y -
+        owner.summary.location.anchors.anchor1Y,
     };
     const distance =
       Math.sqrt(Math.pow(distanceVector.x, 2) + Math.pow(distanceVector.y, 2)) /
@@ -59,35 +59,33 @@ export default class EveMath {
       return EveMath.getTurretAcurracy(summary, owner, target);
 
     const targetUnitVector = EveMath.#common_makeUnitVector(
-      target.summary.situation.vector
+      target.summary.location.vector
     );
     const targetVelocity =
       Math.sqrt(
-        Math.pow(target.summary.situation.vector.x, 2) +
-          Math.pow(target.summary.situation.vector.y, 2)
+        Math.pow(target.summary.location.vector.x, 2) +
+          Math.pow(target.summary.location.vector.y, 2)
       ) * 3;
     const isChasing =
       summary.capacity.propulsion.orbitVelocity < targetVelocity;
     if (isChasing) {
-      const droneAccuracyModifier = EveMath.#getDroneAccracy_getAccuracyModifier(
-        summary,
-        targetVelocity
-      );
+      const droneAccuracyModifier =
+        EveMath.#getDroneAccracy_getAccuracyModifier(summary, targetVelocity);
       const absoluteVelocity = summary.capacity.propulsion.orbitVelocity;
       const droneVector = {
         x: targetUnitVector.x * (absoluteVelocity / 3), // Currently 1px = 3m/s
         y: targetUnitVector.y * (absoluteVelocity / 3),
       };
-      const droneSituationsummary = {
+      const droneLocation = {
         summary: {
-          situation: {
+          location: {
             anchors: {
               anchor1X:
-                target.summary.situation.anchors.anchor1X -
+                target.summary.location.anchors.anchor1X -
                 (targetUnitVector.x * summary.capacity.propulsion.orbitRange) /
                   10, // Currently 1px = 10m
               anchor1Y:
-                target.summary.situation.anchors.anchor1Y -
+                target.summary.location.anchors.anchor1Y -
                 (targetUnitVector.y * summary.capacity.propulsion.orbitRange) /
                   10,
             },
@@ -96,7 +94,7 @@ export default class EveMath {
         },
       };
       return (
-        EveMath.getTurretAcurracy(summary, droneSituationsummary, target) *
+        EveMath.getTurretAcurracy(summary, droneLocation, target) *
         droneAccuracyModifier
       );
     } else {
@@ -106,16 +104,16 @@ export default class EveMath {
         x: targetUnitVector.x * (absoluteVelocity / 3), // Currently 1px = 3m/s
         y: targetUnitVector.y * (absoluteVelocity / 3),
       }; // drone positions at perpendicular to targetVector
-      const droneSituationsummary = {
+      const droneLocation = {
         summary: {
-          situation: {
+          location: {
             anchors: {
               anchor1X:
-                target.summary.situation.anchors.anchor1X +
+                target.summary.location.anchors.anchor1X +
                 (targetUnitVector.y * summary.capacity.propulsion.orbitRange) /
                   10, // Currently 1px = 10m
               anchor1Y:
-                target.summary.situation.anchors.anchor1Y -
+                target.summary.location.anchors.anchor1Y -
                 (targetUnitVector.x * summary.capacity.propulsion.orbitRange) /
                   10,
             },
@@ -123,11 +121,11 @@ export default class EveMath {
           },
         },
       };
-      return EveMath.getTurretAcurracy(summary, droneSituationsummary, target);
+      return EveMath.getTurretAcurracy(summary, droneLocation, target);
     }
   }
   static #getDroneAccracy_getAccuracyModifier = (summary, targetVelocity) => {
-    // Estimated modifier - drone movement is too complicated simplify the situation when target velocity is higher than orbit velocity
+    // Estimated modifier - drone movement is too complicated simplify the location when target velocity is higher than orbit velocity
     //prettier-ignore
     const value = 1 -targetVelocity /
           (summary.capacity.propulsion.maximumVelocity - summary.capacity.propulsion.orbitVelocity);
@@ -141,8 +139,8 @@ export default class EveMath {
     const damageReductionFactor = summary.range.damageReductionFactor;
     const targetVelocity =
       Math.sqrt(
-        Math.pow(target.summary.situation.vector.x, 2) +
-          Math.pow(target.summary.situation.vector.y, 2)
+        Math.pow(target.summary.location.vector.x, 2) +
+          Math.pow(target.summary.location.vector.y, 2)
       ) * 3;
 
     const simplePart = signatureRadius / explosionRadius;
@@ -161,11 +159,11 @@ export default class EveMath {
   static getRangeModifier(summary, owner, target) {
     const distanceVector = {
       x:
-        target.summary.situation.anchors.anchor1X -
-        owner.summary.situation.anchors.anchor1X,
+        target.summary.location.anchors.anchor1X -
+        owner.summary.location.anchors.anchor1X,
       y:
-        target.summary.situation.anchors.anchor1Y -
-        owner.summary.situation.anchors.anchor1Y,
+        target.summary.location.anchors.anchor1Y -
+        owner.summary.location.anchors.anchor1Y,
     };
     const distance =
       Math.sqrt(Math.pow(distanceVector.x, 2) + Math.pow(distanceVector.y, 2)) /
@@ -208,9 +206,8 @@ export default class EveMath {
       EveMath.#getTurretAcurracy_validateVector(hostileVector)
     ) {
       const perpendicularVector = { x: -distanceVector.y, y: distanceVector.x };
-      const perpendicularUnitVector = EveMath.#common_makeUnitVector(
-        perpendicularVector
-      );
+      const perpendicularUnitVector =
+        EveMath.#common_makeUnitVector(perpendicularVector);
       const hostileOrbitalVelocity = EveMath.#getTurretAcurracy_innerProduct(
         perpendicularUnitVector,
         hostileVector

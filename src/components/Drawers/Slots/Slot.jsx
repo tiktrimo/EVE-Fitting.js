@@ -6,6 +6,7 @@ import {
   Avatar,
   Tooltip,
   useTheme,
+  Button,
 } from "@material-ui/core";
 import { useState } from "react";
 import {
@@ -39,15 +40,6 @@ const useStyles = makeStyles((theme) => ({
     position: "absolute",
     left: 0,
     top: 0,
-  },
-  rootAvatarHover: {
-    width: 40,
-    height: 40,
-    marginLeft: 10,
-    marginTop: 4,
-    backgroundColor: theme.palette.action.hover,
-    border: `0.1px solid ${theme.palette.divider}`,
-    marginRight: 20,
   },
   rootAvatarDefault: {
     width: 40,
@@ -136,15 +128,7 @@ export default function Slot(props) {
         dense
         button
       >
-        <div
-          className={classes.rootDiv}
-          onMouseEnter={() => {
-            setIsHover(true);
-          }}
-          onMouseLeave={() => {
-            setIsHover(false);
-          }}
-        >
+        <div className={classes.rootDiv}>
           <SlotChargeBadge
             {...props}
             item={item}
@@ -162,12 +146,10 @@ export default function Slot(props) {
                   ),
                 }}
               />
-              <Avatar
-                className={
-                  isHover ? classes.rootAvatarHover : classes.rootAvatarDefault
-                }
-              >
-                {!!item ? feedSource(item, charge) : slotIcon(props, theme)}
+              <Avatar className={classes.rootAvatarDefault}>
+                <Button disableRipple>
+                  {!!item ? feedSource(item, charge) : slotIcon(props, theme)}
+                </Button>
               </Avatar>
             </SlotMetaBadge>
           </SlotChargeBadge>
@@ -192,7 +174,7 @@ function feedSource(item, charge) {
     return (
       <img
         draggable="false"
-        style={{ width: "100%", height: "100%" }}
+        style={{ width: "85%", height: "85%", marginLeft: -2 }}
         src={`https://images.evetech.net/types/${item?.typeID}/icon?size=64`}
       />
     );
@@ -200,7 +182,7 @@ function feedSource(item, charge) {
     return (
       <img
         draggable="false"
-        style={{ width: "100%", height: "100%" }}
+        style={{ width: "85%", height: "85%", marginLeft: -2 }}
         src={`https://images.evetech.net/types/${charge?.typeID}/icon?size=64`}
       />
     );

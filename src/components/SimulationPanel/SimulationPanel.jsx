@@ -8,10 +8,13 @@ import {
 } from "@material-ui/core";
 import SystemUpdateAltIcon from "@material-ui/icons/SystemUpdateAlt";
 import RefreshIcon from "@material-ui/icons/Refresh";
-import React from "react";
+import React, { useCallback } from "react";
 import { useState } from "react";
 import Summary from "../FitCard/Stats/services/Summary";
-import ContorlPanel from "./ContorlPanel";
+import { HAL } from "../FitCard/Stats/services/Simulator";
+import { useEffect } from "react";
+import ShipPanel from "./ShipPanel";
+import Fit from "../../fitter/src/Fit";
 
 const useStyles = makeStyles((theme) => ({
   modeButton: {
@@ -25,8 +28,27 @@ export default function SimulationPanel(props) {
   const theme = useTheme();
 
   const [updateFlag, setUpdateFlag] = useState(false);
-  const [summarizedSlots0, setSummarizedSlots0] = useState();
-  const [summarizedSlots1, setSummarizedSlots1] = useState();
+
+  const [slots0, setSlots0] = useState();
+  const [slots1, setSlots1] = useState();
+  const [summaries0, setSummaries0] = useState();
+  const [summaries1, setSummaries1] = useState();
+
+  const [dispatchSummarizedSlot0, setDispatchSummarizedSlot0] = useState();
+  const [dispatchSummarizedSlot1, setDispatchSummarizedSlot1] = useState();
+
+  const initialize = useCallback(() => {
+    const _slots0 = JSON.parse(JSON.stringify(props.slotsSet[0]));
+    const _slots1 = JSON.parse(JSON.stringify(props.slotsSet[1]));
+
+    initializeSlots(_slots0);
+    setSlots0(_slots0);
+
+    initializeSlots(_slots1);
+    setSlots1(_slots1);
+
+    setUpdateFlag(!updateFlag);
+  });
 
   return (
     <Card style={{ width: "85%", minWidth: 300, maxWidth: 600 }} elevation={3}>
@@ -38,14 +60,7 @@ export default function SimulationPanel(props) {
             fullWidth
             disableElevation
           >
-            <Button
-              className={classes.modeButton}
-              onClick={() => {
-                setSummarizedSlots0(Summary.addSummaries(props.slotsSet[0]));
-                setSummarizedSlots1(Summary.addSummaries(props.slotsSet[1]));
-                setUpdateFlag(!updateFlag);
-              }}
-            >
+            <Button className={classes.modeButton} onClick={initialize}>
               <SystemUpdateAltIcon
                 style={{ color: theme.palette.text.primary }}
               />
@@ -56,13 +71,56 @@ export default function SimulationPanel(props) {
           </ButtonGroup>
         </Grid>
 
-        <Grid xs={12} container item justify="center">
-          <ContorlPanel
-            summarizedSlots={summarizedSlots0}
-            updateFlag={updateFlag}
-          />
-        </Grid>
+        <ShipPanel
+          slots={slots0}
+          setSlots={setSlots0}
+          //
+          targetSummaries={summaries1}
+          dispatchTargetSummaries={dispatchSummarizedSlot1}
+          //
+          location={props.situation?.onboard}
+          shareSummaries={setSummaries0}
+          shareDispatchSummaries={setDispatchSummarizedSlot0}
+          updateFlag={updateFlag}
+        />
+        <ShipPanel
+          slots={slots1}
+          setSlots={setSlots1}
+          //
+          targetSummaries={summaries0}
+          dispatchTargetSummaries={dispatchSummarizedSlot0}
+          //
+          location={props.situation?.hostile}
+          shareSummaries={setSummaries1}
+          shareDispatchSummaries={setDispatchSummarizedSlot1}
+          updateFlag={updateFlag}
+        />
       </Grid>
     </Card>
   );
+}
+
+function initializeSlots(slots) {
+  Fit.mapSlots(
+    slots,
+    (slot) => {
+      if (!!slot.item) slot.item.typeState = "passive";
+    },
+    {
+      isIterate: {
+        droneSlots: true,
+        highSlots: true,
+        midSlots: true,
+        lowSlots: true,
+      },
+    }
+  );
+
+  /*   const _slots = Summary.addSummaries_duplicateSlots(slots);
+
+  const fit = Fit.apply(slots);
+  const summarizedSlots = Summary.addSummaries(fit, _slots, situation);
+  summarizedSlots.skills = undefined;
+
+  return summarizedSlots; */
 }

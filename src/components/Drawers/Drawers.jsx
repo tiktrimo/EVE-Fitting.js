@@ -169,15 +169,15 @@ export default function Drawers(props) {
   useEffect(() => {
     (async () => {
       /* console.log(
-      "∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨FitCalc∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨"
-    );
-    console.time("Fit Stat Calculation"); */
+        "∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨FitCalc∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨"
+      );
+      console.time("Fit Stat Calculation"); */
       const appliedFit = await fitWorker.fit(slots);
-      /*  console.timeEnd("Fit Stat Calculation");
-    console.log(appliedFit);
-    console.log(
-      `∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧`
-    ); */
+      /* console.timeEnd("Fit Stat Calculation");
+      console.log(appliedFit);
+      console.log(
+        `∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧`
+      ); */
       setFit(appliedFit);
       props.setFit(appliedFit);
       props.setFitID(EFT.buildCompareTextFromFit(slots));
