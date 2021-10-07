@@ -40,14 +40,12 @@ export default function ModuleActivation(props) {
   useProgressCircleInterval(
     () => {
       if (props.isActivating) {
-        setActivationCounter(activationCounter + 100);
-        setFlip(!flip);
-
         // change state of moduleSet
-        props.dispatchSummaries({
-          type: "moduleSet_update_activation",
-          payload: { moduleSet: props.moduleSet, isActive: true },
-        });
+        if (props.moduleSet[0].summary.activationState.isActive === false)
+          props.dispatchSummaries({
+            type: "moduleSet_update_activation",
+            payload: { moduleSet: props.moduleSet, isActive: true },
+          });
 
         // dispatch activation cost
         props.dispatchSummaries({
@@ -64,11 +62,15 @@ export default function ModuleActivation(props) {
           type: "activationLeft_active_discharge",
           payload: { moduleSet: props.moduleSet },
         });
-      } else
+
+        setActivationCounter(activationCounter + 100);
+        setFlip(!flip);
+      } else if (props.moduleSet[0].summary.activationState.isActive === true) {
         props.dispatchSummaries({
           type: "moduleSet_update_activation",
           payload: { moduleSet: props.moduleSet, isActive: false },
         });
+      }
     },
     props.isActivating
       ? props.moduleSet[0].summary.activationInfo.duration * 1000
@@ -86,7 +88,7 @@ export default function ModuleActivation(props) {
 
     if (props.moduleSet[0].summary.activationState.activationLeft === 0)
       props.setIsActivating(false);
-  }, getInstaActivationDelay(props.moduleSet[0].summary, props.isActivating));
+  }, getInstaActivationDelay(props.moduleSet[0].summary));
 
   useLazyActivationInterval(() => {
     props.moduleSet.forEach((module) => {
@@ -96,7 +98,15 @@ export default function ModuleActivation(props) {
         props.dispatchTargetSummaries
       );
     });
-  }, getLazyActivationDelay(props.moduleSet[0].summary, props.isActivating));
+  }, getLazyActivationDelay(props.moduleSet[0].summary));
+
+  // Not pretty... only used for resistance operation update
+  useEffect(() => {
+    if (props.moduleSet[0].summary.operation === "resistance")
+      props.dispatchSummaries({
+        type: "summary_load_update_resistance",
+      });
+  }, [props.moduleSet[0].summary.activationState.isActive]);
 
   return (
     <React.Fragment>
@@ -107,7 +117,9 @@ export default function ModuleActivation(props) {
           color:
             !props.moduleSet[0].summary.activationState.isActive || !flip
               ? "transparent"
-              : theme.palette.text.primary,
+              : props.isActivating
+              ? theme.palette.text.primary
+              : theme.palette.text.secondary,
         }}
         className={classes.circularProrgess}
         classes={{
@@ -123,7 +135,9 @@ export default function ModuleActivation(props) {
           color:
             !props.moduleSet[0].summary.activationState.isActive || flip
               ? "transparent"
-              : theme.palette.text.primary,
+              : props.isActivating
+              ? theme.palette.text.primary
+              : theme.palette.text.secondary,
         }}
         className={classes.circularProrgess}
         classes={{
@@ -163,17 +177,21 @@ function activateModule(summary, dispatchSummaries, dispatchTargetSummaries) {
       break;
   }
 }
-function getInstaActivationDelay(summary, isActivating) {
+function getInstaActivationDelay(summary) {
   if (
     summary.bonusPerAct?.self.armor > 0 ||
     summary.bonusPerAct?.self.structure > 0
   )
     return null;
 
-  return isActivating ? summary.activationInfo.duration * 1000 : null;
+  return summary.activationState.isActive
+    ? summary.activationInfo.duration * 1000
+    : null;
 }
-function getLazyActivationDelay(summary, isActivating) {
+function getLazyActivationDelay(summary) {
   if (getInstaActivationDelay(summary) != null) return null;
 
-  return isActivating ? summary.activationInfo.duration * 1000 : null;
+  return summary.activationState.isActive
+    ? summary.activationInfo.duration * 1000
+    : null;
 }

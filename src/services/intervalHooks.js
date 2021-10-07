@@ -37,22 +37,21 @@ export function useProgressCircleInterval(callback, delay) {
 
   // Set up the interval.
   useEffect(() => {
-    function tick() {
+    if (delay !== null && pauseFlag.current === false) {
       savedCallback.current();
-    }
-    if (delay !== null) {
-      tick();
       interval.current = setInterval(() => {
-        tick();
+        savedCallback.current();
         if (pauseFlag.current === true) {
           clearInterval(interval.current);
           pauseFlag.current = false;
+          interval.current = false;
         }
       }, delay);
       return () => {
         pauseFlag.current = true;
       };
-    }
+    } else if (delay !== null) pauseFlag.current = false;
+    else if (interval.current) pauseFlag.current = true;
   }, [delay]);
 
   // clear interval at componenet dismount
@@ -75,21 +74,20 @@ export function useInstaActivationInterval(callback, delay) {
 
   // Set up the interval.
   useEffect(() => {
-    function tick() {
+    if (delay !== null && pauseFlag.current === false) {
       savedCallback.current();
-    }
-    if (delay !== null) {
-      tick();
       interval.current = setInterval(() => {
         if (pauseFlag.current === true) {
           clearInterval(interval.current);
           pauseFlag.current = false;
-        } else tick();
+          interval.current = false;
+        } else savedCallback.current();
       }, delay);
       return () => {
         pauseFlag.current = true;
       };
-    }
+    } else if (delay !== null) pauseFlag.current = false;
+    else if (interval.current) pauseFlag.current = true;
   }, [delay]);
 
   // clear interval at componenet dismount
@@ -112,21 +110,20 @@ export function useLazyActivationInterval(callback, delay) {
 
   // Set up the interval.
   useEffect(() => {
-    function tick() {
-      savedCallback.current();
-    }
-    if (delay !== null) {
+    if (delay !== null && pauseFlag.current === false) {
       interval.current = setInterval(() => {
-        tick();
+        savedCallback.current();
         if (pauseFlag.current === true) {
           clearInterval(interval.current);
           pauseFlag.current = false;
+          interval.current = false;
         }
       }, delay);
       return () => {
         pauseFlag.current = true;
       };
-    }
+    } else if (delay !== null) pauseFlag.current = false;
+    else if (interval.current) pauseFlag.current = true;
   }, [delay]);
 
   // clear interval at componenet dismount

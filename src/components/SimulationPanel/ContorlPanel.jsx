@@ -37,9 +37,6 @@ export default function ContorlPanel(props) {
             moduleSet={moduleSet}
             dispatchSummaries={props.dispatchSummaries}
             dispatchTargetSummaries={props.dispatchTargetSummaries}
-            /*  summarizedSlots={props.summarizedSlots}
-            setSummarizedSlots={props.setSummarizedSlots}
-            targetSummarizedSlots={props.targetSummarizedSlots} */
           />
         );
       })}

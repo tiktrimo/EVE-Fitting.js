@@ -6,6 +6,9 @@ import Summary from "../FitCard/Stats/services/Summary";
 import ContorlPanel from "./ContorlPanel";
 import ShipStatusPanel from "./ShipStatusPanel";
 
+// TODO: pause simulation on page exit.
+// TODO: make drone summary works
+
 const summariesReducer = (state, action) => {
   switch (action.type) {
     case "initialize":
@@ -38,6 +41,11 @@ const summariesReducer = (state, action) => {
       state.summary.load.armor.HP = calculateHP(state, action, "armor");
       state.summary.load.structure.HP = calculateHP(state, action, "structure");
       state.summary.load.capacitor.HP = calculateHP(state, action, "capacitor");
+
+      return { ...state };
+
+    case "summary_load_update_resistance":
+      updateResistance(state);
 
       return { ...state };
 
@@ -103,4 +111,35 @@ function calculateHP(state, action, type) {
   if (result > maxValue) return maxValue;
   else if (result < 0) return 0;
   else return result;
+}
+
+function updateResistance(state) {
+  const resistanceSlots = Fit.mapSlots(
+    state,
+    (slot) => {
+      if (slot?.summary?.operation === "resistance") return slot;
+      else return false;
+    },
+    {
+      isIterate: {
+        midSlots: true,
+        lowSlots: true,
+      },
+    }
+  ).filter((slot) => !!slot);
+  const resistanceTag = resistanceSlots
+    .reduce((acc, slot) => {
+      return acc.concat(
+        `${slot.summary.path}.${
+          slot.summary.activationState.isActive ? "activation" : "passive"
+        }|`
+      );
+    }, "")
+    .slice(0, -1);
+
+  // Serious mutation
+  state.summary.capacity = {
+    ...state.summary.capacity,
+    ...state.resistanceTable[resistanceTag],
+  };
 }

@@ -170,9 +170,6 @@ export default class Summary extends Stat {
 
       const fit = Fit.apply(_slots);
       resistanceTable[record] = this.defense_resistance(fit);
-      delete resistanceTable[record].shield.HP;
-      delete resistanceTable[record].armor.HP;
-      delete resistanceTable[record].structure.HP;
     });
 
     return resistanceTable;
