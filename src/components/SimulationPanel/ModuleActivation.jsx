@@ -156,12 +156,14 @@ function activateModule(summary, dispatchSummaries, dispatchTargetSummaries) {
       dispatchTargetSummaries({
         type: "summary_load_apply_delta",
         payload: Simulator.simulate_damage_getDelta(summary),
+        operation: summary.operation,
       });
       break;
     case "defense":
       dispatchSummaries({
         type: "summary_load_apply_delta",
         payload: Simulator.simulate_defense_getDelta(summary),
+        operation: summary.operation,
       });
       break;
     case "capacitor":
@@ -169,10 +171,12 @@ function activateModule(summary, dispatchSummaries, dispatchTargetSummaries) {
       dispatchSummaries({
         type: "summary_load_apply_delta",
         payload: { capacitorDelta: delta.self.capacitorDelta },
+        operation: summary.operation,
       });
       dispatchTargetSummaries({
         type: "summary_load_apply_delta",
         payload: { capacitorDelta: delta.target.capacitorDelta },
+        operation: summary.operation,
       });
       break;
   }

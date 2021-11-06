@@ -7,9 +7,11 @@ import ContorlPanel from "./ContorlPanel";
 import ShipStatusPanel from "./ShipStatusPanel";
 
 // TODO: pause simulation on page exit.
-// TODO: make drone summary works
+// TODO: make drone summary works\
+// TODO: make message station TODO: cannot update a compoentnt while parent compoenent is updating
+// TODO: importing drone does not working
 
-const summariesReducer = (state, action) => {
+const summariesReducer = (props) => (state, action) => {
   switch (action.type) {
     case "initialize":
       return action.payload;
@@ -42,6 +44,14 @@ const summariesReducer = (state, action) => {
       state.summary.load.structure.HP = calculateHP(state, action, "structure");
       state.summary.load.capacitor.HP = calculateHP(state, action, "capacitor");
 
+      if (action.operation === "damage") {
+        props.dispatchLog({
+          type: "damage",
+          delta: 99,
+          logColor: props.logColor,
+          taretLogColor: props.taretLogColor,
+        });
+      }
       return { ...state };
 
     case "summary_load_update_resistance":
@@ -57,8 +67,13 @@ const summariesReducer = (state, action) => {
 
 export default function ShipPanel(props) {
   //prettier-ignore
-  const [summaries, dispatchSummaries] = useReducer(summariesReducer, false);
+  const reducerRef = useRef(() => {});
+  const [summaries, dispatchSummaries] = useReducer(reducerRef.current, false);
   const [updateFlag, setUpdateFlag] = useState(false);
+
+  useEffect(() => {
+    reducerRef.current = summariesReducer(props);
+  }, [props.dispatchLog]);
 
   useEffect(() => {
     props.shareDispatchSummaries(() => dispatchSummaries);

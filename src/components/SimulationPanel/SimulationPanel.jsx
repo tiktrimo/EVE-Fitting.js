@@ -10,11 +10,9 @@ import SystemUpdateAltIcon from "@material-ui/icons/SystemUpdateAlt";
 import RefreshIcon from "@material-ui/icons/Refresh";
 import React, { useCallback } from "react";
 import { useState } from "react";
-import Summary from "../FitCard/Stats/services/Summary";
-import { HAL } from "../FitCard/Stats/services/Simulator";
-import { useEffect } from "react";
 import ShipPanel from "./ShipPanel";
 import Fit from "../../fitter/src/Fit";
+import LogPanel from "./LogPanel";
 
 const useStyles = makeStyles((theme) => ({
   modeButton: {
@@ -34,6 +32,7 @@ export default function SimulationPanel(props) {
   const [summaries0, setSummaries0] = useState();
   const [summaries1, setSummaries1] = useState();
 
+  const [dispatchLog, setDispatchLog] = useState();
   const [dispatchSummarizedSlot0, setDispatchSummarizedSlot0] = useState();
   const [dispatchSummarizedSlot1, setDispatchSummarizedSlot1] = useState();
 
@@ -70,7 +69,7 @@ export default function SimulationPanel(props) {
             </Button>
           </ButtonGroup>
         </Grid>
-
+        <LogPanel setDispatchLog={setDispatchLog} />
         <ShipPanel
           slots={slots0}
           setSlots={setSlots0}
@@ -82,6 +81,10 @@ export default function SimulationPanel(props) {
           shareSummaries={setSummaries0}
           shareDispatchSummaries={setDispatchSummarizedSlot0}
           updateFlag={updateFlag}
+          //
+          dispatchLog={dispatchLog}
+          logColor={theme.palette.property.blue}
+          targetLofColor={theme.palette.property.red}
         />
         <ShipPanel
           slots={slots1}
@@ -94,6 +97,10 @@ export default function SimulationPanel(props) {
           shareSummaries={setSummaries1}
           shareDispatchSummaries={setDispatchSummarizedSlot1}
           updateFlag={updateFlag}
+          //
+          dispatchLog={dispatchLog}
+          logColor={theme.palette.property.red}
+          targetLofColor={theme.palette.property.blue}
         />
       </Grid>
     </Card>
