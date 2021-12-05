@@ -47,8 +47,6 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-// TODO: change activating mechanism isActive => pure / isActivating in ModuleActivation => Visual
-
 export default function ModuleButton(props) {
   const classes = useStyles();
 

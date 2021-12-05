@@ -184,10 +184,11 @@ export default function InitialCard(props) {
           </Button>
         </Grid>
         <Grid xs={12} container item justify="center">
-          <SimulationPanel slotsSet={[slots0, slots1]} situation={situation} />
-        </Grid>
-        <Grid xs={12} container item justify="center">
-          <ShipCanvas setSituation={setSituation} />
+          <SimulationPanel
+            slotsSet={[slots0, slots1]}
+            situation={situation}
+            setSituation={setSituation}
+          />
         </Grid>
         <Grid xs={12} container item justify="center">
           <Links />

@@ -78,26 +78,22 @@ export default function ModuleActivation(props) {
   );
 
   useInstaActivationInterval(() => {
-    props.moduleSet.map((module) => {
-      activateModule(
-        module.summary,
-        props.dispatchSummaries,
-        props.dispatchTargetSummaries
-      );
-    });
+    activateModules(
+      props.moduleSet,
+      props.dispatchSummaries,
+      props.dispatchTargetSummaries
+    );
 
     if (props.moduleSet[0].summary.activationState.activationLeft === 0)
       props.setIsActivating(false);
   }, getInstaActivationDelay(props.moduleSet[0].summary));
 
   useLazyActivationInterval(() => {
-    props.moduleSet.forEach((module) => {
-      activateModule(
-        module.summary,
-        props.dispatchSummaries,
-        props.dispatchTargetSummaries
-      );
-    });
+    activateModules(
+      props.moduleSet,
+      props.dispatchSummaries,
+      props.dispatchTargetSummaries
+    );
   }, getLazyActivationDelay(props.moduleSet[0].summary));
 
   // Not pretty... only used for resistance operation update
@@ -150,33 +146,53 @@ export default function ModuleActivation(props) {
   );
 }
 
-function activateModule(summary, dispatchSummaries, dispatchTargetSummaries) {
-  switch (summary.operation) {
+function activateModules(
+  moduleSet,
+  dispatchSummaries,
+  dispatchTargetSummaries
+) {
+  switch (moduleSet[0].summary.operation) {
     case "damage":
-      dispatchTargetSummaries({
-        type: "summary_load_apply_delta",
-        payload: Simulator.simulate_damage_getDelta(summary),
-        operation: summary.operation,
-      });
+      dispatchTargetSummaries(
+        moduleSet
+          .map((module) => Simulator.simulate_damage_getDelta(module.summary))
+          .reduce(
+            (acc, delta) => {
+              acc.payload.armorDelta += delta.armorDelta;
+              acc.payload.shieldDelta += delta.shieldDelta;
+              acc.payload.structureDelta += delta.structureDelta;
+              return acc;
+            },
+            {
+              type: "summary_load_apply_delta",
+              operation: moduleSet[0].summary.operation,
+              payload: {
+                armorDelta: 0,
+                shieldDelta: 0,
+                structureDelta: 0,
+              },
+            }
+          )
+      );
       break;
     case "defense":
       dispatchSummaries({
         type: "summary_load_apply_delta",
-        payload: Simulator.simulate_defense_getDelta(summary),
-        operation: summary.operation,
+        payload: Simulator.simulate_defense_getDelta(moduleSet[0].summary),
+        operation: moduleSet[0].summary.operation,
       });
       break;
     case "capacitor":
-      const delta = Simulator.simulate_capacitor_getDelta(summary);
+      const delta = Simulator.simulate_capacitor_getDelta(moduleSet[0].summary);
       dispatchSummaries({
         type: "summary_load_apply_delta",
         payload: { capacitorDelta: delta.self.capacitorDelta },
-        operation: summary.operation,
+        operation: moduleSet[0].summary.operation,
       });
       dispatchTargetSummaries({
         type: "summary_load_apply_delta",
         payload: { capacitorDelta: delta.target.capacitorDelta },
-        operation: summary.operation,
+        operation: moduleSet[0].summary.operation,
       });
       break;
   }

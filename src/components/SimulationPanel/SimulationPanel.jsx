@@ -13,6 +13,7 @@ import { useState } from "react";
 import ShipPanel from "./ShipPanel";
 import Fit from "../../fitter/src/Fit";
 import LogPanel from "./LogPanel";
+import ShipCanvas from "../simpleEdition/ShipCanvas";
 
 const useStyles = makeStyles((theme) => ({
   modeButton: {
@@ -50,60 +51,71 @@ export default function SimulationPanel(props) {
   });
 
   return (
-    <Card style={{ width: "85%", minWidth: 300, maxWidth: 600 }} elevation={3}>
-      <Grid style={{ width: "100%" }}>
-        <Grid xs={12} container item justify="center">
-          <ButtonGroup
-            color="inherit"
-            variant="text"
-            fullWidth
-            disableElevation
-          >
-            <Button className={classes.modeButton} onClick={initialize}>
-              <SystemUpdateAltIcon
-                style={{ color: theme.palette.text.primary }}
-              />
-            </Button>
-            <Button className={classes.modeButton}>
-              <RefreshIcon style={{ color: theme.palette.text.primary }} />
-            </Button>
-          </ButtonGroup>
+    <React.Fragment>
+      <Card
+        style={{ width: "85%", minWidth: 300, maxWidth: 600 }}
+        elevation={3}
+      >
+        <Grid style={{ width: "100%" }}>
+          <Grid xs={12} container item justify="center">
+            <ButtonGroup
+              color="inherit"
+              variant="text"
+              fullWidth
+              disableElevation
+            >
+              <Button className={classes.modeButton} onClick={initialize}>
+                <SystemUpdateAltIcon
+                  style={{ color: theme.palette.text.primary }}
+                />
+              </Button>
+              <Button className={classes.modeButton}>
+                <RefreshIcon style={{ color: theme.palette.text.primary }} />
+              </Button>
+            </ButtonGroup>
+          </Grid>
+
+          <ShipPanel
+            slots={slots0}
+            setSlots={setSlots0}
+            //
+            targetSummaries={summaries1}
+            dispatchTargetSummaries={dispatchSummarizedSlot1}
+            //
+            location={props.situation?.onboard}
+            shareSummaries={setSummaries0}
+            shareDispatchSummaries={setDispatchSummarizedSlot0}
+            updateFlag={updateFlag}
+            //
+            dispatchLog={dispatchLog}
+            logColor={theme.palette.property.blue}
+            targetLogColor={theme.palette.property.red}
+          />
+          <ShipPanel
+            slots={slots1}
+            setSlots={setSlots1}
+            //
+            targetSummaries={summaries0}
+            dispatchTargetSummaries={dispatchSummarizedSlot0}
+            //
+            location={props.situation?.hostile}
+            shareSummaries={setSummaries1}
+            shareDispatchSummaries={setDispatchSummarizedSlot1}
+            updateFlag={updateFlag}
+            //
+            dispatchLog={dispatchLog}
+            logColor={theme.palette.property.red}
+            targetLogColor={theme.palette.property.blue}
+          />
         </Grid>
-        <LogPanel setDispatchLog={setDispatchLog} />
-        <ShipPanel
-          slots={slots0}
-          setSlots={setSlots0}
-          //
-          targetSummaries={summaries1}
-          dispatchTargetSummaries={dispatchSummarizedSlot1}
-          //
-          location={props.situation?.onboard}
-          shareSummaries={setSummaries0}
-          shareDispatchSummaries={setDispatchSummarizedSlot0}
-          updateFlag={updateFlag}
-          //
-          dispatchLog={dispatchLog}
-          logColor={theme.palette.property.blue}
-          targetLofColor={theme.palette.property.red}
-        />
-        <ShipPanel
-          slots={slots1}
-          setSlots={setSlots1}
-          //
-          targetSummaries={summaries0}
-          dispatchTargetSummaries={dispatchSummarizedSlot0}
-          //
-          location={props.situation?.hostile}
-          shareSummaries={setSummaries1}
-          shareDispatchSummaries={setDispatchSummarizedSlot1}
-          updateFlag={updateFlag}
-          //
-          dispatchLog={dispatchLog}
-          logColor={theme.palette.property.red}
-          targetLofColor={theme.palette.property.blue}
+      </Card>
+      <Grid xs={12} container item justify="center">
+        <ShipCanvas
+          setSituation={props.setSituation}
+          setDispatchLog={setDispatchLog}
         />
       </Grid>
-    </Card>
+    </React.Fragment>
   );
 }
 

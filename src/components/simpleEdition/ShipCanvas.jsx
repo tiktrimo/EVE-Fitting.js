@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import { Stage, Layer, Arrow, Circle, Line, Text } from "react-konva";
 import {
   makeStyles,
@@ -118,7 +118,21 @@ function onBoardAnchorReducer(state, action) {
   }
 }
 
+const logReducer = () => (state, action) => {
+  switch (action.type) {
+    case "damage":
+      state.push({ ...action });
+      return state.slice(state.length - 10 > 0 ? state.length - 10 : 0);
+    case "reset":
+      return [];
+    default:
+      return state;
+  }
+};
+
 export default function ShipCanvas(props) {
+  const theme = useTheme();
+
   const [hostileAnchor, dispatchHostileAnchor] = useReducer(
     hostileAnchorReducer,
     hostileAnchorInitial
@@ -140,7 +154,12 @@ export default function ShipCanvas(props) {
   const [stagePoint, setStagePoint] = useState({ x: 0, y: 0 });
   const [isStageDrragable, setStageDraggable] = useState(false);
 
-  const theme = useTheme();
+  const logReducerRef = useRef(logReducer());
+  const [logs, dispatchLog] = useReducer(logReducerRef.current, []);
+
+  useEffect(() => {
+    props.setDispatchLog(() => dispatchLog);
+  }, []);
 
   useEffect(() => {
     const vectorX =
@@ -197,6 +216,7 @@ export default function ShipCanvas(props) {
     setStagePoint({});
     dispatchOnBoardAnchor({ type: "reset" });
     dispatchHostileAnchor({ type: "reset" });
+    dispatchLog({ type: "reset" });
   }, []);
 
   const handleMagnifyButton = useCallback(() => {
@@ -249,7 +269,7 @@ export default function ShipCanvas(props) {
           y={stagePoint.y}
           width={window.innerWidth}
           height={window.innerHeight}
-          onWheel={handleWheel(setStageWheel, setStageScale)}
+          /* onWheel={handleWheel(setStageWheel, setStageScale)} */
           scaleX={stageWheel}
           scaleY={stageWheel}
           draggable={isStageDrragable}
@@ -399,6 +419,18 @@ export default function ShipCanvas(props) {
               offsetX={-2}
               /* rotation={handleRotation(distanceVector)} */
             />
+            {logs.map((log, index) => {
+              return (
+                <Text
+                  key={`${log.type}from${log.logColor}to${log.taretLogColor}:${index}`}
+                  x={50}
+                  y={10 + 10 * index}
+                  fill={theme.palette.text.primary}
+                  fontSize={12 / stageScale}
+                  text={log.delta.toFixed(1)}
+                />
+              );
+            })}
           </Layer>
         </Stage>
       </Card>
