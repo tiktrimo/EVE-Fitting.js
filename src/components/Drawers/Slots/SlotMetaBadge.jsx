@@ -16,7 +16,7 @@ export default function SlotMetaBadge(props) {
 
   return (
     <Badge
-      overlap="circle"
+      overlap="circular"
       anchorOrigin={{ vertical: "top", horizontal: "right" }}
       badgeContent={
         getTechColor(props.item) && (

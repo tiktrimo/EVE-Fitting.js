@@ -57,7 +57,7 @@ export default function SimulationPanel(props) {
         elevation={3}
       >
         <Grid style={{ width: "100%" }}>
-          <Grid xs={12} container item justify="center">
+          <Grid xs={12} container item justifyContent="center">
             <ButtonGroup
               color="inherit"
               variant="text"
@@ -109,7 +109,7 @@ export default function SimulationPanel(props) {
           />
         </Grid>
       </Card>
-      <Grid xs={12} container item justify="center">
+      <Grid xs={12} container item justifyContent="center">
         <ShipCanvas
           setSituation={props.setSituation}
           setDispatchLog={setDispatchLog}

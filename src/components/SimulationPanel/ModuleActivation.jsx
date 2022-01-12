@@ -119,9 +119,9 @@ export default function ModuleActivation(props) {
         }}
         className={classes.circularProrgess}
         classes={{
-          circleStatic: classes.circularTransition,
+          circleDeterminate: classes.circularTransition,
         }}
-        variant="static"
+        variant="determinate"
         value={activationCounter}
       />
       <CircularProgress
@@ -137,9 +137,9 @@ export default function ModuleActivation(props) {
         }}
         className={classes.circularProrgess}
         classes={{
-          circleStatic: classes.circularTransition,
+          circleDeterminate: classes.circularTransition,
         }}
-        variant="static"
+        variant="determinate"
         value={activationCounter + 100}
       />
     </React.Fragment>

@@ -147,8 +147,8 @@ export default function InitialCard(props) {
         container
         spacing={3}
       >
-        <Grid xs={12} container item justify="center"></Grid>
-        <Grid xs={12} container item justify="center">
+        <Grid xs={12} container item justifyContent="center"></Grid>
+        <Grid xs={12} container item justifyContent="center">
           <FitCard
             setSlots={setSlots0}
             backgroundColor={theme.palette.property.blue}
@@ -159,7 +159,7 @@ export default function InitialCard(props) {
             cache={props.cache}
           />
         </Grid>
-        <Grid xs={12} container item justify="center">
+        <Grid xs={12} container item justifyContent="center">
           <FitCard
             setSlots={setSlots1}
             backgroundColor={theme.palette.property.red}
@@ -170,7 +170,7 @@ export default function InitialCard(props) {
             cache={props.cache}
           />
         </Grid>
-        <Grid xs={12} container item justify="center">
+        <Grid xs={12} container item justifyContent="center">
           <Button
             onClick={() => {
               /*  if (!!slots0 && !!slots1)
@@ -183,14 +183,14 @@ export default function InitialCard(props) {
             Simulate
           </Button>
         </Grid>
-        <Grid xs={12} container item justify="center">
+        <Grid xs={12} container item justifyContent="center">
           <SimulationPanel
             slotsSet={[slots0, slots1]}
             situation={situation}
             setSituation={setSituation}
           />
         </Grid>
-        <Grid xs={12} container item justify="center">
+        <Grid xs={12} container item justifyContent="center">
           <Links />
           <Settings isDark={props.isDark} setIsDark={props.setIsDark} />
         </Grid>

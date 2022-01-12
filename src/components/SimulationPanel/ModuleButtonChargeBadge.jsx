@@ -31,7 +31,7 @@ export default function ModuleButtonChargeBadge(props) {
   return (
     <Badge
       style={{ cursor: "pointer" }}
-      overlap="circle"
+      overlap="circular"
       anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
       badgeContent={
         props.count != Infinity ? (

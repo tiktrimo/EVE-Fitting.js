@@ -63,7 +63,7 @@ export default function ResourcesMiscellaneousListItem(props) {
 
   return (
     <ListItem className={classes.root} key="onlyOne">
-      <Grid justify="center" container>
+      <Grid justifyContent="center" container>
         <GridBoldTypography
           value={misc.sensor.maximumLockedTarget}
         >{`Max Locked Target`}</GridBoldTypography>

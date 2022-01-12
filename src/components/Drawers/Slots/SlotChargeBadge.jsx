@@ -87,7 +87,7 @@ export default function SlotChargeBadge(props) {
 
   return (
     <Badge
-      overlap="circle"
+      overlap="circular"
       anchorOrigin={{
         vertical: "bottom",
         horizontal: "right",

@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import { Stage, Layer, Arrow, Circle, Line, Text } from "react-konva";
+import { Stage, Layer, Arrow, Circle, Line, Text, Group } from "react-konva";
 import {
   makeStyles,
   Card,
@@ -17,6 +17,8 @@ import PanToolIcon from "@material-ui/icons/PanTool";
 import ZoomInIcon from "@material-ui/icons/ZoomIn";
 import ZoomOutIcon from "@material-ui/icons/ZoomOut";
 import ReplayIcon from "@material-ui/icons/Replay";
+import EventDescriber from "../SimulationPanel/EventDescriber";
+import { Html } from "react-konva-utils";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -238,7 +240,12 @@ export default function ShipCanvas(props) {
   return (
     <React.Fragment>
       <Card className={classes.root} elevation={3}>
-        <Grid style={{ padding: 5 }} spacing={1} container justify="flex-end">
+        <Grid
+          style={{ padding: 5 }}
+          spacing={1}
+          container
+          justifyContent="flex-end"
+        >
           <Grid item xs={8}>
             <ButtonGroup fullWidth color="primary">
               <Button onClick={handleMagnifyButton}>
@@ -419,18 +426,19 @@ export default function ShipCanvas(props) {
               offsetX={-2}
               /* rotation={handleRotation(distanceVector)} */
             />
-            {logs.map((log, index) => {
-              return (
-                <Text
-                  key={`${log.type}from${log.logColor}to${log.taretLogColor}:${index}`}
-                  x={50}
-                  y={10 + 10 * index}
-                  fill={theme.palette.text.primary}
-                  fontSize={12 / stageScale}
-                  text={log.delta.toFixed(1)}
-                />
-              );
-            })}
+            {/*  <Group>
+              <Html
+                divProps={{
+                  style: {
+                    position: "absolute",
+                    top: 10,
+                    left: 10,
+                  },
+                }}
+              >
+                <input placeholder="DOM input from Konva nodes" />
+              </Html>
+            </Group> */}
           </Layer>
         </Stage>
       </Card>

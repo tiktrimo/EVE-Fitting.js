@@ -63,9 +63,9 @@ export default function ModuleReloading(props) {
         }}
         className={classes.circularProrgess}
         classes={{
-          circleStatic: classes.circularTransition,
+          circleDeterminate: classes.circularTransition,
         }}
-        variant="static"
+        variant="determinate"
         value={reloadTimer}
       />
       <CircularProgress
@@ -79,9 +79,9 @@ export default function ModuleReloading(props) {
         }}
         className={classes.circularProrgess}
         classes={{
-          circleStatic: classes.circularTransition,
+          circleDeterminate: classes.circularTransition,
         }}
-        variant="static"
+        variant="determinate"
         value={reloadTimer + 100}
       />
     </React.Fragment>

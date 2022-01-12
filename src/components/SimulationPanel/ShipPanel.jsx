@@ -44,10 +44,10 @@ const summariesReducer = /* (props) => */ (state, action) => {
       state.summary.load.capacitor.HP = calculateHP(state, action, "capacitor");
 
       if (action.operation === "damage") {
-        console.log(state);
         state.log = {
           type: "damage",
           delta: Object.values(action.payload).reduce((a, b) => a + b, 0),
+          location: state.summary.location,
         };
       }
       return { ...state };
@@ -96,10 +96,10 @@ export default function ShipPanel(props) {
 
   return (
     <React.Fragment>
-      <Grid xs={12} container item justify="center">
+      <Grid xs={12} container item justifyContent="center">
         <ShipStatusPanel summaries={summaries} />
       </Grid>
-      <Grid xs={12} container item justify="center">
+      <Grid xs={12} container item justifyContent="center">
         <ContorlPanel
           summaries={summaries}
           dispatchSummaries={dispatchSummaries}

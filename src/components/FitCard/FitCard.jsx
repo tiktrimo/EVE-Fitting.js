@@ -41,7 +41,7 @@ const EditButton = (props) => {
         props.setOpen(!props.open);
       }}
     >
-      <Grid container item xs={2} justify="center">
+      <Grid container item xs={2} justifyContent="center">
         <Avatar
           style={{
             padding: 5,

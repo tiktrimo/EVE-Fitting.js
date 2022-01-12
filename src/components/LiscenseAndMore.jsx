@@ -16,7 +16,7 @@ export default React.memo(function LiscenseAndMore(props) {
   const [openLicense, setOpenLicense] = useState(false);
   return (
     <React.Fragment>
-      <Grid container item xs={12} justify="center">
+      <Grid container item xs={12} justifyContent="center">
         <Chip
           color="primary"
           variant="default"
@@ -28,7 +28,13 @@ export default React.memo(function LiscenseAndMore(props) {
         />
       </Grid>
 
-      <Grid style={{ height: 50 }} container item xs={12} justify="center">
+      <Grid
+        style={{ height: 50 }}
+        container
+        item
+        xs={12}
+        justifyContent="center"
+      >
         {openLicense && (
           <div>
             <Card
