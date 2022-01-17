@@ -7,9 +7,13 @@ import Fit from "../../fitter/src/Fit";
 import StatDrawer from "./Stats/StatDrawer.jsx";
 import EFT from "./services/EFT.js";
 import ListDrawers from "./ListDrawer/ListDrawers.jsx";
+import { createWorkerFactory, useWorker } from "@shopify/react-web-worker";
+const createFitWorker = createWorkerFactory(() =>
+  import("../../fitter/src/FitWorker")
+);
 // eslint-disable-next-line import/no-webpack-loader-syntax
-import worker from "workerize-loader!../../fitter/src/FitWorker";
-const fitWorker = worker();
+/* import worker from "workerize-loader!../../fitter/src/FitWorker";
+const fitWorker = worker(); */
 
 const initialSlots = {
   skills: false,
@@ -139,6 +143,7 @@ function listItemsReducer(state, action) {
 }
 
 export default function Drawers(props) {
+  const fitWorker = useWorker(createFitWorker);
   //prettier-ignore
   const [activeSlot, setActiveSlot] = useState({ type: false, index: false});
 
@@ -172,7 +177,9 @@ export default function Drawers(props) {
         "∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨FitCalc∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨"
       );
       console.time("Fit Stat Calculation"); */
+      /* const appliedFit = await fitWorker.fit(slots); */
       const appliedFit = await fitWorker.fit(slots);
+      /* const appliedFit = Fit.apply(slots); */
       /* console.timeEnd("Fit Stat Calculation");
       console.log(appliedFit);
       console.log(

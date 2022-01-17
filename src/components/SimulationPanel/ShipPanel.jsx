@@ -6,10 +6,10 @@ import Summary from "../FitCard/Stats/services/Summary";
 import ContorlPanel from "./ContorlPanel";
 import ShipStatusPanel from "./ShipStatusPanel";
 
-// TODO: pause simulation on page exit.
-// TODO: make drone summary works\
-// TODO: importing drone does not working
-// TODO: log panel, put log on the canvas + animation
+// TODO: pause simulation on page exit. (3)
+// TODO: make drone summary works (2)
+// TODO: importing drone does not working (2)
+// TODO: log panel, put log on the canvas + animation (1)
 const summariesReducer = /* (props) => */ (state, action) => {
   switch (action.type) {
     case "initialize":
@@ -43,11 +43,13 @@ const summariesReducer = /* (props) => */ (state, action) => {
       state.summary.load.structure.HP = calculateHP(state, action, "structure");
       state.summary.load.capacitor.HP = calculateHP(state, action, "capacitor");
 
-      if (action.operation === "damage") {
+      if (action.payload.operation === "damage") {
+        console.log(state);
         state.log = {
           type: "damage",
           delta: Object.values(action.payload).reduce((a, b) => a + b, 0),
           location: state.summary.location,
+          ID: Date.now(),
         };
       }
       return { ...state };

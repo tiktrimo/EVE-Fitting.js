@@ -6,7 +6,7 @@ import {
   Button,
   Grid,
   ButtonGroup,
-  Icon,
+  Typography,
 } from "@material-ui/core";
 import { useState } from "react";
 import { useEffect } from "react";
@@ -17,7 +17,7 @@ import PanToolIcon from "@material-ui/icons/PanTool";
 import ZoomInIcon from "@material-ui/icons/ZoomIn";
 import ZoomOutIcon from "@material-ui/icons/ZoomOut";
 import ReplayIcon from "@material-ui/icons/Replay";
-import EventDescriber from "../SimulationPanel/EventDescriber";
+import EventConsole from "../SimulationPanel/EventConsole";
 import { Html } from "react-konva-utils";
 
 const useStyles = makeStyles((theme) => ({
@@ -30,6 +30,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const hostileAnchorInitial = {
+  rootID: "hostileID",
   anchors: {
     anchor1X: 25,
     anchor1Y: 200,
@@ -75,6 +76,7 @@ function hostileAnchorReducer(state, action) {
   }
 }
 const onBoardAnchorInitial = {
+  rootID: "onboardID",
   anchors: {
     anchor1X: 25,
     anchor1Y: 25,
@@ -124,7 +126,7 @@ const logReducer = () => (state, action) => {
   switch (action.type) {
     case "damage":
       state.push({ ...action });
-      return state.slice(state.length - 10 > 0 ? state.length - 10 : 0);
+      return state.slice(state.length - 20 > 0 ? state.length - 20 : 0);
     case "reset":
       return [];
     default:
@@ -247,7 +249,10 @@ export default function ShipCanvas(props) {
           justifyContent="flex-end"
         >
           <Grid item xs={8}>
-            <ButtonGroup fullWidth color="primary">
+            <ButtonGroup
+              fullWidth
+              style={{ color: theme.palette.text.primary }}
+            >
               <Button onClick={handleMagnifyButton}>
                 <ZoomInIcon />
               </Button>
@@ -260,7 +265,10 @@ export default function ShipCanvas(props) {
             </ButtonGroup>
           </Grid>
           <Grid item xs={4}>
-            <ButtonGroup fullWidth color="primary">
+            <ButtonGroup
+              fullWidth
+              style={{ color: theme.palette.text.primary }}
+            >
               <Button
                 variant={isStageDrragable ? "contained" : "outlined"}
                 onClick={handleStageDrragable}
@@ -272,6 +280,7 @@ export default function ShipCanvas(props) {
         </Grid>
 
         <Stage
+          style={{ zIndex: 1 }}
           x={stagePoint.x}
           y={stagePoint.y}
           width={window.innerWidth}
@@ -426,17 +435,26 @@ export default function ShipCanvas(props) {
               offsetX={-2}
               /* rotation={handleRotation(distanceVector)} */
             />
-            {/*  <Group>
-              <Html
-                divProps={{
-                  style: {
-                    position: "absolute",
-                    top: 10,
-                    left: 10,
-                  },
-                }}
-              >
-                <input placeholder="DOM input from Konva nodes" />
+
+            <Group
+              x={hostileAnchor.anchors.anchor1X}
+              y={hostileAnchor.anchors.anchor1Y}
+            >
+              <Html divProps={{ style: { zIndex: -1 } }}>
+                <EventConsole
+                  logs={logs}
+                  rootID={onBoardAnchor.rootID}
+                  size={10}
+                  stageScale={stageScale}
+                />
+              </Html>
+            </Group>
+            {/*  <Group
+              x={onBoardAnchor.anchors.anchor1X}
+              y={onBoardAnchor.anchors.anchor1Y}
+            >
+              <Html divProps={{ style: { zIndex: -1 } }}>
+                <EventConsole logs={logs} size={10} stageScale={stageScale} />
               </Html>
             </Group> */}
           </Layer>

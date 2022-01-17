@@ -165,11 +165,11 @@ function activateModules(
             },
             {
               type: "summary_load_apply_delta",
-              operation: moduleSet[0].summary.operation,
               payload: {
                 armorDelta: 0,
                 shieldDelta: 0,
                 structureDelta: 0,
+                operation: moduleSet[0].summary.operation,
               },
             }
           )

@@ -11,10 +11,6 @@ import {
 import GitHubIcon from "@material-ui/icons/GitHub";
 import WbSunnyIcon from "@material-ui/icons/WbSunny";
 import Brightness2Icon from "@material-ui/icons/Brightness2";
-import ShipCanvas from "./simpleEdition/ShipCanvas";
-
-// eslint-disable-next-line import/no-webpack-loader-syntax
-import worker from "workerize-loader!./FitCard/Stats/services/SimWorker";
 import SimulationPanel from "./SimulationPanel/SimulationPanel";
 
 const useStyles = makeStyles((theme) => ({
@@ -29,20 +25,19 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const Links = (props) => {
+  const theme = useTheme();
   return (
     <Paper elevation={2}>
-      <ButtonGroup variant="text">
+      <ButtonGroup variant="text" style={{ color: theme.palette.text.primary }}>
         <Button
           href={"https://github.com/tiktrimo/EVE-Fitting.js"}
           target="_blank"
-          color="primary"
         >
           <GitHubIcon />
         </Button>
         <Button
           href={"https://github.com/tiktrimo/EVE-Fitting.js/issues"}
           target="_blank"
-          color="primary"
         >
           BUG REPORT
         </Button>
@@ -51,7 +46,6 @@ const Links = (props) => {
             "https://github.com/tiktrimo/EVE-Fitting.js/blob/master/DOCS/DOCS.md"
           }
           target="_blank"
-          color="primary"
         >
           DOCS
         </Button>
@@ -112,7 +106,6 @@ function drawersOpenReducer(state, action) {
   }
 }
 
-const simWorkerInst = worker();
 export default function InitialCard(props) {
   const theme = useTheme();
   const [width, setWidth] = useState(0);
@@ -169,19 +162,6 @@ export default function InitialCard(props) {
             dispatchDrawersOpen={dispatchDrawersOpen}
             cache={props.cache}
           />
-        </Grid>
-        <Grid xs={12} container item justifyContent="center">
-          <Button
-            onClick={() => {
-              /*  if (!!slots0 && !!slots1)
-                simWorker.postMessage({ msg: "simulator" }); */
-              if (!!slots0 && !!slots1)
-                simWorkerInst.simulate(slots0, slots1, situation);
-            }}
-            fullWidth
-          >
-            Simulate
-          </Button>
         </Grid>
         <Grid xs={12} container item justifyContent="center">
           <SimulationPanel

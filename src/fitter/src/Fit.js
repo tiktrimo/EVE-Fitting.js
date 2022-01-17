@@ -182,11 +182,12 @@ export default class Fit {
           values: {
             baseValue: baseValue,
             appliedValue: value,
-            penalizedModifyingAttributeValue: Fit.#common_penalizedModifyingValue(
-              mod.modifyingAttributeValue,
-              mod.operation,
-              penCount
-            ),
+            penalizedModifyingAttributeValue:
+              Fit.#common_penalizedModifyingValue(
+                mod.modifyingAttributeValue,
+                mod.operation,
+                penCount
+              ),
           },
         });
         if (mod.isPenalized === true) penCount++;
@@ -229,11 +230,12 @@ export default class Fit {
           values: {
             baseValue: baseValue,
             appliedValue: value,
-            penalizedModifyingAttributeValue: Fit.#common_penalizedModifyingValue(
-              appliedMod.modifyingAttributeValue,
-              appliedMod.operation,
-              penCount
-            ),
+            penalizedModifyingAttributeValue:
+              Fit.#common_penalizedModifyingValue(
+                appliedMod.modifyingAttributeValue,
+                appliedMod.operation,
+                penCount
+              ),
           },
         });
         if (appliedMod.isPenalized === true) penCount++;
@@ -645,7 +647,7 @@ export default class Fit {
     operation,
     penCount
   ) {
-    //TODO: findout why does eve developers make shit like this typeID=31760 effect is weird
+    //TODO: findout why does eve developers made shit like this typeID=31760 effect is weird
     if (applyValue === undefined) return baseValue;
 
     let value = baseValue;

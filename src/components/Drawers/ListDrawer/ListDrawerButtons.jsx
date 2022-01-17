@@ -21,7 +21,7 @@ const useStyles = makeStyles((theme) => ({
   ammoDeleteButton: {
     width: "100%",
     minWidth: 20,
-    backgroundColor: theme.palette.property.orange,
+    backgroundColor: theme.palette.property.org,
     color: theme.palette.button.color,
   },
   showInfoButton: {
