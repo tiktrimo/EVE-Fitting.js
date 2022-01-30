@@ -116,7 +116,9 @@ export function EventConsole(props) {
               style={{
                 fontSize: 12 / props.stageScale,
                 color:
-                  event.value < 0
+                  event.value === 0
+                    ? props.theme.palette.property.org
+                    : event.value < 0
                     ? props.theme.palette.property.red
                     : props.theme.palette.property.blue,
                 ...transitionStyles[state],

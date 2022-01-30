@@ -168,23 +168,30 @@ function activateModules(
       break;
     case "capacitor":
       const delta = Simulator.simulate_capacitor_getDelta(moduleSet[0].summary);
-      dispatchSummaries({
-        type: "summary_load_apply_delta",
-        payload: {
-          summary: moduleSet[0].summary,
-          capacitorDelta: delta.self.capacitorDelta,
-        },
-        operation: moduleSet[0].summary.operation,
-      });
+      const isDispatch = getCapacitorDispatchNecessity(
+        moduleSet[0].summary,
+        delta
+      );
 
-      dispatchTargetSummaries({
-        type: "summary_load_apply_delta",
-        payload: {
-          summary: moduleSet[0].summary,
-          capacitorDelta: delta.target.capacitorDelta,
-        },
-        operation: moduleSet[0].summary.operation,
-      });
+      if (isDispatch.self)
+        dispatchSummaries({
+          type: "summary_load_apply_delta",
+          payload: {
+            summary: moduleSet[0].summary,
+            capacitorDelta: delta.self.capacitorDelta,
+          },
+          operation: moduleSet[0].summary.operation,
+        });
+
+      if (isDispatch.target)
+        dispatchTargetSummaries({
+          type: "summary_load_apply_delta",
+          payload: {
+            summary: moduleSet[0].summary,
+            capacitorDelta: delta.target.capacitorDelta,
+          },
+          operation: moduleSet[0].summary.operation,
+        });
       break;
   }
 }
@@ -192,7 +199,7 @@ function getInstaActivationDelay(summary) {
   if (
     summary.bonusPerAct?.self.armor > 0 ||
     summary.bonusPerAct?.self.structure > 0 ||
-    summary.isNosferatu !== undefined
+    summary.isNosferatu === true
   )
     return null;
 
@@ -231,4 +238,16 @@ function getDefensePayload(moduleSet) {
     ...Simulator.simulate_defense_getDelta(moduleSet[0].summary),
     summary: moduleSet[0].summary,
   };
+}
+function getCapacitorDispatchNecessity(summary) {
+  const isCapBoosterOrNeut =
+    !summary.isNosferatuBloodRaiderOverriden &&
+    !summary.isCapacitorTransmitter &&
+    !summary.isNosferatu;
+
+  // Neut don't have chargeID as it dont need any ammo
+  if (isCapBoosterOrNeut && !!summary.chargeID)
+    return { target: false, self: true };
+  else if (summary.isNosferatu) return { target: true, self: true };
+  else return { target: true, self: false };
 }

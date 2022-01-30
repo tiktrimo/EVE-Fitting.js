@@ -438,12 +438,12 @@ export default class Simulator {
   static #activateCapacitor_getSituationalMul = (summary, owner, target) => {
     const rangeModifier = EveMath.getRangeModifier(summary, owner, target);
 
-    const isCapacitorBooster =
+    const isCapBoosterOrNeut =
       !summary.isNosferatuBloodRaiderOverriden &&
       !summary.isCapacitorTransmitter &&
       !summary.isNosferatu;
 
-    return isCapacitorBooster ? 1 : rangeModifier;
+    return isCapBoosterOrNeut ? 1 : rangeModifier;
   };
 
   static simulateActivationCapUse = (summary) => {
