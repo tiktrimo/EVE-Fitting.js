@@ -4,6 +4,7 @@ import { useState } from "react";
 import ModuleButtonChargeBadge from "./ModuleButtonChargeBadge";
 import ModuleActivation from "./ModuleActivation";
 import ModuleReloading from "./ModuleReloading";
+import ModuleButtonCountBadge from "./ModuleButtonCountBadge";
 
 const useStyles = makeStyles((theme) => ({
   rootDiv: {
@@ -22,7 +23,7 @@ const useStyles = makeStyles((theme) => ({
     border: `0.1px solid ${theme.palette.divider}`,
     marginRight: 20,
   },
-  stateArcBorder: {
+  /* stateArcBorder: {
     width: 40,
     height: 40,
     borderRadius: "50%",
@@ -34,7 +35,7 @@ const useStyles = makeStyles((theme) => ({
     position: "absolute",
     top: 2,
     left: 7,
-  },
+  }, */
   circularProrgess: {
     position: "absolute",
     right: 16,
@@ -67,27 +68,30 @@ export default function ModuleButton(props) {
         isActivating={isActivating}
         setIsActivating={setIsActivating}
       />
-      <ModuleButtonChargeBadge
-        count={props.moduleSet[0].summary.activationState.activationLeft}
+
+      <Avatar
+        style={{ cursor: "pointer" }}
         onClick={() => {
           if (!isReloading) setIsActivating(!isActivating);
         }}
+        className={classes.rootAvatarDefault}
       >
-        <Avatar
-          style={{ cursor: "pointer" }}
-          onClick={() => {
-            if (!isReloading) setIsActivating(!isActivating);
-          }}
-          className={classes.rootAvatarDefault}
-        >
-          <Button>
-            {feedSource(
-              props.moduleSet[0]?.summary.itemID,
-              props.moduleSet[0]?.summary.chargeID
-            )}
-          </Button>
-        </Avatar>
-      </ModuleButtonChargeBadge>
+        <Button>
+          <ModuleButtonChargeBadge
+            count={props.moduleSet[0].summary.activationState.activationLeft}
+            onClick={() => {
+              if (!isReloading) setIsActivating(!isActivating);
+            }}
+          >
+            <ModuleButtonCountBadge count={props.moduleSet.length}>
+              {feedSource(
+                props.moduleSet[0]?.summary.itemID,
+                props.moduleSet[0]?.summary.chargeID
+              )}
+            </ModuleButtonCountBadge>
+          </ModuleButtonChargeBadge>
+        </Button>
+      </Avatar>
     </div>
   );
 }
@@ -96,7 +100,7 @@ function feedSource(itemID, chargeID) {
     return (
       <img
         draggable="false"
-        style={{ width: "85%", height: "85%", marginLeft: -2 }}
+        style={{ width: "65%" }}
         src={`https://images.evetech.net/types/${itemID}/icon?size=64`}
       />
     );
@@ -104,7 +108,7 @@ function feedSource(itemID, chargeID) {
     return (
       <img
         draggable="false"
-        style={{ width: "85%", height: "85%", marginLeft: -2 }}
+        style={{ width: "65%" }}
         src={`https://images.evetech.net/types/${chargeID}/icon?size=64`}
       />
     );

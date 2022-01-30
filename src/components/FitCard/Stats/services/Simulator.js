@@ -154,10 +154,11 @@ export default class Simulator {
   };
 
   static simulate_damage_getDelta = (summary) => {
+    const debug = [];
     const owner = summary.isDrone ? summary : summary.root;
     const target = summary.target;
     //prettier-ignore
-    const situationalModifiedSummary = Simulator.#activateDamage_getSituationalModifiedSummary(summary, owner, target);
+    const situationalModifiedSummary = Simulator.#activateDamage_getSituationalModifiedSummary(summary, owner, target, debug);
     //prettier-ignore
     const alpha = Simulator.activateDamage_getAlpha(situationalModifiedSummary, target);
 
@@ -165,6 +166,7 @@ export default class Simulator {
       armorDelta: -alpha.armor,
       shieldDelta: -alpha.shield,
       structureDelta: -alpha.structure,
+      debug,
     };
   };
   static activateDamage = (summary) => {
@@ -281,12 +283,14 @@ export default class Simulator {
   static #activateDamage_getSituationalModifiedSummary = (
     summary,
     owner,
-    target
+    target,
+    debug
   ) => {
     const situationalMul = Simulator.#activateDamage_getSituationalMul(
       summary,
       owner,
-      target
+      target,
+      debug
     );
 
     return {
@@ -300,28 +304,54 @@ export default class Simulator {
       },
     };
   };
-  static #activateDamage_getSituationalMul = (summary, owner, target) => {
+  static #activateDamage_getSituationalMul = (
+    summary,
+    owner,
+    target,
+    debug
+  ) => {
     if (summary.isDrone) {
       //prettier-ignore
-      const droneAccuracy = EveMath.getDroneAccracy(summary, owner, target);
+      const droneAccuracy = EveMath.getDroneAccracy(summary, owner, target, debug);
+      const randomDamageModifier = EveMath.getTurretRandomDamageModifier();
+      debug.push({ type: "drone_accuracy", value: droneAccuracy });
+      debug.push({
+        type: "drone_random_damage_multiplier",
+        value: randomDamageModifier,
+      });
 
-      return Math.random() <= droneAccuracy
-        ? EveMath.getTurretRandomDamageModifier()
-        : 0;
+      return Math.random() <= droneAccuracy ? randomDamageModifier : 0;
     } else if (!!summary.range.tracking) {
       //prettier-ignore
-      const turretAccuracy = EveMath.getTurretAcurracy(summary, owner, target);
+      const turretAccuracy = EveMath.getTurretAcurracy(summary, owner, target, debug);
+      const randomDamageModifier = EveMath.getTurretRandomDamageModifier();
+      debug.push({
+        type: "turret_accuracy",
+        value: turretAccuracy,
+      });
+      debug.push({
+        type: "turret_random_damage_multiplier",
+        value: randomDamageModifier,
+      });
 
-      return Math.random() <= turretAccuracy
-        ? EveMath.getTurretRandomDamageModifier()
-        : 0;
+      return Math.random() <= turretAccuracy ? randomDamageModifier : 0;
     } else if (!!summary.range.explosionRadius) {
       //prettier-ignore
-      const launcherAccracy = EveMath.getLauncherAccuracy(summary, owner, target);
+      const launcherAccracy = EveMath.getLauncherAccuracy(summary, owner, target, debug);
+      const randomDamageModifier = EveMath.getLauncherDamageModifier(
+        summary,
+        target
+      );
+      debug.push({
+        type: "launcher_accuracy",
+        value: launcherAccracy,
+      });
+      debug.push({
+        type: "launcher_random_damage_multiplier",
+        value: randomDamageModifier,
+      });
 
-      return Math.random() <= launcherAccracy
-        ? EveMath.getLauncherDamageModifier(summary, target)
-        : 0;
+      return Math.random() <= launcherAccracy ? randomDamageModifier : 0;
     } else return 0;
   };
 
@@ -374,7 +404,7 @@ export default class Simulator {
     const situationalMul = Simulator.#activateCapacitor_getSituationalMul(summary, owner, target);
     const bonusPerActOwner = summary.bonusPerAct.self * situationalMul;
     const bonusPerActTarget = summary.bonusPerAct.target * situationalMul;
-
+    console.log(summary, owner, target);
     if (summary.isNosferatu) {
       const maxBonusPerAct = Math.min(bonusPerActOwner, targetCapacitorHP);
       let symmetricBonusPerAct = maxBonusPerAct;
@@ -391,7 +421,7 @@ export default class Simulator {
       return {
         ...summary,
         bonusPerAct: {
-          self: symmetricBonusPerAct,
+          owner: symmetricBonusPerAct,
           target: -symmetricBonusPerAct,
         },
       };
@@ -483,18 +513,19 @@ export class HAL {
       summarizedSlots,
       (summarizedSlot) => {
         if (!summarizedSlot.summary) return false;
-        let _target = false;
+        let newTarget = false;
         switch (summarizedSlot?.summary?.operation) {
           case "damage":
-          case "defense":
           case "capacitor":
-            _target = target;
+          case "defense":
+            newTarget = target;
             break;
+
           default:
-            _target = false;
+            newTarget = false;
             break;
         }
-        summarizedSlot.summary["target"] = _target;
+        summarizedSlot.summary["target"] = newTarget;
       },
       {
         isIterate: {

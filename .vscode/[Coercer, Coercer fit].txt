@@ -7,14 +7,14 @@ Small ACM Compact Armor Repairer
 Small Compact Pb-Acid Cap Battery
 1MN Monopropellant Enduring Afterburner
 
+Small Energy Nosferatu II
+125mm Gatling AutoCannon II, EMP S
+125mm Gatling AutoCannon II, EMP S
+Dual Anode Light Particle Stream I
 Dual Anode Light Particle Stream I, True Sanshas Multifrequency S
 Dual Anode Light Particle Stream I, True Sanshas Multifrequency S
 Dual Anode Light Particle Stream I, True Sanshas Multifrequency S
-Dual Anode Light Particle Stream I, True Sanshas Multifrequency S
-Dual Anode Light Particle Stream I, True Sanshas Multifrequency S
-Dual Anode Light Particle Stream I, True Sanshas Multifrequency S
-Dual Anode Light Particle Stream I, True Sanshas Multifrequency S
-Dual Anode Light Particle Stream I, True Sanshas Multifrequency S
+Small Energy Neutralizer II
 
 Small Energy Metastasis Adjuster I
 Small Energy Collision Accelerator I

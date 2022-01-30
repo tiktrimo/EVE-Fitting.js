@@ -29,9 +29,6 @@ const useStyles = makeStyles((theme) => ({
     width: 35,
     minWidth: 10,
   },
-  warning: {
-    color: theme.palette.text.primary,
-  },
 }));
 
 export default function ImportExportButtons(props) {
@@ -91,24 +88,26 @@ export default function ImportExportButtons(props) {
         ContentProps={{
           elevation: 3,
           style: {
-            backgroundColor: theme.palette.background.paper,
-            border: getSnackbarBorder(title, theme),
+            backgroundColor: getSnackbarColor(title, theme),
           },
         }}
         message={
           <ListItem className={classes.listItem}>
             <ListItemIcon>
-              <ArchiveIcon className={classes.warning} />
+              <ArchiveIcon style={{ color: getPrimaryColor(title, theme) }} />
             </ListItemIcon>
 
             <ListItemText
               primary={title}
               secondary={text}
               primaryTypographyProps={{
-                style: { color: theme.palette.text.primary, fontWeight: 700 },
+                style: {
+                  color: getPrimaryColor(title, theme),
+                  fontWeight: 700,
+                },
               }}
               secondaryTypographyProps={{
-                style: { color: theme.palette.text.secondary },
+                style: { color: getSecondaryColor(title, theme) },
               }}
             />
           </ListItem>
@@ -137,5 +136,41 @@ function getSnackbarBorder(title, theme) {
       return `solid 3px ${theme.palette.property.red}`;
     default:
       return "none";
+  }
+}
+function getSnackbarColor(title, theme) {
+  switch (title) {
+    case "Importing EFT":
+      return theme.palette.background.paper;
+    case "Unvalid EFT":
+      return theme.palette.property.org;
+    case "Permission denied":
+      return theme.palette.property.red;
+    default:
+      return theme.palette.background.paper;
+  }
+}
+function getPrimaryColor(title, theme) {
+  switch (title) {
+    case "Importing EFT":
+      return theme.palette.text.primary;
+    case "Unvalid EFT":
+      return theme.palette.button.color;
+    case "Permission denied":
+      return theme.palette.button.color;
+    default:
+      return theme.palette.text.primary;
+  }
+}
+function getSecondaryColor(title, theme) {
+  switch (title) {
+    case "Importing EFT":
+      return theme.palette.text.secondary;
+    case "Unvalid EFT":
+      return theme.palette.button.color;
+    case "Permission denied":
+      return theme.palette.button.color;
+    default:
+      return theme.palette.text.secondary;
   }
 }

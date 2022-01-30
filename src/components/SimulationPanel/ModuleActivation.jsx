@@ -100,7 +100,7 @@ export default function ModuleActivation(props) {
   useEffect(() => {
     if (props.moduleSet[0].summary.operation === "resistance")
       props.dispatchSummaries({
-        type: "summary_load_update_resistance",
+        type: "summary_update_resistance",
       });
   }, [props.moduleSet[0].summary.activationState.isActive]);
 
@@ -115,7 +115,7 @@ export default function ModuleActivation(props) {
               ? "transparent"
               : props.isActivating
               ? theme.palette.text.primary
-              : theme.palette.text.secondary,
+              : theme.palette.action.disabled,
         }}
         className={classes.circularProrgess}
         classes={{
@@ -133,7 +133,7 @@ export default function ModuleActivation(props) {
               ? "transparent"
               : props.isActivating
               ? theme.palette.text.primary
-              : theme.palette.text.secondary,
+              : theme.palette.text.disabled,
         }}
         className={classes.circularProrgess}
         classes={{
@@ -153,32 +153,16 @@ function activateModules(
 ) {
   switch (moduleSet[0].summary.operation) {
     case "damage":
-      dispatchTargetSummaries(
-        moduleSet
-          .map((module) => Simulator.simulate_damage_getDelta(module.summary))
-          .reduce(
-            (acc, delta) => {
-              acc.payload.armorDelta += delta.armorDelta;
-              acc.payload.shieldDelta += delta.shieldDelta;
-              acc.payload.structureDelta += delta.structureDelta;
-              return acc;
-            },
-            {
-              type: "summary_load_apply_delta",
-              payload: {
-                armorDelta: 0,
-                shieldDelta: 0,
-                structureDelta: 0,
-                operation: moduleSet[0].summary.operation,
-              },
-            }
-          )
-      );
+      dispatchTargetSummaries({
+        type: "summary_load_apply_delta",
+        payload: getDamagePayload(moduleSet),
+        operation: moduleSet[0].summary.operation,
+      });
       break;
     case "defense":
       dispatchSummaries({
         type: "summary_load_apply_delta",
-        payload: Simulator.simulate_defense_getDelta(moduleSet[0].summary),
+        payload: getDefensePayload(moduleSet),
         operation: moduleSet[0].summary.operation,
       });
       break;
@@ -186,12 +170,19 @@ function activateModules(
       const delta = Simulator.simulate_capacitor_getDelta(moduleSet[0].summary);
       dispatchSummaries({
         type: "summary_load_apply_delta",
-        payload: { capacitorDelta: delta.self.capacitorDelta },
+        payload: {
+          summary: moduleSet[0].summary,
+          capacitorDelta: delta.self.capacitorDelta,
+        },
         operation: moduleSet[0].summary.operation,
       });
+
       dispatchTargetSummaries({
         type: "summary_load_apply_delta",
-        payload: { capacitorDelta: delta.target.capacitorDelta },
+        payload: {
+          summary: moduleSet[0].summary,
+          capacitorDelta: delta.target.capacitorDelta,
+        },
         operation: moduleSet[0].summary.operation,
       });
       break;
@@ -200,7 +191,8 @@ function activateModules(
 function getInstaActivationDelay(summary) {
   if (
     summary.bonusPerAct?.self.armor > 0 ||
-    summary.bonusPerAct?.self.structure > 0
+    summary.bonusPerAct?.self.structure > 0 ||
+    summary.isNosferatu !== undefined
   )
     return null;
 
@@ -214,4 +206,29 @@ function getLazyActivationDelay(summary) {
   return summary.activationState.isActive
     ? summary.activationInfo.duration * 1000
     : null;
+}
+function getDamagePayload(moduleSet) {
+  const defaultPayload = {
+    armorDelta: 0,
+    shieldDelta: 0,
+    structureDelta: 0,
+    summary: moduleSet[0].summary,
+    debug: [],
+  };
+
+  return moduleSet
+    .map((module) => Simulator.simulate_damage_getDelta(module.summary))
+    .reduce((payload, delta) => {
+      payload.armorDelta += delta.armorDelta;
+      payload.shieldDelta += delta.shieldDelta;
+      payload.structureDelta += delta.structureDelta;
+      payload.debug = payload.debug.concat(delta.debug);
+      return payload;
+    }, defaultPayload);
+}
+function getDefensePayload(moduleSet) {
+  return {
+    ...Simulator.simulate_defense_getDelta(moduleSet[0].summary),
+    summary: moduleSet[0].summary,
+  };
 }

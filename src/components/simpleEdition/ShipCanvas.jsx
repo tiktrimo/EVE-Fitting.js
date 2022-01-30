@@ -17,8 +17,7 @@ import PanToolIcon from "@material-ui/icons/PanTool";
 import ZoomInIcon from "@material-ui/icons/ZoomIn";
 import ZoomOutIcon from "@material-ui/icons/ZoomOut";
 import ReplayIcon from "@material-ui/icons/Replay";
-import EventConsole from "../SimulationPanel/EventConsole";
-import { Html } from "react-konva-utils";
+import EventConsoleKonvaHtml from "../SimulationPanel/EventConsoleKonvaHtml";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -124,8 +123,8 @@ function onBoardAnchorReducer(state, action) {
 
 const logReducer = () => (state, action) => {
   switch (action.type) {
-    case "damage":
-      state.push({ ...action });
+    case "update":
+      state.push(action.payload);
       return state.slice(state.length - 20 > 0 ? state.length - 20 : 0);
     case "reset":
       return [];
@@ -436,27 +435,18 @@ export default function ShipCanvas(props) {
               /* rotation={handleRotation(distanceVector)} */
             />
 
-            <Group
-              x={hostileAnchor.anchors.anchor1X}
-              y={hostileAnchor.anchors.anchor1Y}
-            >
-              <Html divProps={{ style: { zIndex: -1 } }}>
-                <EventConsole
-                  logs={logs}
-                  rootID={onBoardAnchor.rootID}
-                  size={10}
-                  stageScale={stageScale}
-                />
-              </Html>
-            </Group>
-            {/*  <Group
-              x={onBoardAnchor.anchors.anchor1X}
-              y={onBoardAnchor.anchors.anchor1Y}
-            >
-              <Html divProps={{ style: { zIndex: -1 } }}>
-                <EventConsole logs={logs} size={10} stageScale={stageScale} />
-              </Html>
-            </Group> */}
+            <EventConsoleKonvaHtml
+              theme={theme}
+              logs={logs}
+              target={hostileAnchor}
+              stageScale={stageScale}
+            />
+            <EventConsoleKonvaHtml
+              theme={theme}
+              logs={logs}
+              target={onBoardAnchor}
+              stageScale={stageScale}
+            />
           </Layer>
         </Stage>
       </Card>

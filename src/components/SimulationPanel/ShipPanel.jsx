@@ -6,10 +6,11 @@ import Summary from "../FitCard/Stats/services/Summary";
 import ContorlPanel from "./ContorlPanel";
 import ShipStatusPanel from "./ShipStatusPanel";
 
-// TODO: pause simulation on page exit. (3)
+// TODO: pause simulation on page exit. (4)
 // TODO: make drone summary works (2)
 // TODO: importing drone does not working (2)
-// TODO: log panel, put log on the canvas + animation (1)
+// TODO: sorting capacitor booster charge is not working (3)
+// TODO: NOSFERATU!!
 const summariesReducer = /* (props) => */ (state, action) => {
   switch (action.type) {
     case "initialize":
@@ -38,26 +39,30 @@ const summariesReducer = /* (props) => */ (state, action) => {
       return { ...state };
 
     case "summary_load_apply_delta":
+      const oldSum = getSum(state);
       state.summary.load.shield.HP = calculateHP(state, action, "shield");
       state.summary.load.armor.HP = calculateHP(state, action, "armor");
       state.summary.load.structure.HP = calculateHP(state, action, "structure");
       state.summary.load.capacitor.HP = calculateHP(state, action, "capacitor");
 
-      if (action.payload.operation === "damage") {
-        console.log(state);
-        state.log = {
-          type: "damage",
-          delta: Object.values(action.payload).reduce((a, b) => a + b, 0),
-          location: state.summary.location,
-          ID: Date.now(),
-        };
+      if (!!action.operation) {
+        const delta = getSum(state) - oldSum;
+        state.log = getLog(state, action, delta);
       }
+
       return { ...state };
 
-    case "summary_load_update_resistance":
+    case "summary_update_resistance":
       updateResistance(state);
 
       return { ...state };
+
+    case "summary_update_location":
+      if (!!state.summary?.location) {
+        state.summary.location = action.payload;
+        return { ...state };
+      }
+      return state;
 
     default:
       console.log("ERR NO KNOWN CASE IN ShipPanel.js");
@@ -70,7 +75,8 @@ export default function ShipPanel(props) {
   const [updateFlag, setUpdateFlag] = useState(false);
 
   useEffect(() => {
-    if (!!summaries?.log?.type) props.dispatchLog(summaries.log);
+    if (!!summaries.log?.ID)
+      props.dispatchLog({ type: "update", payload: summaries.log });
   }, [summaries.log]);
 
   useEffect(() => {
@@ -81,15 +87,23 @@ export default function ShipPanel(props) {
   useEffect(() => {
     if (!props.slots) return;
 
-    const _summaries = Summary.getSummaries(props.slots, props.location);
+    const newSummaries = Summary.getSummaries(props.slots, props.location);
     //prettier-ignore
-    _summaries.resistanceTable = Summary.getResistanceTable(_summaries, props.slots);
-    _summaries.skills = undefined;
+    newSummaries.resistanceTable = Summary.getResistanceTable(newSummaries, props.slots);
+    newSummaries.skills = undefined;
 
-    dispatchSummaries({ type: "initialize", payload: _summaries });
-    props.shareSummaries(_summaries);
+    dispatchSummaries({ type: "initialize", payload: newSummaries });
+    props.shareSummaries(newSummaries);
     setUpdateFlag(!updateFlag);
   }, [props.updateFlag]);
+
+  //Update location
+  useEffect(() => {
+    dispatchSummaries({
+      type: "summary_update_location",
+      payload: props.location,
+    });
+  }, [props.location]);
 
   //Set target
   useEffect(() => {
@@ -155,4 +169,23 @@ function updateResistance(state) {
     ...state.summary.capacity,
     ...state.resistanceTable[resistanceTag],
   };
+}
+
+function getLog(state, action, delta) {
+  return {
+    rootID: state.summary.location.rootID,
+    delta: delta,
+    summary: action.payload.summary,
+    ID: Date.now(),
+    debug: action.payload.debug,
+  };
+}
+
+function getSum(state) {
+  return (
+    state.summary.load.shield.HP +
+    state.summary.load.armor.HP +
+    state.summary.load.structure.HP +
+    state.summary.load.capacitor.HP
+  );
 }

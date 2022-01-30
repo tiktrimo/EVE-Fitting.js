@@ -163,7 +163,11 @@ export default function Slot(props) {
             !!charge &&
             `${charge?.typeName} ${getChageCountString(item, charge)}`
           }
-          secondaryTypographyProps={{ noWrap: true, variant: "subtitle2" }}
+          secondaryTypographyProps={{
+            noWrap: true,
+            variant: "subtitle2",
+            style: { color: theme.palette.text.secondary },
+          }}
         />
       </ListItem>
     </React.Fragment>
