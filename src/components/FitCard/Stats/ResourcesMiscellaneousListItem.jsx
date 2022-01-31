@@ -92,7 +92,7 @@ export default function ResourcesMiscellaneousListItem(props) {
         >{`Radar (point)`}</GridBoldTypography>
 
         <GridBoldTypography
-          value={misc.propulsion.TextFieldmaximumVelocity?.toFixed(2)}
+          value={misc.propulsion.maximumVelocity?.toFixed(2)}
         >{`Max Velocity (m/sec)`}</GridBoldTypography>
         <GridBoldTypography
           value={misc.propulsion.inertialModifier?.toFixed(6)}

@@ -111,6 +111,8 @@ export default function SimulationPanel(props) {
       </Card>
       <Grid xs={12} container item justifyContent="center">
         <ShipCanvas
+          onBoardSummaries={summaries0}
+          hostileSummaries={summaries1}
           setSituation={props.setSituation}
           setDispatchLog={setDispatchLog}
         />

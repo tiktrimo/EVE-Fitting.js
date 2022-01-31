@@ -404,7 +404,6 @@ export default class Simulator {
     const situationalMul = Simulator.#activateCapacitor_getSituationalMul(summary, owner, target);
     const bonusPerActOwner = summary.bonusPerAct.self * situationalMul;
     const bonusPerActTarget = summary.bonusPerAct.target * situationalMul;
-    console.log(summary, owner, target);
     if (summary.isNosferatu) {
       const maxBonusPerAct = Math.min(bonusPerActOwner, targetCapacitorHP);
       let symmetricBonusPerAct = maxBonusPerAct;

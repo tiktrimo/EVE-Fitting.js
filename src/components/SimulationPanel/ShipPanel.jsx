@@ -107,6 +107,7 @@ export default function ShipPanel(props) {
 
   //Set target
   useEffect(() => {
+    console.log(props.targetSummaries);
     HAL.getSchedules_setTarget(summaries, props.targetSummaries);
   }, [props.targetSummaries]);
 

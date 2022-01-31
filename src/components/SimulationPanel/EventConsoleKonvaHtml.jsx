@@ -15,7 +15,6 @@ const useStyles = makeStyles((theme) => ({
     overflow: "hidden",
     pointerEvents: "none",
     display: "inline-flex",
-    height: 15,
   },
   text: {
     transition: `${theme.transitions.create(["top"], {
@@ -70,7 +69,6 @@ export function EventConsole(props) {
   const classes = useStyles();
   const [events, setEvents] = useState([]);
   useEffect(() => {
-    console.log(props.logs);
     setEvents(
       props.logs
         .filter((log) => log.rootID === props.rootID)
@@ -99,7 +97,10 @@ export function EventConsole(props) {
         (
           <div
             className={classes.textContainer}
-            style={{ top: (index * 15) / props.stageScale }}
+            style={{
+              top: (index * 15) / props.stageScale,
+              height: 15 / props.stageScale,
+            }}
           >
             <Typography
               className={classes.text}
