@@ -8,7 +8,7 @@ import {
 } from "@material-ui/core";
 import SystemUpdateAltIcon from "@material-ui/icons/SystemUpdateAlt";
 import RefreshIcon from "@material-ui/icons/Refresh";
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect } from "react";
 import { useState } from "react";
 import ShipPanel from "./ShipPanel";
 import Fit from "../../fitter/src/Fit";

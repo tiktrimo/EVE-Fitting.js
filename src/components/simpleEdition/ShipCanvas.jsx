@@ -31,6 +31,7 @@ const useStyles = makeStyles((theme) => ({
 const hostileAnchorInitial = {
   rootID: "hostileID",
   maximumSpeed: Infinity,
+  speed: 150,
   anchors: {
     anchor1X: 25,
     anchor1Y: 200,
@@ -48,6 +49,7 @@ const hostileAnchorInitial = {
 const onBoardAnchorInitial = {
   rootID: "onboardID",
   maximumSpeed: Infinity,
+  speed: 0,
   anchors: {
     anchor1X: 25,
     anchor1Y: 25,
@@ -62,6 +64,7 @@ const onBoardAnchorInitial = {
   },
 };
 function anchorReducer(state, action) {
+  let isAutoMaxSpeed = false;
   switch (action.type) {
     case "anchor1":
       return {
@@ -70,17 +73,25 @@ function anchorReducer(state, action) {
       };
 
     case "maximumSpeed": // There is no break cuz we need to update anchors if ship have lower maxV than velocity on canvas, TLDR : it is intentional
+      if (state.maximumSpeed * 0.95 < state.speed) {
+        isAutoMaxSpeed = true;
+        state.speed = state.maximumSpeed;
+      }
       state.maximumSpeed = action.value;
       action.value = { ...state.anchors };
     case "anchor2":
       const vectorX = action.value.anchor2X - state.anchors.anchor1X;
       const vectorY = action.value.anchor2Y - state.anchors.anchor1Y;
       const speed = 3 * Math.sqrt(Math.pow(vectorX, 2) + Math.pow(vectorY, 2));
-      const vectorModifier =
-        speed > state.maximumSpeed ? state.maximumSpeed / speed : 1;
+      const vectorModifier = isAutoMaxSpeed
+        ? state.maximumSpeed / speed
+        : speed > state.maximumSpeed
+        ? state.maximumSpeed / speed
+        : 1;
 
       return {
         ...state,
+        speed: speed,
         anchors: {
           ...state.anchors,
           anchor2X: state.anchors.anchor1X + vectorX * vectorModifier,
@@ -230,18 +241,22 @@ export default function ShipCanvas(props) {
   ]);
 
   useEffect(() => {
-    dispatchHostileAnchor({
-      type: "maximumSpeed",
-      value: props.hostileSummaries.summary.capacity.propulsion.maximumVelocity,
-    });
-  }, [props.hostileSummaries.summary.capacity.propulsion.maximumVelocity]);
+    if (!!props.hostileSummaries?.summary.capacity.propulsion.maximumVelocity)
+      dispatchHostileAnchor({
+        type: "maximumSpeed",
+        value:
+          props.hostileSummaries.summary.capacity.propulsion.maximumVelocity,
+      });
+  }, [props.hostileSummaries?.summary.capacity.propulsion.maximumVelocity]);
 
   useEffect(() => {
-    dispatchOnBoardAnchor({
-      type: "maximumSpeed",
-      value: props.onBoardSummaries.summary.capacity.propulsion.maximumVelocity,
-    });
-  }, [props.onBoardSummaries.summary.capacity.propulsion.maximumVelocity]);
+    if (!!props.onBoardSummaries?.summary.capacity.propulsion.maximumVelocity)
+      dispatchOnBoardAnchor({
+        type: "maximumSpeed",
+        value:
+          props.onBoardSummaries.summary.capacity.propulsion.maximumVelocity,
+      });
+  }, [props.onBoardSummaries?.summary.capacity.propulsion.maximumVelocity]);
 
   const dispatchSituation = useCallback(() => {
     props.setSituation({

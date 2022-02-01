@@ -10,7 +10,8 @@ import ShipStatusPanel from "./ShipStatusPanel";
 // TODO: make drone summary works (2)
 // TODO: importing drone does not working (2)
 // TODO: sorting capacitor booster charge is not working (3)
-// TODO: NOSFERATU!!
+// TODO: Rig dont get deleted! even if they are not fit in(different size)
+
 const summariesReducer = /* (props) => */ (state, action) => {
   switch (action.type) {
     case "initialize":
@@ -52,9 +53,9 @@ const summariesReducer = /* (props) => */ (state, action) => {
 
       return { ...state };
 
-    case "summary_update_resistance":
-      updateResistance(state);
-
+    case "summary_update_ship":
+      const shipSummary = getUpdatedShipSummary(state);
+      state.summary.capacity = shipSummary.capacity;
       return { ...state };
 
     case "summary_update_location":
@@ -65,7 +66,7 @@ const summariesReducer = /* (props) => */ (state, action) => {
       return state;
 
     default:
-      console.log("ERR NO KNOWN CASE IN ShipPanel.js");
+      console.error("ERR NO KNOWN CASE IN ShipPanel.js");
       return state;
   }
 };
@@ -89,8 +90,9 @@ export default function ShipPanel(props) {
 
     const newSummaries = Summary.getSummaries(props.slots, props.location);
     //prettier-ignore
-    newSummaries.resistanceTable = Summary.getResistanceTable(newSummaries, props.slots);
+    /* newSummaries.resistanceTable = Summary.getResistanceTable(newSummaries, props.slots); */
     newSummaries.skills = undefined;
+    newSummaries.slots = props.slots;
 
     dispatchSummaries({ type: "initialize", payload: newSummaries });
     props.shareSummaries(newSummaries);
@@ -105,9 +107,13 @@ export default function ShipPanel(props) {
     });
   }, [props.location]);
 
+  // Update sharedSummary if shipSummary is updated
+  useEffect(() => {
+    if (!!summaries.summary) props.shareSummaries(summaries);
+  }, [summaries.summary?.capacity]);
+
   //Set target
   useEffect(() => {
-    console.log(props.targetSummaries);
     HAL.getSchedules_setTarget(summaries, props.targetSummaries);
   }, [props.targetSummaries]);
 
@@ -140,7 +146,6 @@ function calculateHP(state, action, type) {
   else if (result < 0) return 0;
   else return result;
 }
-
 function updateResistance(state) {
   const resistanceSlots = Fit.mapSlots(
     state,
@@ -170,6 +175,38 @@ function updateResistance(state) {
     ...state.summary.capacity,
     ...state.resistanceTable[resistanceTag],
   };
+}
+
+function getUpdatedShipSummary(summaries) {
+  /* console.time(`${summaries.summary.location.rootID}`); */
+  Fit.mapSlots(
+    summaries,
+    (summerizedSlot) => {
+      const slot = toPath(summaries.slots, summerizedSlot.summary.path);
+
+      if (!!slot.item.typeState && !!summerizedSlot.summary.activationState)
+        slot.item.typeState = summerizedSlot.summary.activationState.isActive
+          ? "activation"
+          : "passive";
+    },
+    {
+      isIterate: {
+        midSlots: true,
+        lowSlots: true,
+        highSlots: true,
+      },
+    }
+  );
+  const fit = Fit.apply(summaries.slots);
+  const shipSummary = Summary.getSummary_ship(fit, summaries.summary.location);
+  /* console.timeEnd(`${summaries.summary.location.rootID}`); */
+
+  return shipSummary;
+}
+
+function toPath(slots, path) {
+  if (!slots || !path) return {};
+  return path.split(".").reduce((p, c) => (p && p[c]) || undefined, slots);
 }
 
 function getLog(state, action, delta) {

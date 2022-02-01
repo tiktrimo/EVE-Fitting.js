@@ -46,7 +46,6 @@ export default function ContorlPanel(props) {
 
 function getModuleSet(summaries) {
   if (!summaries) return [];
-
   const moduleSets = Fit.mapSlots(
     summaries,
     (slot) => {

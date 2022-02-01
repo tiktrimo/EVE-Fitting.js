@@ -1,10 +1,10 @@
 [Coercer, Coercer fit]
 
-[Empty Low slot]
-[Empty Low slot]
+Kinetic Armor Hardener II
+Thermal Armor Hardener II
 Small ACM Compact Armor Repairer
 
-Small Compact Pb-Acid Cap Battery
+5MN Microwarpdrive II
 1MN Monopropellant Enduring Afterburner
 
 Small Energy Nosferatu II

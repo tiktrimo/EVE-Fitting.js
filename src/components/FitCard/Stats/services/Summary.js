@@ -249,6 +249,10 @@ export default class Summary extends Stat {
           case 7012: // effectID: 7012, effectName: "moduleBonusAssaultDamageControl"
             operation = "resistance";
             break;
+          case 6730: // effectID: 6730, effectName: ""moduleBonusMicrowarpdrive""
+          case 6731: // effectID: 6731, effectName: 'moduleBonusAfterburner'
+            operation = "misc";
+            break;
           default:
             return false;
         }

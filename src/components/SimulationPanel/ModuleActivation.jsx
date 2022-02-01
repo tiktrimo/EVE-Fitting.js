@@ -63,6 +63,7 @@ export default function ModuleActivation(props) {
           payload: { moduleSet: props.moduleSet },
         });
 
+        // visual effect(circling ring thingy)
         setActivationCounter(activationCounter + 100);
         setFlip(!flip);
       } else if (props.moduleSet[0].summary.activationState.isActive === true) {
@@ -96,11 +97,10 @@ export default function ModuleActivation(props) {
     );
   }, getLazyActivationDelay(props.moduleSet[0].summary));
 
-  // Not pretty... only used for resistance operation update
   useEffect(() => {
-    if (props.moduleSet[0].summary.operation === "resistance")
+    if (["resistance", "misc"].includes(props.moduleSet[0].summary.operation))
       props.dispatchSummaries({
-        type: "summary_update_resistance",
+        type: "summary_update_ship",
       });
   }, [props.moduleSet[0].summary.activationState.isActive]);
 
