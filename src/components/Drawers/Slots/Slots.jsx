@@ -51,29 +51,27 @@ export default function Slots(props) {
     if (!!props.importFitText || props.variant === "SHIP") return undefined;
 
     rawItems.length = props.slotCount;
-    setRawItems(new Array(props.slotCount).fill(false));
+    setRawItems(Array.from(rawItems, (item) => item || false));
     rawCharges.length = props.slotCount;
+    setRawCharges(Array.from(rawCharges, (charge) => charge || false));
+  }, [props.slotCount]);
+
+  useEffect(() => {
+    if (!!props.importFitText || props.variant === "SHIP") return undefined;
+
+    setRawItems(new Array(props.slotCount).fill(false));
     setRawCharges(new Array(props.slotCount).fill(false));
-  }, [props.slotCount, props.slots.ship?.typeID]);
+  }, [props.slots.ship?.typeID]);
 
   //Import fitText using EFT class
   useEffect(() => {
     if (!props.importFitText) return;
 
+    // Check if ship in the slots is loaded first. if not dont import module.
     (async () => {
       if (await getIsShipLoaded(props)) importSlots(props, setters);
     })();
   }, [props.importFitText, props.slots.ship?.typeID]);
-
-  //Import fitText using EFT class
-  useEffect(() => {
-    if (!!props.importFitText || props.variant === "SHIP") return undefined;
-
-    rawItems.length = props.slotCount;
-    setRawItems(new Array(props.slotCount).fill(false));
-    rawCharges.length = props.slotCount;
-    setRawCharges(new Array(props.slotCount).fill(false));
-  }, [props.slotCount, props.slots.ship?.typeID]);
 
   //Raw items, charges input [REFACTOR!!]
   useEffect(() => {
@@ -262,9 +260,6 @@ function importSlots(props, setters) {
       props.dispatchImportStateFlag({ type: props.variant });
       return undefined;
     }
-
-    const isShipLoaded = await getIsShipLoaded(props, ship);
-
     const slotCount = getSlotCountAtImport({ ship }, fitFromText, props);
     const items = new Array(slotCount).fill(false);
     const charges = new Array(slotCount).fill(false);
@@ -387,14 +382,15 @@ function checkData(rawItems, rawCharges) {
     hashTypes(rawCharges),
   ].join(":");
 }
+// type && type.typeName -X-> type.typeName. type can be false. int that case [undefined].join() === [].join(). TLDR; it's intentional
 function hashTypes(types) {
-  return types.map((type) => type.typeName).join("-");
+  return types.map((type) => type && type.typeName).join("-");
 }
 function hashState(rawTypes) {
-  return rawTypes.map((type) => type.typeState).join("-");
+  return rawTypes.map((type) => type && type.typeState).join("-");
 }
 function hashCount(rawTypes) {
-  return rawTypes.map((type) => type.typeCount).join("-");
+  return rawTypes.map((type) => type && type.typeCount).join("-");
 }
 function loopNumber(number, floor, ceiling, variant) {
   if (variant === "DRONE_SLOT") {
