@@ -93,8 +93,9 @@ export default class EFT {
     //prettier-ignore
     if (EFT.#buildFitFromText_readoutTextBlock(droneText, typeIDs) !== "droneSlots")
       return {};
-
-    const droneTextLines = droneText.split(/\r?\n/);
+    //prettier-ignore
+    // filter ''. if there is empty lines under block "" create faulty slot
+    const droneTextLines = droneText.split(/\r?\n/).filter(text => text !== "");
     const droneSlots = droneTextLines.map((droneTextLine) => {
       //prettier-ignore
       const {typeName, typeCount} = EFT.#buildFitFromText_divideBy_x(droneTextLine)

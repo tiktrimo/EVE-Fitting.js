@@ -41,7 +41,7 @@ export default class cacheService {
             return resolve(value);
           }
           /* console.log(key, count); */
-          setTimeout(check(count++, cache), 100);
+          setTimeout(check(++count, cache), 100);
         };
       }
       check(0, this.cache)();

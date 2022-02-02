@@ -99,7 +99,6 @@ export default function FittingDrawer(props) {
     importStateFlagReducer,
     importInitializeFlag
   );
-
   const childRef = useRef(null);
 
   useEffect(() => {

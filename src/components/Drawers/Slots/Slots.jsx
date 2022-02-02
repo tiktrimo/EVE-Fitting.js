@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useCallback, useRef } from "react";
 import Slot from "./Slot";
 import { useState, useEffect } from "react";
 import EFT from "../services/EFT";
@@ -50,23 +50,30 @@ export default function Slots(props) {
   useEffect(() => {
     if (!!props.importFitText || props.variant === "SHIP") return undefined;
 
+    rawItems.length = props.slotCount;
     setRawItems(new Array(props.slotCount).fill(false));
+    rawCharges.length = props.slotCount;
     setRawCharges(new Array(props.slotCount).fill(false));
-  }, [props.slots?.ship?.typeID]);
+  }, [props.slotCount, props.slots.ship?.typeID]);
 
+  //Import fitText using EFT class
+  useEffect(() => {
+    if (!props.importFitText) return;
+
+    (async () => {
+      if (await getIsShipLoaded(props)) importSlots(props, setters);
+    })();
+  }, [props.importFitText, props.slots.ship?.typeID]);
+
+  //Import fitText using EFT class
   useEffect(() => {
     if (!!props.importFitText || props.variant === "SHIP") return undefined;
 
     rawItems.length = props.slotCount;
-    setRawItems(Array.from(rawItems, (item) => item || false));
+    setRawItems(new Array(props.slotCount).fill(false));
     rawCharges.length = props.slotCount;
-    setRawCharges(Array.from(rawCharges, (charge) => charge || false));
-  }, [props.slotCount]);
-
-  //Import fitText using EFT class
-  useEffect(() => {
-    if (props.importFitText !== false) importSlots(props, setters);
-  }, [props.importFitText]);
+    setRawCharges(new Array(props.slotCount).fill(false));
+  }, [props.slotCount, props.slots.ship?.typeID]);
 
   //Raw items, charges input [REFACTOR!!]
   useEffect(() => {
@@ -156,10 +163,10 @@ export default function Slots(props) {
       const fetchedData = data.slice(0, data.length - 1);
 
       if (sessionData !== sessionRef.current) {
-        /* console.error( "ERROR_SESSION_COUNT_DEFECTED", props.variant, {FETCHED_SESSION: sessionData, VALID_SESSION: sessionRef.current, fetchedData} ); */
+        //console.warn("ERROR_SESSION_NOT_MATCHING", props.variant, {FETCHED_SESSION: sessionData,VALID_SESSION: sessionRef.current,fetchedData,});
         return undefined;
       } else if (fetchedData === false) {
-        /* console.warn("WARN_ITEM_CHARGE_COUNT_DEFECTED", props.variant, {rawItems, rawCharges}) */
+        //console.warn("WARN_ITEM_CHARGE_COUNT_DEFECTED", props.variant, {rawItems,rawCharges,});
       } else {
         processFetchedData(props, fetchedData, rawItems, rawCharges, setters);
       }
@@ -252,8 +259,11 @@ function importSlots(props, setters) {
 
     if (props.variant === "SHIP") {
       setters.setRawItems([fitFromText.ship]);
+      props.dispatchImportStateFlag({ type: props.variant });
       return undefined;
     }
+
+    const isShipLoaded = await getIsShipLoaded(props, ship);
 
     const slotCount = getSlotCountAtImport({ ship }, fitFromText, props);
     const items = new Array(slotCount).fill(false);
@@ -266,11 +276,21 @@ function importSlots(props, setters) {
       items[index] = !!slot.item && { ...slot.item, typeState: "activation" };
       charges[index] = !!slot.charge && {...slot.charge, typeState: "passive",};
     });
-
     setters.setRawItems(items);
     setters.setRawCharges(charges);
 
     props.dispatchImportStateFlag({ type: props.variant });
+  })(props.importFitText);
+}
+async function getIsShipLoaded(props) {
+  if (props.variant === "SHIP") return true;
+
+  return await (async (fitText) => {
+    const typeIDs = await props.cache.wait("/typeIDsTable");
+    const fitFromText = EFT.buildFitFromText(fitText, typeIDs);
+    const ship = await props.cache.wait(`typeID/${fitFromText.ship.typeID}`);
+
+    return ship.typeID === props.slots.ship?.typeID;
   })(props.importFitText);
 }
 function getSlotCountAtImport(fit, fitFromText, props) {
@@ -295,10 +315,12 @@ function createFetchPromises(props, rawItems, rawCharges, session) {
   return [...promisesItem, ...promisesCharge, sessionPromise];
 }
 function processFetchedData(props, data, rawItems, rawCharges, setters) {
-  const items = data.slice(0, data.length / 2);
-  const charges = data.slice(data.length / 2);
+  const fetchedItems = data.slice(0, data.length / 2);
+  const fetchedCharges = data.slice(data.length / 2);
+  const items = new Array(fetchedItems.length).fill(false);
+  const charges = new Array(fetchedCharges.length).fill(false);
   const payload = [];
-  items.forEach((fetcheditem, index) => {
+  fetchedItems.forEach((fetcheditem, index) => {
     const itemState = !!rawItems[index]
       ? Fit.getCurrentState({
           ...rawItems[index],
@@ -308,11 +330,15 @@ function processFetchedData(props, data, rawItems, rawCharges, setters) {
     const item = !!rawItems[index]
       ? { ...rawItems[index], ...fetcheditem, typeState: itemState }
       : false;
-    const charge = Fit.validateChargeSlot({ item, charge: charges[index] })
-      ? { ...rawCharges[index], ...charges[index] }
+    const charge = Fit.validateChargeSlot({
+      item,
+      charge: fetchedCharges[index],
+    })
+      ? { ...rawCharges[index], ...fetchedCharges[index] }
       : false;
-    rawItems[index] = item;
-    rawCharges[index] = charge;
+
+    items[index] = item;
+    charges[index] = charge;
     payload.push({ item, charge });
     // If validation of charge fails, set rawCharge as false value
     if (charge === false) rawCharges[index] = false;
@@ -322,8 +348,8 @@ function processFetchedData(props, data, rawItems, rawCharges, setters) {
   });
 
   props.dispatchSlots({ type: props.variant, payload: payload });
-  setters.setFetchedCharges([...rawCharges]); // If validation of charge fails, set rawCharge as false value
-  setters.setFetchedItems([...rawItems]);
+  setters.setFetchedCharges([...charges]); // If validation of charge fails, set rawCharge as false value
+  setters.setFetchedItems([...items]);
 }
 
 function assignItemToSlot(props, rawItems, rawCharges, activeSlotNumber) {
@@ -355,20 +381,20 @@ function changeState(activeItem, state) {
 }
 function checkData(rawItems, rawCharges) {
   return [
-    ...hashTypes(rawItems),
-    ...hashState(rawItems),
-    ...hashCount(rawItems),
-    ...hashTypes(rawCharges),
+    hashTypes(rawItems),
+    hashState(rawItems),
+    hashCount(rawItems),
+    hashTypes(rawCharges),
   ].join(":");
 }
 function hashTypes(types) {
-  return types.map((type) => !!type && type.typeName).join("-");
+  return types.map((type) => type.typeName).join("-");
 }
 function hashState(rawTypes) {
-  return rawTypes.map((type) => !!type && type.typeState).join("-");
+  return rawTypes.map((type) => type.typeState).join("-");
 }
 function hashCount(rawTypes) {
-  return rawTypes.map((type) => !!type && type.typeCount).join("-");
+  return rawTypes.map((type) => type.typeCount).join("-");
 }
 function loopNumber(number, floor, ceiling, variant) {
   if (variant === "DRONE_SLOT") {
