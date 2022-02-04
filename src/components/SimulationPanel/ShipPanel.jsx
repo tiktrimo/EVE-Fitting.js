@@ -8,7 +8,6 @@ import ShipStatusPanel from "./ShipStatusPanel";
 
 // TODO: pause simulation on page exit. (4)
 // TODO: make drone summary works (2)
-// TODO: importing drone does not working (2)
 // TODO: sorting capacitor booster charge is not working (3)
 // TODO: Rig dont get deleted! even if they are not fit in(different size)
 
@@ -91,9 +90,6 @@ export default function ShipPanel(props) {
     const newSummaries = Summary.getSummaries(props.slots, props.location);
     //prettier-ignore
     /* newSummaries.resistanceTable = Summary.getResistanceTable(newSummaries, props.slots); */
-    newSummaries.skills = undefined;
-    newSummaries.slots = props.slots;
-
     dispatchSummaries({ type: "initialize", payload: newSummaries });
     props.shareSummaries(newSummaries);
     setUpdateFlag(!updateFlag);
@@ -178,12 +174,12 @@ function updateResistance(state) {
 }
 
 function getUpdatedShipSummary(summaries) {
-  /* console.time(`${summaries.summary.location.rootID}`); */
   Fit.mapSlots(
     summaries,
     (summerizedSlot) => {
-      const slot = toPath(summaries.slots, summerizedSlot.summary.path);
+      if (!summerizedSlot.summary) return;
 
+      const slot = toPath(summaries.slots, summerizedSlot.summary.path);
       if (!!slot.item.typeState && !!summerizedSlot.summary.activationState)
         slot.item.typeState = summerizedSlot.summary.activationState.isActive
           ? "activation"
@@ -199,7 +195,6 @@ function getUpdatedShipSummary(summaries) {
   );
   const fit = Fit.apply(summaries.slots);
   const shipSummary = Summary.getSummary_ship(fit, summaries.summary.location);
-  /* console.timeEnd(`${summaries.summary.location.rootID}`); */
 
   return shipSummary;
 }

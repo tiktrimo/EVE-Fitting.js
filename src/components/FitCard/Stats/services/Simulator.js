@@ -312,7 +312,7 @@ export default class Simulator {
   ) => {
     if (summary.isDrone) {
       //prettier-ignore
-      const droneAccuracy = EveMath.getDroneAccracy(summary, owner, target, debug);
+      const droneAccuracy = EveMath.getDroneAccuracy(summary, owner, target, debug);
       const randomDamageModifier = EveMath.getTurretRandomDamageModifier();
       debug.push({ type: "drone_accuracy", value: droneAccuracy });
       debug.push({

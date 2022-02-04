@@ -168,6 +168,7 @@ export default function Slots(props) {
       } else {
         processFetchedData(props, fetchedData, rawItems, rawCharges, setters);
       }
+
       setIsLoading(false);
     })(props, rawItems, rawCharges, sessionRef.current);
   }, [checkData(rawItems, rawCharges)]);
@@ -315,6 +316,7 @@ function processFetchedData(props, data, rawItems, rawCharges, setters) {
   const items = new Array(fetchedItems.length).fill(false);
   const charges = new Array(fetchedCharges.length).fill(false);
   const payload = [];
+
   fetchedItems.forEach((fetcheditem, index) => {
     const itemState = !!rawItems[index]
       ? Fit.getCurrentState({
@@ -341,10 +343,20 @@ function processFetchedData(props, data, rawItems, rawCharges, setters) {
     if (!!rawItems[index] && !!itemState)
       rawItems[index]["typeState"] = itemState;
   });
-
-  props.dispatchSlots({ type: props.variant, payload: payload });
+  if (validateFetchedSlots(payload))
+    props.dispatchSlots({ type: props.variant, payload: payload });
   setters.setFetchedCharges([...charges]); // If validation of charge fails, set rawCharge as false value
   setters.setFetchedItems([...items]);
+}
+
+function validateFetchedSlots(slots) {
+  return slots.reduce((isValid, slot) => {
+    if (!isValid) return false;
+    if (!!slot.item?.typeID && !slot.item?.typeAttributesStats) return false;
+    if (!!slot.charge?.typeID && !slot.charge?.typeAttributesStats)
+      return false;
+    return true;
+  }, true);
 }
 
 function assignItemToSlot(props, rawItems, rawCharges, activeSlotNumber) {

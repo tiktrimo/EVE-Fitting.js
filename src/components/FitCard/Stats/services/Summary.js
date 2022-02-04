@@ -66,6 +66,8 @@ export default class Summary extends Stat {
 
     const fit = Fit.apply(_slots);
     const summaries = Summary.addSummaries(fit, blankSlots, location);
+    summaries.slots = _slots;
+    summaries.skills = undefined;
 
     return summaries;
   };

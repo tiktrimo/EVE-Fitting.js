@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect } from "react";
 import ArchiveIcon from "@material-ui/icons/Archive";
 import UnarchiveIcon from "@material-ui/icons/Unarchive";
 import RecButton from "../RecButton";
@@ -45,6 +45,15 @@ export default function ImportExportButtons(props) {
       setOpenAlert(true);
       if (text === false) return setTitle("Permission denied");
       setText(text);
+    });
+  }, [setText, setTitle, setOpenAlert]);
+
+  useEffect(() => {
+    if (props.importFitText === false) setText(false);
+  }, [props.importFitText]);
+
+  useEffect(() => {
+    if (text !== false) {
       props.setImportFitText(text);
       props.dispatchImportStateFlag({ type: "START" });
       props.cache.wait("/typeIDsTable").then((typeIDs) => {
@@ -53,8 +62,8 @@ export default function ImportExportButtons(props) {
         else setTitle("Importing EFT");
         fittingLazyFetch(props.cache, IDs);
       });
-    });
-  }, [props.setImportFitText, props.dispatchImportStateFlag, props.cache]);
+    }
+  }, [text]);
 
   return (
     <React.Fragment>

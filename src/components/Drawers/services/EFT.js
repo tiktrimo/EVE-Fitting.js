@@ -6,7 +6,7 @@ export default class EFT {
     return typeNames.reduce((acc, typeName) => {
       const type = typeIDs.find((typeID) => typeID.typeName === typeName);
       if (!!type) acc.push(type.typeID);
-      else console.log("ERROR", "EFT:typeName is not found", typeName);
+      /* else console.log("ERROR", "EFT:typeName is not found", typeName); */
       return acc;
     }, []);
   }

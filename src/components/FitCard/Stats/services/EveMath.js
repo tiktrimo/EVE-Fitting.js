@@ -53,77 +53,52 @@ export default class EveMath {
 
     return summary.range.optimalRange < distance * 1000 ? 0 : 1;
   }
-  static getDroneAccracy(summary, owner, target) {
+  static getDroneAccuracy(summary, owner, target) {
     // owner is owner of drone! which is ship
-    if (summary.isSentry)
-      return EveMath.getTurretAcurracy(summary, owner, target);
+    const targetVelocity = EveMath.#common_getVelocity(target);
+    const randomUnitVector = EveMath.#common_makeRandomUnitVector();
+    const droneMWDvelocity = summary.capacity.propulsion.maximumVelocity;
+    const droneOrbitVelocity = summary.capacity.propulsion.orbitVelocity;
 
-    const targetUnitVector = EveMath.#common_makeUnitVector(
-      target.summary.location.vector
-    );
-    const targetVelocity =
-      Math.sqrt(
-        Math.pow(target.summary.location.vector.x, 2) +
-          Math.pow(target.summary.location.vector.y, 2)
-      ) * 3;
-    const isChasing =
-      summary.capacity.propulsion.orbitVelocity < targetVelocity;
-    if (isChasing) {
-      const droneAccuracyModifier =
-        EveMath.#getDroneAccracy_getAccuracyModifier(summary, targetVelocity);
-      const absoluteVelocity = summary.capacity.propulsion.orbitVelocity;
-      const droneVector = {
-        x: targetUnitVector.x * (absoluteVelocity / 3), // Currently 1px = 3m/s
-        y: targetUnitVector.y * (absoluteVelocity / 3),
+    let drone = { summary: { location: {} } };
+    // sentry drone is stationary
+    if (summary.isSentry) {
+      drone.summary.location = {
+        ...owner.summary.location,
+        vector: { x: 0, y: 0 },
       };
-      const droneLocation = {
-        summary: {
-          location: {
-            anchors: {
-              anchor1X:
-                target.summary.location.anchors.anchor1X -
-                (targetUnitVector.x * summary.capacity.propulsion.orbitRange) /
-                  10, // Currently 1px = 10m
-              anchor1Y:
-                target.summary.location.anchors.anchor1Y -
-                (targetUnitVector.y * summary.capacity.propulsion.orbitRange) /
-                  10,
-            },
-            vector: droneVector,
-          },
-        },
-      };
-      return (
-        EveMath.getTurretAcurracy(summary, droneLocation, target) *
-        droneAccuracyModifier
-      );
-    } else {
-      const absoluteVelocity =
-        summary.capacity.propulsion.orbitVelocity + targetVelocity;
-      const droneVector = {
-        x: targetUnitVector.x * (absoluteVelocity / 3), // Currently 1px = 3m/s
-        y: targetUnitVector.y * (absoluteVelocity / 3),
-      }; // drone positions at perpendicular to targetVector
-      const droneLocation = {
-        summary: {
-          location: {
-            anchors: {
-              anchor1X:
-                target.summary.location.anchors.anchor1X +
-                (targetUnitVector.y * summary.capacity.propulsion.orbitRange) /
-                  10, // Currently 1px = 10m
-              anchor1Y:
-                target.summary.location.anchors.anchor1Y -
-                (targetUnitVector.x * summary.capacity.propulsion.orbitRange) /
-                  10,
-            },
-            vector: droneVector,
-          },
-        },
-      };
-      return EveMath.getTurretAcurracy(summary, droneLocation, target);
+      return EveMath.getTurretAcurracy(summary, drone, target);
     }
+    // drone is slower than target. In this case drone cant reach its turret range and cant hit the target
+    if (droneMWDvelocity < targetVelocity) return 0;
+
+    // TODO: This part is imaginary. If there is relible data change modifier value
+    // drone is faster than target. Orbiting target. If target is faster than drone orbit speed modifier applied.
+    drone.summary.location = {
+      anchors: {
+        anchor1X:
+          target.summary.location.anchors.anchor1X +
+          (randomUnitVector.y * summary.capacity.propulsion.orbitRange) / 10, // Currently 1px = 10m
+        anchor1Y:
+          target.summary.location.anchors.anchor1Y +
+          (-randomUnitVector.x * summary.capacity.propulsion.orbitRange) / 10, // place the drone perpendicular to their speed vector. changed position of x and y is intentional
+      },
+      vector: {
+        x: (randomUnitVector.x * droneOrbitVelocity) / 3, // Currently 1px = 3m/s
+        y: (randomUnitVector.y * droneOrbitVelocity) / 3,
+      },
+    };
+
+    const droneAccuracyModifier =
+      droneOrbitVelocity < targetVelocity
+        ? EveMath.#getDroneAccracy_getAccuracyModifier(summary, targetVelocity)
+        : 1;
+
+    return (
+      droneAccuracyModifier * EveMath.getTurretAcurracy(summary, drone, target)
+    );
   }
+
   static #getDroneAccracy_getAccuracyModifier = (summary, targetVelocity) => {
     // Estimated modifier - drone movement is too complicated simplify the location when target velocity is higher than orbit velocity
     //prettier-ignore
@@ -229,7 +204,23 @@ export default class EveMath {
     else return false;
   };
   static #common_makeUnitVector = (vector) => {
+    if ((vector.x === 0, vector.y === 0)) return { x: 1, y: 0 };
+
     const length = Math.sqrt(Math.pow(vector.x, 2) + Math.pow(vector.y, 2));
     return { x: vector.x / length, y: vector.y / length };
+  };
+  static #common_makeRandomUnitVector = () => {
+    const randomRadian = 2 * Math.PI * Math.random();
+    return { x: Math.cos(randomRadian), y: Math.sin(randomRadian) };
+  };
+  static #common_getVelocity = (owner) => {
+    // Currently 1px = 3m/s
+    return (
+      3 *
+      Math.sqrt(
+        Math.pow(owner.summary.location.vector.x, 2) +
+          Math.pow(owner.summary.location.vector.y, 2)
+      )
+    );
   };
 }

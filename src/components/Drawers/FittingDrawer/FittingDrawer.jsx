@@ -1,6 +1,5 @@
 import React, { useReducer } from "react";
 import { Drawer, Button, makeStyles, ButtonGroup } from "@material-ui/core";
-import { useState } from "react";
 import Slots from "../Slots/Slots.jsx";
 import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
 import ChevronRightIcon from "@material-ui/icons/ChevronRight";
@@ -94,7 +93,6 @@ function importStateFlagReducer(state, action) {
 export default function FittingDrawer(props) {
   const classes = useStyles();
 
-  const [importFitText, setImportFitText] = useState(false);
   const [importStateFlag, dispatchImportStateFlag] = useReducer(
     importStateFlagReducer,
     importInitializeFlag
@@ -104,7 +102,7 @@ export default function FittingDrawer(props) {
   useEffect(() => {
     //If import is finished
     if (!Object.values(importStateFlag).includes(false)) {
-      setImportFitText(false);
+      props.setImportFitText(false);
     }
   }, [importStateFlag]);
 
@@ -118,9 +116,9 @@ export default function FittingDrawer(props) {
     Fit.mapSlots(
       savedSlots,
       (slot) => {
-        if (!!slot?.item?.typeID)
+        if (!!slot.item?.typeID && !!slot.item?.typeAttributesStats)
           props.cache.set(`typeID/${slot.item.typeID}`, slot.item);
-        if (!!slot?.charge?.typeID)
+        if (!!slot.charge?.typeID && !!slot.charge?.typeAttributesStats)
           props.cache.set(`typeID/${slot.charge.typeID}`, slot.charge);
       },
       {
@@ -135,7 +133,7 @@ export default function FittingDrawer(props) {
       }
     );
 
-    setImportFitText(savedEFT);
+    props.setImportFitText(savedEFT);
     dispatchImportStateFlag({ type: "START" });
   }, []);
 
@@ -152,7 +150,8 @@ export default function FittingDrawer(props) {
         <ButtonGroup>
           <ImportExportButtons
             exportFitText={props.exportFitText}
-            setImportFitText={setImportFitText}
+            importFitText={props.importFitText}
+            setImportFitText={props.setImportFitText}
             dispatchImportStateFlag={dispatchImportStateFlag}
             cache={props.cache}
           />
@@ -178,7 +177,7 @@ export default function FittingDrawer(props) {
               return (
                 <Slots
                   key={variant}
-                  importFitText={importFitText}
+                  importFitText={props.importFitText}
                   importStateFlag={importStateFlag}
                   dispatchImportStateFlag={dispatchImportStateFlag}
                   variant={variant}

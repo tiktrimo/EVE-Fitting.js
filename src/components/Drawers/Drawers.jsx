@@ -159,6 +159,7 @@ export default function Drawers(props) {
 
   const [fit, setFit] = useState(false);
   const [exportFitText, setExportFitText] = useState(false);
+  const [importFitText, setImportFitText] = useState(false);
 
   useEffect(() => {
     props.cache
@@ -190,14 +191,16 @@ export default function Drawers(props) {
       props.setFitID(EFT.buildCompareTextFromFit(slots));
       props.setSlots(slots);
 
-      const appliedFitExportText = EFT.buildTextFromFit(appliedFit);
-      const appliedSlotsModified = { ...slots, skills: undefined };
-      setExportFitText(appliedFitExportText);
-      localStorage.setItem(
-        `${props.tag}SLOTS`,
-        JSON.stringify(appliedSlotsModified)
-      );
-      localStorage.setItem(`${props.tag}EFT`, appliedFitExportText);
+      if (importFitText === false) {
+        const appliedFitExportText = EFT.buildTextFromFit(appliedFit);
+        const appliedSlotsModified = { ...slots, skills: undefined };
+        setExportFitText(appliedFitExportText);
+        localStorage.setItem(
+          `${props.tag}SLOTS`,
+          JSON.stringify(appliedSlotsModified)
+        );
+        localStorage.setItem(`${props.tag}EFT`, appliedFitExportText);
+      }
     })();
   }, [EFT.buildCompareTextFromFit(slots)]);
 
@@ -226,6 +229,8 @@ export default function Drawers(props) {
         setExpand={props.setExpand}
         backgroundColor={props.backgroundColor}
         exportFitText={exportFitText}
+        importFitText={importFitText}
+        setImportFitText={setImportFitText}
         slotsOpen={slotsOpen}
         dispatchSlotsOpen={dispatchSlotsOpen}
         listItems={listItems}
