@@ -12,6 +12,8 @@ import GitHubIcon from "@material-ui/icons/GitHub";
 import WbSunnyIcon from "@material-ui/icons/WbSunny";
 import Brightness2Icon from "@material-ui/icons/Brightness2";
 import SimulationPanel from "./SimulationPanel/SimulationPanel";
+import Fit from "../fitter/src/Fit";
+import EFT from "./Drawers/services/EFT";
 
 const useStyles = makeStyles((theme) => ({
   modeButton: {

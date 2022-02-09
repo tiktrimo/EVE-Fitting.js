@@ -334,6 +334,8 @@ export default class Fit {
         switch (applyMod.func) {
           case "OwnerRequiredSkillModifier":
             return targetMod?.typeSkills?.includes(applyMod.skillTypeID);
+          case "ItemModifier": // ballistics computer
+            return true;
         }
       /*    case "structureID":
         return false; */
@@ -401,6 +403,8 @@ export default class Fit {
         }
       case "structureID":
         return false;
+      case "targetID":
+        return false; // warp scrambler
       default:
         console.error("TYPE_APPLICABLE_UNKNOWN", type, "<-", mod); //TESTETS
         return false;

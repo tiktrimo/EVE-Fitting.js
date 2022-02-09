@@ -11,18 +11,18 @@ const useStyles = makeStyles((theme) => ({
     pointerEvents: "none",
   },
   textContainer: {
-    position: "absolute",
-    overflow: "hidden",
-    pointerEvents: "none",
-    display: "inline-flex",
-  },
-  text: {
     transition: `${theme.transitions.create(["top"], {
       duration: 200,
     })}, ${theme.transitions.create(["opacity"], {
       duration: 1000,
       delay: 5000,
     })}`,
+    position: "absolute",
+    overflow: "hidden",
+    pointerEvents: "none",
+    display: "inline-flex",
+  },
+  text: {
     marginRight: 5,
     pointerEvents: "none",
     userSelect: "none",
@@ -100,6 +100,7 @@ export function EventConsole(props) {
             style={{
               top: (index * 15) / props.stageScale,
               height: 15 / props.stageScale,
+              ...transitionStyles[state],
             }}
           >
             <Typography
@@ -107,7 +108,6 @@ export function EventConsole(props) {
               style={{
                 fontSize: 12 / props.stageScale,
                 color: props.theme.palette.text.primary,
-                ...transitionStyles[state],
               }}
             >
               {event.description}
@@ -122,7 +122,6 @@ export function EventConsole(props) {
                     : event.value < 0
                     ? props.theme.palette.property.red
                     : props.theme.palette.property.blue,
-                ...transitionStyles[state],
               }}
             >
               {Math.abs(event.value).toFixed(0)}

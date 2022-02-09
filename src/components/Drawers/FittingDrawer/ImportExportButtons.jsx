@@ -37,7 +37,7 @@ export default function ImportExportButtons(props) {
 
   const [openAlert, setOpenAlert] = useState(false);
 
-  const [title, setTitle] = useState("Error processing data. reload the page");
+  const [title, setTitle] = useState("");
   const [text, setText] = useState(false);
 
   const handleImportClick = useCallback(() => {
@@ -49,7 +49,10 @@ export default function ImportExportButtons(props) {
   }, [setText, setTitle, setOpenAlert]);
 
   useEffect(() => {
-    if (props.importFitText === false) setText(false);
+    if (props.importFitText === false) {
+      setText(false);
+      setOpenAlert(false);
+    }
   }, [props.importFitText]);
 
   useEffect(() => {

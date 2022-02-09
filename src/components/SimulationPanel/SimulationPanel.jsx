@@ -14,6 +14,7 @@ import ShipPanel from "./ShipPanel";
 import Fit from "../../fitter/src/Fit";
 import LogPanel from "./LogPanel";
 import ShipCanvas from "../simpleEdition/ShipCanvas";
+import EFT from "../Drawers/services/EFT";
 
 const useStyles = makeStyles((theme) => ({
   modeButton: {
@@ -117,6 +118,20 @@ export default function SimulationPanel(props) {
           setDispatchLog={setDispatchLog}
         />
       </Grid>
+      <Grid xs={12} container item justifyContent="center">
+        <Button
+          onClick={() => {
+            createDebugFile(
+              props.slotsSet[0],
+              props.slotsSet[1],
+              summaries0,
+              summaries1
+            );
+          }}
+        >
+          DEBUG
+        </Button>
+      </Grid>
     </React.Fragment>
   );
 }
@@ -136,12 +151,38 @@ function initializeSlots(slots) {
       },
     }
   );
+}
 
-  /*   const _slots = Summary.addSummaries_duplicateSlots(slots);
+function createDebugFile(slots0, slots1, summaries0, summaries1) {
+  console.log(slots0, slots1, summaries0, summaries1);
+  if (!!"remove this line if you need to save log file seperately!")
+    return false;
 
-  const fit = Fit.apply(slots);
-  const summarizedSlots = Summary.addSummaries(fit, _slots, situation);
-  summarizedSlots.skills = undefined;
+  const filename = "Error log";
+  const data = JSON.stringify({
+    slots0: { ...slots0, skills: undefined },
+    slots0EFT: EFT.buildTextFromFit(Fit.apply(slots0)),
+    slots0Summaries: summaries0,
+    slots1: { ...slots1, skills: undefined },
+    slots1EFT: EFT.buildTextFromFit(Fit.apply(slots1)),
+    slots1Summaries: summaries1,
+  });
 
-  return summarizedSlots; */
+  var file = new Blob([data], { type: "application/json" });
+  if (window.navigator.msSaveOrOpenBlob)
+    // IE10+
+    window.navigator.msSaveOrOpenBlob(file, filename);
+  else {
+    // Others
+    var a = document.createElement("a"),
+      url = URL.createObjectURL(file);
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function () {
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    }, 0);
+  }
 }

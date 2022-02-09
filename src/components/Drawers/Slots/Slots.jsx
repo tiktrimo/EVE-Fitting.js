@@ -318,6 +318,7 @@ function processFetchedData(props, data, rawItems, rawCharges, setters) {
   const payload = [];
 
   fetchedItems.forEach((fetcheditem, index) => {
+    const itemCount = rawItems[index]?.typeCount;
     const itemState = !!rawItems[index]
       ? Fit.getCurrentState({
           ...rawItems[index],
@@ -325,8 +326,14 @@ function processFetchedData(props, data, rawItems, rawCharges, setters) {
         })
       : undefined;
     const item = !!rawItems[index]
-      ? { ...rawItems[index], ...fetcheditem, typeState: itemState }
+      ? {
+          ...rawItems[index],
+          ...fetcheditem,
+          typeState: itemState,
+          typeCount: itemCount,
+        }
       : false;
+
     const charge = Fit.validateChargeSlot({
       item,
       charge: fetchedCharges[index],

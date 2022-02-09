@@ -24,7 +24,7 @@ const useStyles = makeStyles((theme) => ({
     width: "85%",
     minWidth: 300,
     maxWidth: 600,
-    height: "80%",
+    height: "100%",
   },
 }));
 
@@ -282,7 +282,7 @@ export default function ShipCanvas(props) {
         x={stagePoint.x}
         y={stagePoint.y}
         width={window.innerWidth}
-        height={window.innerHeight}
+        height={window.innerHeight / 2} // modify as you want. only visual change
         scaleX={stageScale}
         scaleY={stageScale}
         draggable={isStageDrragable}
