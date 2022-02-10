@@ -736,7 +736,7 @@ export default class Stat {
     const activationTime =
       (findAttributebyID(item, 73) || findAttributebyID(item, 51)) / 1000; // attributeID: 73, attributeName: "Activation time / duration" attributeID: 51, attributeName: "Rate of fire"
 
-    if (!reloadTime || !Stat.#getActivationInfo_isTypeNeedCharge(item))
+    if (!reloadTime || !Stat.#getActivationInfo_isTypeNeedCharge(item, charge))
       return {
         duration: activationTime,
         e_duration: activationTime,
@@ -775,8 +775,9 @@ export default class Stat {
       activationCost,
     };
   }
-  static #getActivationInfo_isTypeNeedCharge = (type) => {
-    if (!type || !type.typeEffectsStats) return false;
+  static #getActivationInfo_isTypeNeedCharge = (item, charge) => {
+    if (!item || !item.typeEffectsStats) return false;
+    if (!!charge) return true; // Ancillary shield booster
 
     //TODO: Add command burst effectIDs
     //effectID: 42, effectName: "turretFitted"
@@ -784,7 +785,7 @@ export default class Stat {
     //effectID: 48, effectName: "powerBooster"
     const thisEffectsNeedCharge = [42, 40, 48];
 
-    return type.typeEffectsStats.reduce((acc, efft) => {
+    return item.typeEffectsStats.reduce((acc, efft) => {
       if (thisEffectsNeedCharge.includes(efft.effectID)) return true;
       return acc;
     }, false);

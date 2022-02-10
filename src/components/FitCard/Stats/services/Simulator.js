@@ -153,14 +153,14 @@ export default class Simulator {
     /*  } */
   };
 
-  static simulate_damage_getDelta = (summary) => {
+  static simulate_damage_getDelta = (summary, target) => {
     const debug = [];
     const owner = summary.isDrone ? summary : summary.root;
-    const target = summary.target;
+    const _target = target || summary.target;
     //prettier-ignore
-    const situationalModifiedSummary = Simulator.#activateDamage_getSituationalModifiedSummary(summary, owner, target, debug);
+    const situationalModifiedSummary = Simulator.#activateDamage_getSituationalModifiedSummary(summary, owner, _target, debug);
     //prettier-ignore
-    const alpha = Simulator.activateDamage_getAlpha(situationalModifiedSummary, target);
+    const alpha = Simulator.activateDamage_getAlpha(situationalModifiedSummary, _target);
 
     return {
       armorDelta: -alpha.armor,

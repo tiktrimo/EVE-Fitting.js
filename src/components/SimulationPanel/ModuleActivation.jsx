@@ -13,7 +13,7 @@ import {
 } from "../../services/intervalHooks";
 import Simulator from "../FitCard/Stats/services/Simulator";
 
-const useStyles = (duration) =>
+const useStyles = (duration, flip) =>
   makeStyles((theme) => ({
     circularProrgess: {
       position: "absolute",
@@ -26,51 +26,30 @@ const useStyles = (duration) =>
         duration: `${duration}s`,
       }),
     },
+    hiddenCircularTransition: {
+      transition: theme.transitions.create("stroke-dashoffset", {
+        easing: "linear",
+        duration: `0s`,
+      }),
+    },
   }));
 
 export default function ModuleActivation(props) {
+  const theme = useTheme();
   const classes = useStyles(
     props.moduleSet[0].summary.activationInfo.duration
   )();
-  const theme = useTheme();
 
   const [flip, setFlip] = useState(false);
   const [activationCounter, setActivationCounter] = useState(0);
 
   useProgressCircleInterval(
     () => {
+      dispatchActivation(props);
       if (props.isActivating) {
-        // change state of moduleSet
-        if (props.moduleSet[0].summary.activationState.isActive === false)
-          props.dispatchSummaries({
-            type: "moduleSet_update_activation",
-            payload: { moduleSet: props.moduleSet, isActive: true },
-          });
-
-        // dispatch activation cost
-        props.dispatchSummaries({
-          type: "summary_load_apply_delta",
-          payload: {
-            capacitorDelta:
-              -props.moduleSet[0].summary.activationInfo.activationCost *
-              props.moduleSet.length,
-          },
-        });
-
-        // dispatch activation count
-        props.dispatchSummaries({
-          type: "activationLeft_active_discharge",
-          payload: { moduleSet: props.moduleSet },
-        });
-
         // visual effect(circling ring thingy)
         setActivationCounter(activationCounter + 100);
         setFlip(!flip);
-      } else if (props.moduleSet[0].summary.activationState.isActive === true) {
-        props.dispatchSummaries({
-          type: "moduleSet_update_activation",
-          payload: { moduleSet: props.moduleSet, isActive: false },
-        });
       }
     },
     props.isActivating
@@ -84,9 +63,6 @@ export default function ModuleActivation(props) {
       props.dispatchSummaries,
       props.dispatchTargetSummaries
     );
-
-    if (props.moduleSet[0].summary.activationState.activationLeft === 0)
-      props.setIsActivating(false);
   }, getInstaActivationDelay(props.moduleSet[0].summary));
 
   useLazyActivationInterval(() => {
@@ -110,16 +86,13 @@ export default function ModuleActivation(props) {
         size={46}
         thickness={2}
         style={{
-          color:
-            !props.moduleSet[0].summary.activationState.isActive || !flip
-              ? "transparent"
-              : props.isActivating
-              ? theme.palette.text.primary
-              : theme.palette.action.disabled,
+          color: getCircularProgressColor(props, !flip, theme),
         }}
         className={classes.circularProrgess}
         classes={{
-          circleDeterminate: classes.circularTransition,
+          circleDeterminate: !flip
+            ? classes.hiddenCircularTransition
+            : classes.circularTransition,
         }}
         variant="determinate"
         value={activationCounter}
@@ -128,16 +101,13 @@ export default function ModuleActivation(props) {
         size={46}
         thickness={2}
         style={{
-          color:
-            !props.moduleSet[0].summary.activationState.isActive || flip
-              ? "transparent"
-              : props.isActivating
-              ? theme.palette.text.primary
-              : theme.palette.text.disabled,
+          color: getCircularProgressColor(props, flip, theme),
         }}
         className={classes.circularProrgess}
         classes={{
-          circleDeterminate: classes.circularTransition,
+          circleDeterminate: flip
+            ? classes.hiddenCircularTransition
+            : classes.circularTransition,
         }}
         variant="determinate"
         value={activationCounter + 100}
@@ -195,6 +165,47 @@ function activateModules(
       break;
   }
 }
+
+function dispatchActivation(props) {
+  if (props.moduleSet[0].summary.activationState.activationLeft === 0) {
+    // runs out of ammo. need
+    props.setIsActivating(false);
+    props.dispatchSummaries({
+      type: "moduleSet_update_activation",
+      payload: { moduleSet: props.moduleSet, isActive: false },
+    });
+  } else if (props.isActivating) {
+    // change state of moduleSet
+    if (props.moduleSet[0].summary.activationState.isActive === false)
+      props.dispatchSummaries({
+        type: "moduleSet_update_activation",
+        payload: { moduleSet: props.moduleSet, isActive: true },
+      });
+
+    // dispatch activation cost
+    props.dispatchSummaries({
+      type: "summary_load_apply_delta",
+      payload: {
+        capacitorDelta:
+          -props.moduleSet[0].summary.activationInfo.activationCost *
+          props.moduleSet.length,
+      },
+    });
+
+    // dispatch activation count
+    props.dispatchSummaries({
+      type: "activationLeft_active_discharge",
+      payload: { moduleSet: props.moduleSet },
+    });
+  } else {
+    // Player deactivate the module
+    props.dispatchSummaries({
+      type: "moduleSet_update_activation",
+      payload: { moduleSet: props.moduleSet, isActive: false },
+    });
+  }
+}
+
 function getInstaActivationDelay(summary) {
   if (
     summary.bonusPerAct?.self.armor > 0 ||
@@ -222,9 +233,19 @@ function getDamagePayload(moduleSet) {
     summary: moduleSet[0].summary,
     debug: [],
   };
+  const target = {
+    summary: JSON.parse(JSON.stringify(moduleSet[0].summary.target.summary)),
+  };
 
   return moduleSet
-    .map((module) => Simulator.simulate_damage_getDelta(module.summary))
+    .map((module) => {
+      const delta = Simulator.simulate_damage_getDelta(module.summary, target);
+      target.summary.load.shield.HP += delta.shieldDelta;
+      target.summary.load.armor.HP += delta.armorDelta;
+      target.summary.load.structure.HP += delta.structureDelta;
+
+      return delta;
+    })
     .reduce((payload, delta) => {
       payload.armorDelta += delta.armorDelta;
       payload.shieldDelta += delta.shieldDelta;
@@ -250,4 +271,11 @@ function getCapacitorDispatchNecessity(summary) {
     return { target: false, self: true };
   else if (summary.isNosferatu) return { target: true, self: true };
   else return { target: true, self: false };
+}
+function getCircularProgressColor(props, flip, theme) {
+  return !props.moduleSet[0].summary.activationState.isActive || flip
+    ? "transparent"
+    : props.isActivating
+    ? theme.palette.text.primary
+    : theme.palette.action.disabled;
 }

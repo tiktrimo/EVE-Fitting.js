@@ -73,11 +73,11 @@ export function EventConsole(props) {
       props.logs
         .filter((log) => log.rootID === props.rootID)
         .map((log) => {
-          const itemName = log.summary.description.split(",")[0];
-          const chargeName = log.summary.description.split(",")[1];
+          const [itemName, chargeName] = log.summary.description.split(",");
+
           return {
             description:
-              chargeName !== "undefined"
+              chargeName !== undefined
                 ? `${itemName}, ${chargeName}`
                 : `${itemName}`,
             value: log.delta,

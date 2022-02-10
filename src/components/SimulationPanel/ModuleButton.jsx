@@ -52,6 +52,7 @@ export default function ModuleButton(props) {
   const classes = useStyles();
 
   const [isReloading, setIsReloading] = useState(false);
+  //props.isActivating : for visual purpose. props.moduleSet[0].summary.activationState.isActive : synced real value
   const [isActivating, setIsActivating] = useState(false);
 
   return (

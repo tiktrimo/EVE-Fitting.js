@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 
+//version 1
 export function useAlwaysActivationInterval(callback, delay) {
   const savedCallback = useRef();
   const interval = useRef(false);
@@ -25,6 +26,7 @@ export function useAlwaysActivationInterval(callback, delay) {
   }, [delay]);
 }
 
+//version 1
 export function useProgressCircleInterval(callback, delay) {
   const pauseFlag = useRef(false);
   const savedCallback = useRef();
@@ -39,6 +41,7 @@ export function useProgressCircleInterval(callback, delay) {
   useEffect(() => {
     if (delay !== null && pauseFlag.current === false) {
       savedCallback.current();
+      if (interval.current) clearInterval(interval.current);
       interval.current = setInterval(() => {
         savedCallback.current();
         if (pauseFlag.current === true) {
@@ -62,6 +65,7 @@ export function useProgressCircleInterval(callback, delay) {
   }, []);
 }
 
+//version 1
 export function useInstaActivationInterval(callback, delay) {
   const pauseFlag = useRef(false);
   const savedCallback = useRef();
@@ -76,6 +80,7 @@ export function useInstaActivationInterval(callback, delay) {
   useEffect(() => {
     if (delay !== null && pauseFlag.current === false) {
       savedCallback.current();
+      if (interval.current) clearInterval(interval.current);
       interval.current = setInterval(() => {
         if (pauseFlag.current === true) {
           clearInterval(interval.current);
@@ -98,8 +103,9 @@ export function useInstaActivationInterval(callback, delay) {
   }, []);
 }
 
+//version 2
 export function useLazyActivationInterval(callback, delay) {
-  const pauseFlag = useRef(false);
+  const cancleFlag = useRef(false);
   const savedCallback = useRef();
   const interval = useRef(false);
 
@@ -110,20 +116,17 @@ export function useLazyActivationInterval(callback, delay) {
 
   // Set up the interval.
   useEffect(() => {
-    if (delay !== null && pauseFlag.current === false) {
+    if (delay !== null) {
+      if (interval.current) clearInterval(interval.current);
       interval.current = setInterval(() => {
         savedCallback.current();
-        if (pauseFlag.current === true) {
+        if (cancleFlag.current === true) {
           clearInterval(interval.current);
-          pauseFlag.current = false;
           interval.current = false;
+          cancleFlag.current = false;
         }
       }, delay);
-      return () => {
-        pauseFlag.current = true;
-      };
-    } else if (delay !== null) pauseFlag.current = false;
-    else if (interval.current) pauseFlag.current = true;
+    } else cancleFlag.current = true;
   }, [delay]);
 
   // clear interval at componenet dismount

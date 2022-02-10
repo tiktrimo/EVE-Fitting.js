@@ -8,8 +8,9 @@ import ShipStatusPanel from "./ShipStatusPanel";
 
 // TODO: pause simulation on page exit. (4)
 // TODO: make drone summary works (2)
-// TODO: sorting capacitor booster charge is not working (3)
+// TODO: sorting capacitor booster charge is not working (3) ancillary shield booster not working(small)
 // TODO: Rig dont get deleted! even if they are not fit in(different size)
+// TODO: Rework reload mechanics.
 
 const summariesReducer = /* (props) => */ (state, action) => {
   switch (action.type) {
