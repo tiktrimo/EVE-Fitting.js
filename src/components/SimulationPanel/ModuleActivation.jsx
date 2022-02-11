@@ -168,13 +168,40 @@ function activateModules(
 
 function dispatchActivation(props) {
   if (props.moduleSet[0].summary.activationState.activationLeft === 0) {
-    // runs out of ammo. need
-    props.setIsActivating(false);
-    props.dispatchSummaries({
-      type: "moduleSet_update_activation",
-      payload: { moduleSet: props.moduleSet, isActive: false },
-    });
-  } else if (props.isActivating) {
+    if (props.moduleSet[0].summary.activationInfo.isChargeNegligible !== true) {
+      // runs out of ammo. needs reload. Except ancillary repair, booster.
+      props.setIsActivating(false);
+      props.dispatchSummaries({
+        type: "moduleSet_update_activation",
+        payload: { moduleSet: props.moduleSet, isActive: false },
+      });
+
+      return;
+    } else {
+      // ancillary repair, booster runs out of charge.
+      props.dispatchSummaries({
+        type: "summary_update_item",
+        payload: { moduleSet: props.moduleSet },
+      });
+    }
+  }
+
+  if (props.isActivating) {
+    // Check if activation cost is lower than capacitor load
+    if (
+      props.moduleSet[0].summary.activationInfo.activationCost *
+        props.moduleSet.length >
+      props.moduleSet[0].summary.root.summary.load.capacitor.HP
+    ) {
+      props.setIsActivating(false);
+      props.dispatchSummaries({
+        type: "moduleSet_update_activation",
+        payload: { moduleSet: props.moduleSet, isActive: false },
+      });
+
+      return;
+    }
+
     // change state of moduleSet
     if (props.moduleSet[0].summary.activationState.isActive === false)
       props.dispatchSummaries({
@@ -198,7 +225,7 @@ function dispatchActivation(props) {
       payload: { moduleSet: props.moduleSet },
     });
   } else {
-    // Player deactivate the module
+    // Player deactivated the module
     props.dispatchSummaries({
       type: "moduleSet_update_activation",
       payload: { moduleSet: props.moduleSet, isActive: false },

@@ -26,7 +26,10 @@ const summariesReducer = /* (props) => */ (state, action) => {
 
     case "activationLeft_active_discharge":
       action.payload.moduleSet.forEach((module) => {
-        module.summary.activationState.activationLeft--;
+        module.summary.activationState.activationLeft = Math.max(
+          module.summary.activationState.activationLeft - 1,
+          0
+        );
       });
 
       return { ...state };
@@ -56,6 +59,17 @@ const summariesReducer = /* (props) => */ (state, action) => {
     case "summary_update_ship":
       const shipSummary = getUpdatedShipSummary(state);
       state.summary.capacity = shipSummary.capacity;
+      return { ...state };
+
+    case "summary_update_item":
+      // Currently only used for updating information about ancillary booster/repairer
+      const itemSummary = getUpdatedItemSummary(state, action.payload);
+      const slot = toPath(state, itemSummary.path);
+      itemSummary.load = slot.summary.load;
+      itemSummary.root = slot.summary.root;
+      itemSummary.target = slot.summary.target;
+      slot.summary = itemSummary;
+
       return { ...state };
 
     case "summary_update_location":
@@ -194,10 +208,29 @@ function getUpdatedShipSummary(summaries) {
       },
     }
   );
+
   const fit = Fit.apply(summaries.slots);
   const shipSummary = Summary.getSummary_ship(fit, summaries.summary.location);
 
   return shipSummary;
+}
+
+function getUpdatedItemSummary(summaries, payload) {
+  const slot = toPath(summaries.slots, payload.moduleSet[0].summary.path);
+  const savedCharge = slot.charge;
+
+  // Unrendered mutation. after calculation of fit it will recover data from savedCharge.
+  if (payload.moduleSet[0].summary.activationState.activationLeft === 0)
+    slot.charge = false;
+
+  const fit = Fit.apply(summaries.slots);
+  slot.charge = savedCharge;
+
+  const itemSummary = Summary.getSummary_module(
+    toPath(fit, payload.moduleSet[0].summary.path)
+  );
+
+  return itemSummary;
 }
 
 function toPath(slots, path) {

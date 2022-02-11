@@ -36,10 +36,7 @@ export default function ModuleReloading(props) {
   const [isProgressing, setIsProgressing] = useState(false);
 
   useEffect(() => {
-    if (
-      props.moduleSet[0].summary.activationState.activationLeft === 0 &&
-      props.moduleSet[0].summary.activationState.isActive === false
-    ) {
+    if (isStartReload(props)) {
       setActivationCounter(reloadTimer - 100);
       setFlip(!flip);
       setIsProgressing(true);
@@ -55,7 +52,14 @@ export default function ModuleReloading(props) {
 
   useLazyActivationInterval(() => {
     //reloaded
-    console.log("reloaded");
+    console.log(props.moduleSet[0].summary.description, "reloaded");
+
+    // Ancillary booster/repairer
+    if (props.moduleSet[0].summary.activationInfo.isChargeNegligible)
+      props.dispatchSummaries({
+        type: "summary_update_item",
+        payload: { moduleSet: props.moduleSet },
+      });
 
     // dispatch activation count
     props.dispatchSummaries({
@@ -106,11 +110,18 @@ export default function ModuleReloading(props) {
   );
 }
 function getReloadTime(props) {
-  if (
-    props.moduleSet[0].summary.activationState.activationLeft === 0 &&
-    props.moduleSet[0].summary.activationState.isActive === false
-  )
+  if (isStartReload(props))
     return props.moduleSet[0].summary.activationInfo.reloadTime * 1000;
 
   return null;
+}
+
+function isStartReload(props) {
+  if (props.moduleSet[0].summary.activationState.isActive === true)
+    return false;
+  return (
+    props.moduleSet[0].summary.activationState.activationLeft === 0 ||
+    (props.moduleSet[0].summary.activationInfo.isChargeNegligible &&
+      props.moduleSet[0].summary.activationState.activationLeft === Infinity)
+  );
 }

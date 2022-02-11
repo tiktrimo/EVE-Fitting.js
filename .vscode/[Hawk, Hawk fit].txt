@@ -3,8 +3,8 @@
 Co-Processor II
 Ballistic Control System II
 
-Medium Ancillary Shield Booster, Navy Cap Booster 50
-Medium Ancillary Shield Booster, Navy Cap Booster 50
+Medium Ancillary Shield Booster, Cap Booster 100
+Medium Ancillary Shield Booster, Cap Booster 100
 Warp Scrambler II
 Stasis Webifier II
 1MN Afterburner II

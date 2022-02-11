@@ -38,7 +38,7 @@ const EditButton = (props) => {
       }}
       fullWidth
       onClick={() => {
-        props.setOpen(!props.open);
+        props.setOpen(true);
       }}
     >
       <Grid container item xs={2} justifyContent="center">

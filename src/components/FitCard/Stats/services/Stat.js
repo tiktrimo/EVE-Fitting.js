@@ -735,8 +735,9 @@ export default class Stat {
     const reloadTime = (findAttributebyID(item, 1795) || undefined) / 1000; //attributeID: 1795, attributeName: "Reload Time"
     const activationTime =
       (findAttributebyID(item, 73) || findAttributebyID(item, 51)) / 1000; // attributeID: 73, attributeName: "Activation time / duration" attributeID: 51, attributeName: "Rate of fire"
+    const isChargeNegligible = Stat.#getActivationInfo_isChargeNegligible(item);
 
-    if (!reloadTime || !Stat.#getActivationInfo_isTypeNeedCharge(item, charge))
+    if (!reloadTime || !Stat.#getActivationInfo_isTypeNeedCharge(item))
       return {
         duration: activationTime,
         e_duration: activationTime,
@@ -744,7 +745,7 @@ export default class Stat {
         reloadTime: 0,
         activationCost,
       };
-    if (!Fit.validateChargeSlot({ item, charge }))
+    if (!Fit.validateChargeSlot({ item, charge }) && !isChargeNegligible)
       return {
         duration: Infinity,
         e_duration: Infinity,
@@ -758,7 +759,7 @@ export default class Stat {
     const chargePerCycle = findAttributebyID(item, 56); //attributeID: 56, attributeName: "Charges Per Cycle"
 
     const chargeVolumePerAct = !!chargePerCycle
-      ? chargeVolume * chargePerCycle
+      ? chargeVolume * chargePerCycle || 0
       : 0;
     const activationLimit = Math.floor(itemCapacity / chargeVolumePerAct);
     const reloadTimePerAct =
@@ -773,20 +774,37 @@ export default class Stat {
       activationLimit,
       reloadTime,
       activationCost,
+      isChargeNegligible,
     };
   }
-  static #getActivationInfo_isTypeNeedCharge = (item, charge) => {
+  static #getActivationInfo_isTypeNeedCharge = (item) => {
     if (!item || !item.typeEffectsStats) return false;
-    if (!!charge) return true; // Ancillary shield booster
 
     //TODO: Add command burst effectIDs
     //effectID: 42, effectName: "turretFitted"
     //effectID: 40, effectName: "launcherFitted"
     //effectID: 48, effectName: "powerBooster"
-    const thisEffectsNeedCharge = [42, 40, 48];
+    //effectID: 4936, effectName: 'fueledShieldBoosting'
+    //effectID: 5275, effectName: 'fueledArmorRepair'
+    const thisEffectsNeedCharge = [42, 40, 48, 4936, 5275];
 
     return item.typeEffectsStats.reduce((acc, efft) => {
       if (thisEffectsNeedCharge.includes(efft.effectID)) return true;
+      return acc;
+    }, false);
+  };
+
+  static #getActivationInfo_isChargeNegligible = (item) => {
+    // false for most of charge using modules. true for ancillary shield booster + armor repairer.
+    // undefined for non-charge-using module and drones
+
+    // Ancillary shield booster, Ancillary armor repairer
+    //effectID: 4936, effectName: 'fueledShieldBoosting'
+    //effectID: 5275, effectName: 'fueledArmorRepair'
+    const activatedWithoutCharge = [4936, 5275];
+
+    return item.typeEffectsStats.reduce((acc, efft) => {
+      if (activatedWithoutCharge.includes(efft.effectID)) return true;
       return acc;
     }, false);
   };

@@ -88,7 +88,7 @@ export default class Summary extends Stat {
       (slot) => {
         if (!slot.item) return false;
 
-        const summary = Summary.#getSummaries_modules(slot);
+        const summary = Summary.getSummary_module(slot);
         summary["root"] = targetSlots;
         const _slot = !!summary && SimFit.toPath(targetSlots, summary.path);
         if (!!_slot) _slot["summary"] = summary;
@@ -197,7 +197,7 @@ export default class Summary extends Stat {
     });
   }
 
-  static #getSummaries_modules = (slot) => {
+  static getSummary_module = (slot) => {
     if (!slot?.item?.typeEffectsStats) return false;
     const item = slot.item;
     const charge = slot.charge;

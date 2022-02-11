@@ -126,6 +126,7 @@ export function useLazyActivationInterval(callback, delay) {
           cancleFlag.current = false;
         }
       }, delay);
+      cancleFlag.current = false;
     } else cancleFlag.current = true;
   }, [delay]);
 

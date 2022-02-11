@@ -85,10 +85,7 @@ export default function ModuleButton(props) {
             }}
           >
             <ModuleButtonCountBadge count={props.moduleSet.length}>
-              {feedSource(
-                props.moduleSet[0]?.summary.itemID,
-                props.moduleSet[0]?.summary.chargeID
-              )}
+              {feedSource(props.moduleSet[0]?.summary)}
             </ModuleButtonCountBadge>
           </ModuleButtonChargeBadge>
         </Button>
@@ -96,21 +93,25 @@ export default function ModuleButton(props) {
     </div>
   );
 }
-function feedSource(itemID, chargeID) {
-  if (!!itemID && !chargeID)
-    return (
-      <img
-        draggable="false"
-        style={{ width: "65%" }}
-        src={`https://images.evetech.net/types/${itemID}/icon?size=64`}
-      />
-    );
-  else if (!!itemID && !!chargeID)
+function feedSource(summary) {
+  const itemID = summary.itemID;
+  const chargeID = summary.chargeID;
+  const isChargeDepleted = summary.activationState.activationLeft === 0;
+
+  if (!!itemID && !!chargeID && !isChargeDepleted)
     return (
       <img
         draggable="false"
         style={{ width: "65%" }}
         src={`https://images.evetech.net/types/${chargeID}/icon?size=64`}
+      />
+    );
+  else
+    return (
+      <img
+        draggable="false"
+        style={{ width: "65%" }}
+        src={`https://images.evetech.net/types/${itemID}/icon?size=64`}
       />
     );
 }
