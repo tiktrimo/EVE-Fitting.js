@@ -1,4 +1,7 @@
 src/key/ignore/
+src/fitter/yamls/ignore/
+src/fitter/yamls/legacy/
+
 
 # Logs
 logs
