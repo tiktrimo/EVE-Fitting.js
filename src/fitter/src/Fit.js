@@ -326,77 +326,80 @@ export default class Fit {
           case "LocationGroupModifier":
             return targetMod.typeGroupID === applyMod.groupID;
           case "LocationRequiredSkillModifier":
-            return targetMod?.typeSkills?.includes(applyMod.skillTypeID);
+            return targetMod.typeSkills?.includes(applyMod.skillTypeID);
           /* default:
             return false; */
         }
       case "charID":
         switch (applyMod.func) {
           case "OwnerRequiredSkillModifier":
-            return targetMod?.typeSkills?.includes(applyMod.skillTypeID);
+            return targetMod.typeSkills?.includes(applyMod.skillTypeID);
           case "ItemModifier": // ballistics computer
             return true;
         }
-      /*    case "structureID":
-        return false; */
       default:
+        // Temporary exception. Only to bipass error message. seems this mod applied to NPC ships
+        if (
+          targetMod.effectName ===
+          "shadowBarrageFalloffWithFalloffPostPercentBarrageFalloffMutator"
+        )
+          return false;
+
         console.error("MOD_APPLICABLE_UNKNOWN", targetMod, "<-", applyMod);
         return false;
     }
   };
-  static #applyBoard_modIsTypeApplicable = function (type, mod) {
-    if (!Fit.#applyBoard_modIsStateApplicable(mod)) {
+  static #applyBoard_modIsTypeApplicable = function (type, applyMod) {
+    if (!Fit.#applyBoard_modIsStateApplicable(applyMod)) {
       /* if (
-        !(mod.typeState === "activation" && mod.effectCategory === "overload")
+        !(applyMod.typeState === "activation" && applyMod.effectCategory === "overload")
       )
         console.log(
           "STATE",
-          `${mod.typeState} <-/- ${mod.effectCategory}`,
+          `${applyMod.typeState} <-/- ${applyMod.effectCategory}`,
           type,
           "<-",
-          mod
+          applyMod
         ); */ //TESTETS
       return false;
     }
     if (type.domainID === undefined) console.log("domainID missing", type);
-    switch (mod.domain) {
+    switch (applyMod.domain) {
       case "itemID":
-        switch (mod.func) {
+        switch (applyMod.func) {
           case "ItemModifier":
-            return type.domainID === mod.domainID;
+            return type.domainID === applyMod.domainID;
           /* default:
             return false; */
         }
       case "shipID":
-        switch (mod.func) {
+        switch (applyMod.func) {
           case "ItemModifier":
             return type.domainID === "ship";
           case "LocationGroupModifier":
-            return type.groupID === mod.groupID;
+            return type.groupID === applyMod.groupID;
           case "LocationRequiredSkillModifier":
-            return (
-              !!type.typeSkills && type.typeSkills.includes(mod.skillTypeID)
-            );
+            return type.typeSkills?.includes(applyMod.skillTypeID);
+
           /* default:
             return false; */
         }
       case "charID":
-        switch (mod.func) {
+        switch (applyMod.func) {
           case "OwnerRequiredSkillModifier":
-            return (
-              !!type.typeSkills && type.typeSkills.includes(mod.skillTypeID)
-            );
+            return type.typeSkills?.includes(applyMod.skillTypeID);
+
           case "ItemModifier":
             return true;
           /* default:
             return false; */
         }
       case "otherID":
-        switch (mod.func) {
+        switch (applyMod.func) {
           case "ItemModifier":
             return (
-              type.domainID.split(".")[0] === mod.domainID.split(".")[0] &&
-              type.domainID.split(".")[1] === mod.domainID.split(".")[1]
+              type.domainID.split(".")[0] === applyMod.domainID.split(".")[0] &&
+              type.domainID.split(".")[1] === applyMod.domainID.split(".")[1]
             );
           /* default:
             return false; */
@@ -406,7 +409,7 @@ export default class Fit {
       case "targetID":
         return false; // warp scrambler
       default:
-        console.error("TYPE_APPLICABLE_UNKNOWN", type, "<-", mod); //TESTETS
+        console.error("TYPE_APPLICABLE_UNKNOWN", type, "<-", applyMod); //TESTETS
         return false;
     }
   };

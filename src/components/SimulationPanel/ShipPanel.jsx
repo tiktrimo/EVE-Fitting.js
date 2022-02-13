@@ -7,15 +7,17 @@ import ContorlPanel from "./ContorlPanel";
 import ShipStatusPanel from "./ShipStatusPanel";
 
 // TODO: pause simulation on page exit. (4)
-// TODO: make drone summary works (2)
 // TODO: sorting capacitor booster charge is not working (3) ancillary shield booster not working(small)
 // TODO: Rig dont get deleted! even if they are not fit in(different size)
-// TODO: Rework reload mechanics.
+// TODO: log overflow. log not showing correctly (1)
 
 const summariesReducer = /* (props) => */ (state, action) => {
   switch (action.type) {
     case "initialize":
       return action.payload;
+
+    case "update_dispatchLog":
+      return { ...state, dispatchLog: action.payload };
 
     case "moduleSet_update_activation":
       action.payload.moduleSet.forEach((module) => {
@@ -51,7 +53,10 @@ const summariesReducer = /* (props) => */ (state, action) => {
 
       if (!!action.operation) {
         const delta = getSum(state) - oldSum;
-        state.log = getLog(state, action, delta);
+        state.dispatchLog({
+          type: "update",
+          payload: getLog(state, action, delta),
+        });
       }
 
       return { ...state };
@@ -90,9 +95,12 @@ export default function ShipPanel(props) {
   const [updateFlag, setUpdateFlag] = useState(false);
 
   useEffect(() => {
-    if (!!summaries.log?.ID)
-      props.dispatchLog({ type: "update", payload: summaries.log });
-  }, [summaries.log]);
+    if (!!summaries && !!props.dispatchLog)
+      dispatchSummaries({
+        type: "update_dispatchLog",
+        payload: props.dispatchLog,
+      });
+  }, [props.dispatchLog]);
 
   useEffect(() => {
     props.shareDispatchSummaries(() => dispatchSummaries);
@@ -105,6 +113,7 @@ export default function ShipPanel(props) {
     const newSummaries = Summary.getSummaries(props.slots, props.location);
     //prettier-ignore
     /* newSummaries.resistanceTable = Summary.getResistanceTable(newSummaries, props.slots); */
+    newSummaries.dispatchLog = props.dispatchLog;
     dispatchSummaries({ type: "initialize", payload: newSummaries });
     props.shareSummaries(newSummaries);
     setUpdateFlag(!updateFlag);

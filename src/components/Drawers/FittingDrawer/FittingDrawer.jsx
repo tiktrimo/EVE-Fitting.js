@@ -179,6 +179,7 @@ export default function FittingDrawer(props) {
                   key={variant}
                   importFitText={props.importFitText}
                   importStateFlag={importStateFlag}
+                  setImportFitText={props.setImportFitText}
                   dispatchImportStateFlag={dispatchImportStateFlag}
                   variant={variant}
                   slotCount={getSlotCount(props.fit, variant)}
@@ -207,11 +208,11 @@ function switchExpandOpen(props) {
   if (!props.expand) return "rootRetract";
   return "rootExpand";
 }
-export function getSlotCount(slots, variant) {
+export function getSlotCount(fit, variant) {
   if (variant === "SHIP") return 1;
-  if (!slots.ship || !slots.ship.typeAttributesStats) return 0;
+  if (!fit.ship || !fit.ship.typeAttributesStats) return 0;
 
-  const ship = slots.ship;
+  const ship = fit.ship;
   const attrs = ship.typeAttributesStats;
   switch (variant) {
     case "MISC_SLOT":
@@ -234,7 +235,7 @@ export function getSlotCount(slots, variant) {
     case "RIG_SLOT":
       return attrs.find((attr) => attr.attributeID === 1137)?.value; //rigslot count is not sure 1137 or 1154
     case "DRONE_SLOT":
-      return getDroneSlotCount(slots);
+      return getDroneSlotCount(fit);
   }
 }
 function getDroneSlotCount(slots) {

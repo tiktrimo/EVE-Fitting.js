@@ -76,6 +76,7 @@ export default function Slot(props) {
 
   const handlePressOpen = useCallback(() => {
     props.setActiveSlotNumber(props.index);
+    props.setImportFitText(false); // Only here to bipass error occured while fetching data from server.
     switch (props.variant) {
       case "RIG_SLOT":
         props.dispatchSlotsOpen({

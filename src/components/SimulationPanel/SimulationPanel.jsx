@@ -154,9 +154,13 @@ function initializeSlots(slots) {
 }
 
 function createDebugFile(slots0, slots1, summaries0, summaries1) {
-  console.log(slots0, slots1, summaries0, summaries1);
-  if (!!"remove this line if you need to save log file seperately!")
+  if (!!"remove this block if you need to save log file seperately!") {
+    console.log({
+      up: { slots: slots0, fit: Fit.apply(slots0), summaries: summaries0 },
+      down: { slots: slots1, fit: Fit.apply(slots1), summaries: summaries1 },
+    });
     return false;
+  }
 
   const filename = "Error log";
   const data = JSON.stringify({

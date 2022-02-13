@@ -69,7 +69,8 @@ export default function Slots(props) {
 
     // Check if ship in the slots is loaded first. if not dont import module.
     (async () => {
-      if (await getIsShipLoaded(props)) importSlots(props, setters);
+      if (await getIsShipLoaded(props))
+        importSlots(props, rawItems, rawCharges, setters);
     })();
   }, [props.importFitText, props.slots.ship?.typeID]);
 
@@ -200,6 +201,7 @@ export default function Slots(props) {
                 }
                 index={index}
                 setActiveSlotNumber={setActiveSlotNumber}
+                setImportFitText={props.setImportFitText}
                 cache={props.cache}
               />
             );
@@ -248,7 +250,7 @@ function extractHardpoints(fit) {
   );
   return { turretPointLoad, launcherPointLoad };
 }
-function importSlots(props, setters) {
+function importSlots(props, rawItems, rawCharges, setters) {
   if (!props.importFitText) return undefined;
 
   (async (fitText) => {
@@ -272,10 +274,13 @@ function importSlots(props, setters) {
       items[index] = !!slot.item && { ...slot.item, typeState: "activation" };
       charges[index] = !!slot.charge && {...slot.charge, typeState: "passive",};
     });
-    setters.setRawItems(items);
-    setters.setRawCharges(charges);
-
-    props.dispatchImportStateFlag({ type: props.variant });
+    // If there is no change, set import flag true. If there is change than set import flag true at end of @processFetchedData
+    if (checkData(rawItems, rawCharges) === checkData(items, charges))
+      props.dispatchImportStateFlag({ type: props.variant });
+    else {
+      setters.setRawItems(items);
+      setters.setRawCharges(charges);
+    }
   })(props.importFitText);
 }
 async function getIsShipLoaded(props) {
@@ -286,7 +291,8 @@ async function getIsShipLoaded(props) {
     const fitFromText = EFT.buildFitFromText(fitText, typeIDs);
     const ship = await props.cache.wait(`typeID/${fitFromText.ship.typeID}`);
 
-    return ship.typeID === props.slots.ship?.typeID;
+    if (!ship) return false;
+    else return ship.typeID === props.slots.ship?.typeID;
   })(props.importFitText);
 }
 function getSlotCountAtImport(fit, fitFromText, props) {
@@ -352,8 +358,11 @@ function processFetchedData(props, data, rawItems, rawCharges, setters) {
   });
   if (validateFetchedSlots(payload))
     props.dispatchSlots({ type: props.variant, payload: payload });
-  setters.setFetchedCharges([...charges]); // If validation of charge fails, set rawCharge as false value
+  setters.setFetchedCharges([...charges]);
   setters.setFetchedItems([...items]);
+
+  if (!!props.importFitText)
+    props.dispatchImportStateFlag({ type: props.variant });
 }
 
 function validateFetchedSlots(slots) {
