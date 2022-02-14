@@ -63,6 +63,7 @@ export default function ModuleButton(props) {
         setIsReloading={setIsReloading}
       />
       <ModuleActivation
+        summaries={props.summaries}
         moduleSet={props.moduleSet}
         dispatchSummaries={props.dispatchSummaries}
         dispatchTargetSummaries={props.dispatchTargetSummaries}

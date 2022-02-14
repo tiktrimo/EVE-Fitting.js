@@ -34,6 +34,7 @@ export default function ContorlPanel(props) {
         return (
           <ModuleButton
             key={moduleSet[0].summary.path}
+            summaries={props.summaries}
             moduleSet={moduleSet}
             dispatchSummaries={props.dispatchSummaries}
             dispatchTargetSummaries={props.dispatchTargetSummaries}

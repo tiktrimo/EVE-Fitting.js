@@ -12,7 +12,7 @@ import React, { useCallback, useEffect } from "react";
 import { useState } from "react";
 import ShipPanel from "./ShipPanel";
 import Fit from "../../fitter/src/Fit";
-import LogPanel from "./LogPanel";
+import Summary from "../FitCard/Stats/services/Summary";
 import ShipCanvas from "../simpleEdition/ShipCanvas";
 import EFT from "../Drawers/services/EFT";
 
@@ -156,8 +156,20 @@ function initializeSlots(slots) {
 function createDebugFile(slots0, slots1, summaries0, summaries1) {
   if (!!"remove this block if you need to save log file seperately!") {
     console.log({
-      up: { slots: slots0, fit: Fit.apply(slots0), summaries: summaries0 },
-      down: { slots: slots1, fit: Fit.apply(slots1), summaries: summaries1 },
+      up: {
+        slots: slots0,
+        innerSlots: summaries0.utils.slots,
+        fit: Fit.apply(slots0),
+        innerFit: summaries0.utils.fit,
+        summaries: summaries0,
+      },
+      down: {
+        slots: slots1,
+        innerSlots: summaries1.utils.slots,
+        fit: Fit.apply(slots1),
+        innerFit: summaries1.utils.fit,
+        summaries: summaries1,
+      },
     });
     return false;
   }

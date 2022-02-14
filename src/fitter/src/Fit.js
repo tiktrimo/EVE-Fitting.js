@@ -48,6 +48,7 @@ export default class Fit {
       lowSlots: false,
       rigSlots: false,
       droneSlots: false,
+      exSlots: false,
     },
   };
   static mapSlots = function (fit, callback, partialConfig) {
@@ -66,6 +67,7 @@ export default class Fit {
       "lowSlots",
       "rigSlots",
       "droneSlots",
+      "exSlots",
     ].reduce((acc, slotName) => {
       if (config.isIterate[slotName] === true)
         return acc.concat(Fit.#mapSlots_slots(fit[slotName], callback));
@@ -77,6 +79,23 @@ export default class Fit {
     return slots.map((slot) => {
       return callback(slot);
     });
+  };
+
+  static applyEX = function (fit) {
+    const fitWithDomainID = Fit.#giveDomainID(fit);
+    const exSlotsWithDomainID = Fit.#giveDomainID_slots(fit.exSlots, "exSlots");
+
+    const exBoard = Fit.#createBoard_slots(exSlotsWithDomainID);
+    const exStaticBoards = Fit.#applyBoard_createStaticBoard(
+      exBoard.filter((mod) => mod.domain === "target")
+    );
+    const board = Fit.#createBoard(fitWithDomainID);
+    const staticBoard = Fit.#applyBoard_createStaticBoard(board);
+
+    return Fit.#applyBoard(
+      Fit.#applyBoard(fitWithDomainID, staticBoard),
+      exStaticBoards
+    );
   };
 
   static apply = function (fit) {
@@ -296,21 +315,9 @@ export default class Fit {
   };
   static #applyBoard_modIsModApplicable = function (targetMod, applyMod) {
     if (!Fit.#applyBoard_modIsStateApplicable(applyMod)) {
-      /*  if (
-        !(
-          applyMod.typeState === "activation" &&
-          applyMod.effectCategory === "overload"
-        )
-      )
-        console.log(
-          "STATE",
-          `${applyMod.typeState} <-/- ${applyMod.effectCategory}`,
-          targetMod,
-          "<-",
-          applyMod
-        ); */ //TESTETS
       return false;
     }
+
     switch (applyMod.domain) {
       case "itemID":
         switch (applyMod.func) {
@@ -337,6 +344,8 @@ export default class Fit {
           case "ItemModifier": // ballistics computer
             return true;
         }
+      case "target":
+        return false;
       default:
         // Temporary exception. Only to bipass error message. seems this mod applied to NPC ships
         if (
@@ -351,16 +360,6 @@ export default class Fit {
   };
   static #applyBoard_modIsTypeApplicable = function (type, applyMod) {
     if (!Fit.#applyBoard_modIsStateApplicable(applyMod)) {
-      /* if (
-        !(applyMod.typeState === "activation" && applyMod.effectCategory === "overload")
-      )
-        console.log(
-          "STATE",
-          `${applyMod.typeState} <-/- ${applyMod.effectCategory}`,
-          type,
-          "<-",
-          applyMod
-        ); */ //TESTETS
       return false;
     }
     if (type.domainID === undefined) console.log("domainID missing", type);
@@ -372,6 +371,8 @@ export default class Fit {
           /* default:
             return false; */
         }
+      case "target":
+        if (applyMod.rootID === type.rootID) return false; // if rootID is different switch case is same with shipID
       case "shipID":
         switch (applyMod.func) {
           case "ItemModifier":
@@ -406,8 +407,6 @@ export default class Fit {
         }
       case "structureID":
         return false;
-      case "targetID":
-        return false; // warp scrambler
       default:
         console.error("TYPE_APPLICABLE_UNKNOWN", type, "<-", applyMod); //TESTETS
         return false;
@@ -452,6 +451,7 @@ export default class Fit {
     const highSlots = Fit.#giveDomainID_slots(fit.highSlots, "highSlots");
     const rigSlots = Fit.#giveDomainID_slots(fit.rigSlots, "rigSlots");
     const droneSlots = Fit.#giveDomainID_slots(fit.droneSlots, "droneSlots");
+    const exSlots = Fit.#giveDomainID_slots(fit.exSlots, "exSlots");
 
     return {
       skills,
@@ -462,6 +462,7 @@ export default class Fit {
       highSlots,
       rigSlots,
       droneSlots,
+      exSlots,
     };
   };
   static #giveDomainID_slots = function (slots, slotName) {
@@ -501,6 +502,10 @@ export default class Fit {
     const highSlots = Fit.#createBoard_slots(fit.highSlots);
     const rigSlots = Fit.#createBoard_slots(fit.rigSlots);
     const droneSlots = Fit.#createBoard_slots(fit.droneSlots);
+    // exSlots is for electronic warfare. other ship's calculated slot will be inserted. and the mod should have domain: target to affect current calculating ship
+    const exSlots = Fit.#createBoard_slots(fit.exSlots).filter(
+      (mod) => mod.domain === "target"
+    );
 
     return [
       ...skills,
@@ -511,6 +516,7 @@ export default class Fit {
       ...highSlots,
       ...rigSlots,
       ...droneSlots,
+      ...exSlots,
     ];
   };
   static #createBoard_slots = function (slots, isStackException = false) {
@@ -585,6 +591,7 @@ export default class Fit {
           effectName: effect.effectName,
           effectCategory: effect.effectCategory,
           modifyingAttributeValue: modifyingAttributeValue,
+          rootID: type.rootID,
           typeID: type.typeID,
           typeState: type.iconID !== 33 ? type.typeState : "passive",
           typeGroupID: type.groupID,

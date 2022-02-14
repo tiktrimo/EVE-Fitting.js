@@ -345,7 +345,7 @@ const GET_PRIVATE_EFFECTS = (typeID, effectID) => {
         effectCategory: "target",
         modifierInfo: [
           {
-            domain: "shipID",
+            domain: "target",
             func: "ItemModifier",
             modifiedAttributeID: 37, //Maximum Velocity
             modifyingAttributeID: 20, //Maximum Velocity Bonus
@@ -361,7 +361,7 @@ const GET_PRIVATE_EFFECTS = (typeID, effectID) => {
         effectCategory: "target",
         modifierInfo: [
           {
-            domain: "shipID",
+            domain: "target",
             func: "ItemModifier",
             modifiedAttributeID: 552, //Signature Radius
             modifyingAttributeID: 554, //Signature Radius Modifier
@@ -377,25 +377,28 @@ const GET_PRIVATE_EFFECTS = (typeID, effectID) => {
         effectCategory: "target",
         modifierInfo: [
           {
-            domain: "itemID",
-            func: "ItemModifier",
+            domain: "target",
+            func: "LocationRequiredSkillModifier",
             modifiedAttributeID: 160, // Turret Tracking
             modifyingAttributeID: 767, //Tracking Speed Bonus
             operation: "postPercent",
+            skillTypeID: 3300,
           },
           {
-            domain: "itemID",
-            func: "ItemModifier",
+            domain: "target",
+            func: "LocationRequiredSkillModifier",
             modifiedAttributeID: 54, //Optimal Range
             modifyingAttributeID: 351, //Optimal Range Bonus
             operation: "postPercent",
+            skillTypeID: 3300,
           },
           {
-            domain: "itemID",
-            func: "ItemModifier",
+            domain: "target",
+            func: "LocationRequiredSkillModifier",
             modifiedAttributeID: 158, //Accuracy falloff
             modifyingAttributeID: 349, //Falloff Bonus
             operation: "postPercent",
+            skillTypeID: 3300,
           },
         ],
       };
@@ -406,18 +409,20 @@ const GET_PRIVATE_EFFECTS = (typeID, effectID) => {
         effectCategory: "target",
         modifierInfo: [
           {
-            domain: "itemID",
-            func: "ItemModifier",
+            domain: "target",
+            func: "LocationRequiredSkillModifier",
             modifiedAttributeID: 653, //Explosion Velocity
             modifyingAttributeID: 847, //Explosion Velocity Bonus
             operation: "postPercent",
+            skillTypeID: 3319,
           },
           {
-            domain: "itemID",
-            func: "ItemModifier",
+            domain: "target",
+            func: "LocationRequiredSkillModifier",
             modifiedAttributeID: 654, //Explosion Radius
             modifyingAttributeID: 848, //Explosion Radius Bonus
             operation: "postPercent",
+            skillTypeID: 3319,
           },
         ],
       };

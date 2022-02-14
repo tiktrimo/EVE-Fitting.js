@@ -327,8 +327,8 @@ function processFetchedData(props, data, rawItems, rawCharges, setters) {
     const itemCount = rawItems[index]?.typeCount;
     const itemState = !!rawItems[index]
       ? Fit.getCurrentState({
-          ...rawItems[index],
           ...fetcheditem,
+          ...rawItems[index],
         })
       : undefined;
     const item = !!rawItems[index]

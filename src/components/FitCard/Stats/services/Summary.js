@@ -52,6 +52,24 @@ export default class Summary extends Stat {
 
   static getSummaries = (slots, location) => {
     const _slots = Summary.addSummaries_duplicateSlots(slots);
+    // Assign rootID to each of slots
+    slots.ship.rootID = location.rootID;
+    Fit.mapSlots(
+      _slots,
+      (slot) => {
+        if (!!slot.item) slot.item.rootID = location.rootID;
+        if (!!slot.charge) slot.charge.rootID = location.rootID;
+      },
+      {
+        isIterate: {
+          highSlots: true,
+          midSlots: true,
+          lowSlots: true,
+          droneSlots: true,
+        },
+      }
+    );
+    // Make blank slots. used place summary to make summaries
     const blankSlots = {
       highSlots: Array.from(slots.highSlots, () => ({})),
       midSlots: Array.from(slots.midSlots, () => ({})),
@@ -66,7 +84,9 @@ export default class Summary extends Stat {
 
     const fit = Fit.apply(_slots);
     const summaries = Summary.addSummaries(fit, blankSlots, location);
-    summaries.slots = _slots;
+    summaries.utils = {};
+    summaries.utils.slots = _slots;
+    summaries.utils.fit = fit;
     summaries.skills = undefined;
 
     return summaries;
@@ -90,6 +110,7 @@ export default class Summary extends Stat {
 
         const summary = Summary.getSummary_module(slot);
         summary["root"] = targetSlots;
+        summary["rootID"] = location.rootID;
         const _slot = !!summary && SimFit.toPath(targetSlots, summary.path);
         if (!!_slot) _slot["summary"] = summary;
       },
@@ -254,6 +275,12 @@ export default class Summary extends Stat {
           case 6730: // effectID: 6730, effectName: ""moduleBonusMicrowarpdrive""
           case 6731: // effectID: 6731, effectName: 'moduleBonusAfterburner'
             operation = "misc";
+            break;
+          case 6426: //effectID: 6426, effectName: "remoteWebifierFalloff"
+          case 6425: // effectID: 6425, effectName: 'remoteTargetPaintFalloff'
+          case 6424: // effectID: 6424, effectName: 'shipModuleTrackingDisruptor'
+          case 6423: // effectID: 6423, effectName: 'shipModuleGuidanceDisruptor'
+            operation = "target";
             break;
           default:
             return false;

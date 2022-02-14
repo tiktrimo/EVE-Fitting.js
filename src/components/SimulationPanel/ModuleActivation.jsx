@@ -1,10 +1,5 @@
 import React, { useEffect } from "react";
-import {
-  Button,
-  CircularProgress,
-  makeStyles,
-  useTheme,
-} from "@material-ui/core";
+import { CircularProgress, makeStyles, useTheme } from "@material-ui/core";
 import { useState } from "react";
 import {
   useInstaActivationInterval,
@@ -12,6 +7,7 @@ import {
   useProgressCircleInterval,
 } from "../../services/intervalHooks";
 import Simulator from "../FitCard/Stats/services/Simulator";
+import { toPath } from "./ShipPanel.jsx";
 
 const useStyles = (duration, flip) =>
   makeStyles((theme) => ({
@@ -57,6 +53,7 @@ export default function ModuleActivation(props) {
       : null
   );
 
+  // Instant activation module such as shield booster, projectile, hybrid, launcher etc...
   useInstaActivationInterval(() => {
     activateModules(
       props.moduleSet,
@@ -65,6 +62,7 @@ export default function ModuleActivation(props) {
     );
   }, getInstaActivationDelay(props.moduleSet[0].summary));
 
+  // Delayed activation module  such as armor repairer, nodferatu etc...
   useLazyActivationInterval(() => {
     activateModules(
       props.moduleSet,
@@ -73,11 +71,14 @@ export default function ModuleActivation(props) {
     );
   }, getLazyActivationDelay(props.moduleSet[0].summary));
 
+  // Module that changes stat of module or ship. shield hardener, afterburner, stasis webifier etc...
   useEffect(() => {
-    if (["resistance", "misc"].includes(props.moduleSet[0].summary.operation))
-      props.dispatchSummaries({
-        type: "summary_update_ship",
-      });
+    updateSummaries(
+      props.summaries,
+      props.moduleSet,
+      props.dispatchSummaries,
+      props.dispatchTargetSummaries
+    );
   }, [props.moduleSet[0].summary.activationState.isActive]);
 
   return (
@@ -116,6 +117,33 @@ export default function ModuleActivation(props) {
   );
 }
 
+function updateSummaries(
+  summaries,
+  moduleSet,
+  dispatchSummaries,
+  dispatchTargetSummaries
+) {
+  switch (moduleSet[0].summary.operation) {
+    case "resistance":
+    case "misc":
+      dispatchSummaries({
+        type: "summary_update_ship",
+      });
+      break;
+    case "target":
+      dispatchTargetSummaries({
+        type: "summary_update_exSlots",
+        payload: {
+          exSlot: toPath(summaries.utils.fit, moduleSet[0].summary.path),
+          isActive: moduleSet[0].summary.activationState.isActive,
+        },
+      });
+      break;
+    default:
+      return;
+  }
+}
+
 function activateModules(
   moduleSet,
   dispatchSummaries,
@@ -137,33 +165,38 @@ function activateModules(
       });
       break;
     case "capacitor":
-      const delta = Simulator.simulate_capacitor_getDelta(moduleSet[0].summary);
-      const isDispatch = getCapacitorDispatchNecessity(
-        moduleSet[0].summary,
-        delta
-      );
-
-      if (isDispatch.self)
-        dispatchSummaries({
-          type: "summary_load_apply_delta",
-          payload: {
-            summary: moduleSet[0].summary,
-            capacitorDelta: delta.self.capacitorDelta,
-          },
-          operation: moduleSet[0].summary.operation,
-        });
-
-      if (isDispatch.target)
-        dispatchTargetSummaries({
-          type: "summary_load_apply_delta",
-          payload: {
-            summary: moduleSet[0].summary,
-            capacitorDelta: delta.target.capacitorDelta,
-          },
-          operation: moduleSet[0].summary.operation,
-        });
+      dispatchCapacitor(moduleSet, dispatchSummaries, dispatchTargetSummaries);
       break;
   }
+}
+
+function dispatchCapacitor(
+  moduleSet,
+  dispatchSummaries,
+  dispatchTargetSummaries
+) {
+  const delta = Simulator.simulate_capacitor_getDelta(moduleSet[0].summary);
+  const isDispatch = getCapacitorDispatchNecessity(moduleSet[0].summary, delta);
+
+  if (isDispatch.self)
+    dispatchSummaries({
+      type: "summary_load_apply_delta",
+      payload: {
+        summary: moduleSet[0].summary,
+        capacitorDelta: delta.self.capacitorDelta,
+      },
+      operation: moduleSet[0].summary.operation,
+    });
+
+  if (isDispatch.target)
+    dispatchTargetSummaries({
+      type: "summary_load_apply_delta",
+      payload: {
+        summary: moduleSet[0].summary,
+        capacitorDelta: delta.target.capacitorDelta,
+      },
+      operation: moduleSet[0].summary.operation,
+    });
 }
 
 function dispatchActivation(props) {

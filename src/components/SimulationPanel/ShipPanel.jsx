@@ -9,7 +9,7 @@ import ShipStatusPanel from "./ShipStatusPanel";
 // TODO: pause simulation on page exit. (4)
 // TODO: sorting capacitor booster charge is not working (3) ancillary shield booster not working(small)
 // TODO: Rig dont get deleted! even if they are not fit in(different size)
-// TODO: log overflow. log not showing correctly (1)
+// TODO: update effectCategory + func + domain in privateEffect 10009~last in @ buildTypeDogmaEffects (1)
 
 const summariesReducer = /* (props) => */ (state, action) => {
   switch (action.type) {
@@ -17,7 +17,7 @@ const summariesReducer = /* (props) => */ (state, action) => {
       return action.payload;
 
     case "update_dispatchLog":
-      return { ...state, dispatchLog: action.payload };
+      return { ...state, utils: { dispatchLog: action.payload } };
 
     case "moduleSet_update_activation":
       action.payload.moduleSet.forEach((module) => {
@@ -53,7 +53,7 @@ const summariesReducer = /* (props) => */ (state, action) => {
 
       if (!!action.operation) {
         const delta = getSum(state) - oldSum;
-        state.dispatchLog({
+        state.utils.dispatchLog({
           type: "update",
           payload: getLog(state, action, delta),
         });
@@ -74,6 +74,36 @@ const summariesReducer = /* (props) => */ (state, action) => {
       itemSummary.root = slot.summary.root;
       itemSummary.target = slot.summary.target;
       slot.summary = itemSummary;
+
+      return { ...state };
+
+    case "summary_update_exSlots":
+      if (!state.utils.slots.exSlots) state.utils.slots.exSlots = [];
+      const indexOfSlot = state.utils.slots.exSlots.findIndex(
+        (slot) =>
+          slot.item.rootID === action.payload.exSlot.item.rootID &&
+          slot.item.domainID === action.payload.exSlot.item.domainID
+      );
+
+      if (action.payload.isActive === true) {
+        if (indexOfSlot >= 0) return state;
+
+        action.payload.exSlot.item.typeState = "activation";
+        state.utils.slots.exSlots.push(action.payload.exSlot);
+      } else {
+        if (indexOfSlot < 0) return state;
+
+        action.payload.exSlot.item.typeState = "passive";
+        state.utils.slots.exSlots.splice(indexOfSlot, 1);
+      }
+
+      const fit = Fit.apply(state.utils.slots);
+      const newShipSummary = Summary.getSummary_ship(
+        fit,
+        state.summary.location
+      );
+
+      state.summary.capacity = newShipSummary.capacity;
 
       return { ...state };
 
@@ -111,9 +141,7 @@ export default function ShipPanel(props) {
     if (!props.slots) return;
 
     const newSummaries = Summary.getSummaries(props.slots, props.location);
-    //prettier-ignore
-    /* newSummaries.resistanceTable = Summary.getResistanceTable(newSummaries, props.slots); */
-    newSummaries.dispatchLog = props.dispatchLog;
+    newSummaries.utils.dispatchLog = props.dispatchLog;
     dispatchSummaries({ type: "initialize", payload: newSummaries });
     props.shareSummaries(newSummaries);
     setUpdateFlag(!updateFlag);
@@ -166,36 +194,6 @@ function calculateHP(state, action, type) {
   else if (result < 0) return 0;
   else return result;
 }
-function updateResistance(state) {
-  const resistanceSlots = Fit.mapSlots(
-    state,
-    (slot) => {
-      if (slot?.summary?.operation === "resistance") return slot;
-      else return false;
-    },
-    {
-      isIterate: {
-        midSlots: true,
-        lowSlots: true,
-      },
-    }
-  ).filter((slot) => !!slot);
-  const resistanceTag = resistanceSlots
-    .reduce((acc, slot) => {
-      return acc.concat(
-        `${slot.summary.path}.${
-          slot.summary.activationState.isActive ? "activation" : "passive"
-        }|`
-      );
-    }, "")
-    .slice(0, -1);
-
-  // Serious mutation
-  state.summary.capacity = {
-    ...state.summary.capacity,
-    ...state.resistanceTable[resistanceTag],
-  };
-}
 
 function getUpdatedShipSummary(summaries) {
   Fit.mapSlots(
@@ -203,7 +201,7 @@ function getUpdatedShipSummary(summaries) {
     (summerizedSlot) => {
       if (!summerizedSlot.summary) return;
 
-      const slot = toPath(summaries.slots, summerizedSlot.summary.path);
+      const slot = toPath(summaries.utils.slots, summerizedSlot.summary.path);
       if (!!slot.item.typeState && !!summerizedSlot.summary.activationState)
         slot.item.typeState = summerizedSlot.summary.activationState.isActive
           ? "activation"
@@ -218,21 +216,21 @@ function getUpdatedShipSummary(summaries) {
     }
   );
 
-  const fit = Fit.apply(summaries.slots);
+  const fit = Fit.apply(summaries.utils.slots);
   const shipSummary = Summary.getSummary_ship(fit, summaries.summary.location);
 
   return shipSummary;
 }
 
 function getUpdatedItemSummary(summaries, payload) {
-  const slot = toPath(summaries.slots, payload.moduleSet[0].summary.path);
+  const slot = toPath(summaries.utils.slots, payload.moduleSet[0].summary.path);
   const savedCharge = slot.charge;
 
   // Unrendered mutation. after calculation of fit it will recover data from savedCharge.
   if (payload.moduleSet[0].summary.activationState.activationLeft === 0)
     slot.charge = false;
 
-  const fit = Fit.apply(summaries.slots);
+  const fit = Fit.apply(summaries.utils.slots);
   slot.charge = savedCharge;
 
   const itemSummary = Summary.getSummary_module(
@@ -242,7 +240,7 @@ function getUpdatedItemSummary(summaries, payload) {
   return itemSummary;
 }
 
-function toPath(slots, path) {
+export function toPath(slots, path) {
   if (!slots || !path) return {};
   return path.split(".").reduce((p, c) => (p && p[c]) || undefined, slots);
 }
