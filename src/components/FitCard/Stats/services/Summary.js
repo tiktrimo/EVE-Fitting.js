@@ -21,37 +21,28 @@ const capPrioritySet = {
 };
 
 export default class Summary extends Stat {
-  static updateSummaries = (summarizedSlots, location) => {
-    Fit.mapSlots(
-      summarizedSlots,
-      (slot) => {
-        if (!slot.item) return;
-        /*  if (slot?.summary?.activationState?.isActive === false) */
-        // MUTATION!!
-        slot.item.typeState = "passive";
-        /*  else if (slot?.summary?.activationState?.isActive === true); */
-        // MUTATION!!
-        /*   slot.item.typeState = "activation"; */
-      },
-      {
-        isIterate: {
-          highSlots: true,
-          midSlots: true,
-          lowSlots: true,
-          droneSlots: true,
-        },
-      }
-    );
+  static updateSummaries = (slots, location) => {
+    // Make blank slots. used place summary to make summaries
+    const blankSlots = {
+      highSlots: Array.from(slots.highSlots, () => ({})),
+      midSlots: Array.from(slots.midSlots, () => ({})),
+      lowSlots: Array.from(slots.lowSlots, () => ({})),
+      droneSlots: Array.from(slots.droneSlots, () => ({})),
+    };
 
-    const fit = Fit.apply(summarizedSlots);
-    const shipSummary = Summary.getSummary_ship(fit, location);
-    shipSummary.load = summarizedSlots.summary.load;
+    const fit = Fit.apply(slots);
+    const summaries = Summary.addSummaries(fit, blankSlots, location);
+    summaries.utils = {};
+    summaries.utils.slots = slots;
+    summaries.utils.fit = fit;
+    summaries.skills = undefined;
 
-    return summarizedSlots;
+    return summaries;
   };
 
   static getSummaries = (slots, location) => {
     const _slots = Summary.addSummaries_duplicateSlots(slots);
+
     // Assign rootID to each of slots
     slots.ship.rootID = location.rootID;
     Fit.mapSlots(
@@ -88,7 +79,6 @@ export default class Summary extends Stat {
     summaries.utils.slots = _slots;
     summaries.utils.fit = fit;
     summaries.skills = undefined;
-
     return summaries;
   };
   static getSummarizedSlots = (slots, location) => {
@@ -107,7 +97,6 @@ export default class Summary extends Stat {
       fit,
       (slot) => {
         if (!slot.item) return false;
-
         const summary = Summary.getSummary_module(slot);
         summary["root"] = targetSlots;
         summary["rootID"] = location.rootID;
@@ -122,6 +111,7 @@ export default class Summary extends Stat {
         },
       }
     );
+
     Fit.mapSlots(
       fit,
       (slot) => {
@@ -220,6 +210,7 @@ export default class Summary extends Stat {
 
   static getSummary_module = (slot) => {
     if (!slot?.item?.typeEffectsStats) return false;
+
     const item = slot.item;
     const charge = slot.charge;
 
@@ -238,6 +229,7 @@ export default class Summary extends Stat {
 
     const activationDataSet = Summary.createActivationDataSet(slot);
     const path = item.domainID.split(".").slice(0, 2).join("."); //eg)highSlots.1
+
     const effectSummary = item.typeEffectsStats
       .map((efft) => {
         let summary = {};
@@ -285,10 +277,6 @@ export default class Summary extends Stat {
           default:
             return false;
         }
-
-        const activationPriority = Summary.getActivationPriority(efft);
-        activationDataSet.activationState["activationPriority"] =
-          activationPriority;
 
         return {
           ...summary,

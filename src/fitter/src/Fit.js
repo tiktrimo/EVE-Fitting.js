@@ -81,30 +81,14 @@ export default class Fit {
     });
   };
 
-  static applyEX = function (fit) {
-    const fitWithDomainID = Fit.#giveDomainID(fit);
-    const exSlotsWithDomainID = Fit.#giveDomainID_slots(fit.exSlots, "exSlots");
-
-    const exBoard = Fit.#createBoard_slots(exSlotsWithDomainID);
-    const exStaticBoards = Fit.#applyBoard_createStaticBoard(
-      exBoard.filter((mod) => mod.domain === "target")
-    );
-    const board = Fit.#createBoard(fitWithDomainID);
-    const staticBoard = Fit.#applyBoard_createStaticBoard(board);
-
-    return Fit.#applyBoard(
-      Fit.#applyBoard(fitWithDomainID, staticBoard),
-      exStaticBoards
-    );
-  };
-
-  static apply = function (fit) {
-    const fitWithDomainID = Fit.#giveDomainID(fit);
+  static apply = function (slots) {
+    const fitWithDomainID = Fit.#giveDomainID(slots);
 
     const board = Fit.#createBoard(fitWithDomainID);
     const staticBoard = Fit.#applyBoard_createStaticBoard(board);
+    const fit = Fit.#applyBoard(fitWithDomainID, staticBoard);
 
-    return Fit.#applyBoard(fitWithDomainID, staticBoard);
+    return fit;
   };
 
   static #applyBoard = function (fit, staticBoard) {
@@ -293,18 +277,14 @@ export default class Fit {
     const modStackables = [];
     const modNotStackables = [];
     mods.forEach((mod) => {
-      if (
-        mod.operation === "modAdd" ||
-        mod.operation === "modSub" ||
-        mod.operation === "postDiv" ||
-        mod.isStackException === true
-      )
+      if (mod.operation === "modAdd" || mod.operation === "modSub")
+        modStackables.unshift(mod);
+      else if (mod.operation === "postDiv" || mod.isStackException === true)
         modStackables.push(mod);
       else modNotStackables.push(mod);
     });
 
     const isModstackable = sampleMod.modifiedAttributeStackable;
-
     if (isModstackable === false) {
       modNotStackables.sort(compareFunc);
       modNotStackables.forEach((mod, index, array) => {

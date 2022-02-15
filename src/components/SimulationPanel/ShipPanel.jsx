@@ -9,7 +9,7 @@ import ShipStatusPanel from "./ShipStatusPanel";
 // TODO: pause simulation on page exit. (4)
 // TODO: sorting capacitor booster charge is not working (3) ancillary shield booster not working(small)
 // TODO: Rig dont get deleted! even if they are not fit in(different size)
-// TODO: update effectCategory + func + domain in privateEffect 10009~last in @ buildTypeDogmaEffects (1)
+// TODO: updating ship summary in electronic warfare is now done. start working on updating item summary (such as tracking disruptor)
 
 const summariesReducer = /* (props) => */ (state, action) => {
   switch (action.type) {
@@ -78,32 +78,7 @@ const summariesReducer = /* (props) => */ (state, action) => {
       return { ...state };
 
     case "summary_update_exSlots":
-      if (!state.utils.slots.exSlots) state.utils.slots.exSlots = [];
-      const indexOfSlot = state.utils.slots.exSlots.findIndex(
-        (slot) =>
-          slot.item.rootID === action.payload.exSlot.item.rootID &&
-          slot.item.domainID === action.payload.exSlot.item.domainID
-      );
-
-      if (action.payload.isActive === true) {
-        if (indexOfSlot >= 0) return state;
-
-        action.payload.exSlot.item.typeState = "activation";
-        state.utils.slots.exSlots.push(action.payload.exSlot);
-      } else {
-        if (indexOfSlot < 0) return state;
-
-        action.payload.exSlot.item.typeState = "passive";
-        state.utils.slots.exSlots.splice(indexOfSlot, 1);
-      }
-
-      const fit = Fit.apply(state.utils.slots);
-      const newShipSummary = Summary.getSummary_ship(
-        fit,
-        state.summary.location
-      );
-
-      state.summary.capacity = newShipSummary.capacity;
+      updateSummariesCapacity(state, action);
 
       return { ...state };
 
@@ -238,6 +213,57 @@ function getUpdatedItemSummary(summaries, payload) {
   );
 
   return itemSummary;
+}
+
+function updateSummariesCapacity(state, action) {
+  if (!state.utils.slots.exSlots) state.utils.slots.exSlots = [];
+  const indexOfSlot = state.utils.slots.exSlots.findIndex(
+    (slot) =>
+      slot.item.rootID === action.payload.exSlot.item.rootID &&
+      slot.item.domainID === action.payload.exSlot.item.domainID
+  );
+
+  // add/remove corresponding exSlot
+  if (action.payload.isActive === true) {
+    if (indexOfSlot >= 0) return state;
+
+    action.payload.exSlot.item.typeState = "activation";
+    state.utils.slots.exSlots.push(action.payload.exSlot);
+  } else {
+    if (indexOfSlot < 0) return state;
+
+    action.payload.exSlot.item.typeState = "passive";
+    state.utils.slots.exSlots.splice(indexOfSlot, 1);
+  }
+
+  // update summaries
+  const summaries = Summary.updateSummaries(
+    state.utils.slots,
+    state.summary.location
+  );
+  state.summary.capacity = summaries.summary.capacity;
+  Fit.mapSlots(
+    summaries,
+    (summerizedSlot) => {
+      if (!summerizedSlot.summary) return;
+
+      const slot = toPath(state, summerizedSlot.summary.path);
+      summerizedSlot.summary.activationInfo = slot.summary.activationInfo;
+      summerizedSlot.summary.activationState = slot.summary.activationState;
+      summerizedSlot.summary.load = slot.summary.load;
+      summerizedSlot.summary.root = slot.summary.root;
+      summerizedSlot.summary.target = slot.summary.target;
+      slot.summary = summerizedSlot.summary;
+    },
+    {
+      isIterate: {
+        midSlots: true,
+        lowSlots: true,
+        highSlots: true,
+        droneSlots: true,
+      },
+    }
+  );
 }
 
 export function toPath(slots, path) {

@@ -606,9 +606,9 @@ export class HAL {
         // MUTATION!
         schedule.summary.activationState.isActive = false;
         if (schedule.summary.operation === "resistance")
-          Summary.updateSummaries(summarizedSlot, location);
+          // Summary.updateSummaries(summarizedSlot, location); deprecated.
 
-        return;
+          return;
       } // TODO: loop through schedules with tick is moving
 
       HAL.#manageSchedules_executeSchedule(schedule);
