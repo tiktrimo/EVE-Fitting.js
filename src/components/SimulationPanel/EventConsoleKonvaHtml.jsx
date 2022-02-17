@@ -77,7 +77,7 @@ export function EventConsole(props) {
 
           return {
             description:
-              chargeName !== undefined
+              chargeName !== "undefined"
                 ? `${itemName}, ${chargeName}`
                 : `${itemName}`,
             value: log.delta,

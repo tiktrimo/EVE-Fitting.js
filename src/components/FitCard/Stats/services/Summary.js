@@ -450,6 +450,7 @@ export default class Summary extends Stat {
       capacity: { ...defense, ...misc, capacitor },
       location: location,
       description: `${fit.ship.typeName}`,
+      itemID: fit.ship.typeID,
     };
   };
 

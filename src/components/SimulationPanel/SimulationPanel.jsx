@@ -7,12 +7,12 @@ import {
   useTheme,
 } from "@material-ui/core";
 import SystemUpdateAltIcon from "@material-ui/icons/SystemUpdateAlt";
-import RefreshIcon from "@material-ui/icons/Refresh";
+import ArchiveIcon from "@material-ui/icons/Archive";
 import React, { useCallback, useEffect } from "react";
 import { useState } from "react";
 import ShipPanel from "./ShipPanel";
 import Fit from "../../fitter/src/Fit";
-import Summary from "../FitCard/Stats/services/Summary";
+import ReplayIcon from "@material-ui/icons/Replay";
 import ShipCanvas from "../simpleEdition/ShipCanvas";
 import EFT from "../Drawers/services/EFT";
 
@@ -49,12 +49,16 @@ export default function SimulationPanel(props) {
     setSlots1(_slots1);
 
     setUpdateFlag(!updateFlag);
-  });
+  }, [props.slotsSet, updateFlag]);
+
+  const refresh = useCallback(() => {
+    setUpdateFlag(!updateFlag);
+  }, [props.slotsSet, updateFlag]);
 
   return (
     <React.Fragment>
       <Card
-        style={{ width: "85%", minWidth: 300, maxWidth: 600 }}
+        style={{ width: "85%", minWidth: 300, maxWidth: 600, marginBottom: 24 }}
         elevation={3}
       >
         <Grid style={{ width: "100%" }}>
@@ -66,12 +70,13 @@ export default function SimulationPanel(props) {
               disableElevation
             >
               <Button className={classes.modeButton} onClick={initialize}>
-                <SystemUpdateAltIcon
+                <ArchiveIcon style={{ color: theme.palette.text.primary }} />
+                {/* <SystemUpdateAltIcon
                   style={{ color: theme.palette.text.primary }}
-                />
+                /> */}
               </Button>
-              <Button className={classes.modeButton}>
-                <RefreshIcon style={{ color: theme.palette.text.primary }} />
+              <Button className={classes.modeButton} onClick={refresh}>
+                <ReplayIcon style={{ color: theme.palette.text.primary }} />
               </Button>
             </ButtonGroup>
           </Grid>
@@ -89,8 +94,7 @@ export default function SimulationPanel(props) {
             updateFlag={updateFlag}
             //
             dispatchLog={dispatchLog}
-            logColor={theme.palette.property.blue}
-            targetLogColor={theme.palette.property.red}
+            color={theme.palette.property.blue}
           />
           <ShipPanel
             slots={slots1}
@@ -105,11 +109,11 @@ export default function SimulationPanel(props) {
             updateFlag={updateFlag}
             //
             dispatchLog={dispatchLog}
-            logColor={theme.palette.property.red}
-            targetLogColor={theme.palette.property.blue}
+            color={theme.palette.property.red}
           />
         </Grid>
       </Card>
+
       <Grid xs={12} container item justifyContent="center">
         <ShipCanvas
           onBoardSummaries={summaries0}

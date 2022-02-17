@@ -143,7 +143,7 @@ export default function ShipPanel(props) {
   return (
     <React.Fragment>
       <Grid xs={12} container item justifyContent="center">
-        <ShipStatusPanel summaries={summaries} />
+        <ShipStatusPanel summaries={summaries} color={props.color} />
       </Grid>
       <Grid xs={12} container item justifyContent="center">
         <ContorlPanel

@@ -26,6 +26,9 @@ const useStyles = makeStyles((theme) => ({
     width: "100%",
     height: "100%",
   },
+  barDeterminate: {
+    borderRight: `dashed ${theme.palette.text.primary} 0.1px`,
+  },
   childGrid: {
     width: "100%",
     height: "100%",
@@ -71,6 +74,9 @@ export default function LinearProgressLabel(props) {
     <Grid className={classes.root}>
       <Grid className={classes.rootGrid}>
         <LinearProgressFixed
+          classes={
+            props.showDivider && { bar1Determinate: classes.barDeterminate }
+          }
           className={classes.progress}
           variant="determinate"
           value={props.value}

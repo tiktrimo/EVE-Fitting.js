@@ -177,8 +177,16 @@ const ShipCanvasButtonGroup = (props) => {
         </ButtonGroup>
       </Grid>
       <Grid item xs={4}>
-        <ButtonGroup fullWidth style={{ color: theme.palette.text.primary }}>
+        <ButtonGroup fullWidth>
           <Button
+            style={{
+              color: props.isStageDrragable
+                ? theme.palette.background.paper
+                : theme.palette.text.primary,
+              backgroundColor: props.isStageDrragable
+                ? theme.palette.text.primary
+                : theme.palette.background.paper,
+            }}
             variant={props.isStageDrragable ? "contained" : "outlined"}
             onClick={handleStageDrragable}
           >
@@ -286,6 +294,7 @@ export default function ShipCanvas(props) {
         scaleX={stageScale}
         scaleY={stageScale}
         draggable={isStageDrragable}
+        onDragMove={() => {}} // Only here to supress warning message (if draggable = true there should be onDragMove function)
       >
         <Layer>
           <Text
