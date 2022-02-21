@@ -1,5 +1,6 @@
 import {
   Avatar,
+  Divider,
   Grid,
   ListItem,
   TextField,
@@ -19,7 +20,21 @@ import {
 } from "../Icons/defenseIcons.jsx";
 import { CapacitorChargeIcon } from "../Icons/capacitorIcons";
 
-const useStyles = makeStyles((theme) => ({}));
+const useStyles = makeStyles((theme) => ({
+  boldTypography: {
+    fontSize: 14,
+    fontWeight: 700,
+    color: "white",
+  },
+  headerRoot: {
+    height: 60,
+  },
+  headerAvatar: {
+    padding: 5,
+    width: 40,
+    height: 40,
+  },
+}));
 
 const GridBoldTypography = (props) => {
   const classes = useStyles();
@@ -42,10 +57,145 @@ const GridBoldTypography = (props) => {
             padding: "2px 0px 2px 0px",
             fontSize: 14,
             fontWeight: 700,
+            color: "white",
           },
         }}
       />
     </Grid>
+  );
+};
+
+const Header = (props) => {
+  const classes = useStyles();
+
+  return (
+    <Grid
+      className={classes.headerRoot}
+      style={{ backgroundColor: props.color }}
+      container
+      alignContent="center"
+    >
+      <Grid container item xs={2} justifyContent="center" alignContent="center">
+        <Avatar className={classes.headerAvatar}>
+          {feedSource(props.summaries.summary)}
+        </Avatar>
+      </Grid>
+      <Grid
+        container
+        item
+        xs={10}
+        justifyContent="center"
+        alignContent="center"
+      >
+        <GridBoldTypography
+          value={props.summaries.summary?.capacity.propulsion.maximumVelocity.toFixed(
+            0
+          )}
+        >{`Max Velocity (m/sec)`}</GridBoldTypography>
+        <GridBoldTypography
+          value={props.summaries.summary?.capacity.misc.signatureRadius.toFixed(
+            0
+          )}
+        >{`Signature Radius (m)`}</GridBoldTypography>
+      </Grid>
+    </Grid>
+  );
+};
+
+const HPprogress = (props) => {
+  const theme = useTheme();
+  return (
+    <LinearProgressLabel
+      showDivider
+      value={
+        (props.summaries.summary?.load[props.type].HP /
+          props.summaries.summary?.capacity[props.type].HP) *
+        100
+      }
+      label={`${props.summaries.summary?.load[props.type].HP.toFixed(1)}`}
+      /*  description={`/ ${props.summaries.summary?.capacity.shield.HP.toFixed(
+      1
+    )}`} */
+      typographyProps={{
+        style: {
+          color: theme.palette.text.primary,
+          fontWeight: 600,
+          fontSize: 14,
+        },
+      }}
+      /*   backgroundColor={theme.palette.property.blueSecondary}
+    color={theme.palette.property.blue} */
+      backgroundColor={theme.palette.action.opaqueHover}
+      color={theme.palette.background.paper}
+      Icon={props.Icon}
+    />
+  );
+};
+
+const CapacitorArc = React.memo((props) => {
+  return (
+    <path
+      fill="none"
+      stroke={props.stroke}
+      strokeWidth="3"
+      d={describeArc(30, 30, props.radius, props.angle - 9, props.angle + 9)}
+    />
+  );
+});
+
+const CapacitorArcLayer = (props) => {
+  const theme = useTheme();
+
+  const [angles, setAngles] = useState([]);
+  const [anglesGap, setAnglesGap] = useState(360);
+
+  useEffect(() => {
+    setAngles(
+      new Array(Math.floor(props.numOfColumn))
+        .fill(false)
+        .map((_, index, array) => {
+          return ((index + 1) * 360) / array.length;
+        })
+    );
+    setAnglesGap(360 / props.numOfColumn);
+  }, [props.numOfColumn]);
+
+  return (
+    <div style={{ position: "relative" }}>
+      <svg style={{ position: "absolute" }}>
+        {angles.map((angle) => {
+          return (
+            <CapacitorArc
+              key={`layer${props.layerCount}angle${angle}`}
+              stroke={getStroke(props, angle, anglesGap, theme)}
+              radius={props.layerCount * 5}
+              angle={angle}
+            />
+          );
+        })}
+      </svg>
+    </div>
+  );
+};
+
+const EveCapacitorProgress = (props) => {
+  const [layerCounts, setLayerCounts] = useState(
+    [...Array(4).keys()].map((e) => e + 2)
+  );
+
+  return (
+    <div style={{ width: 60, height: 60 }}>
+      {layerCounts.map((layerCount) => {
+        return (
+          <CapacitorArcLayer
+            numOfColumn={props.numOfColumn}
+            key={`layer${layerCount}`}
+            layerCount={layerCount}
+            value={props.value}
+          />
+        );
+      })}
+    </div>
   );
 };
 
@@ -56,123 +206,73 @@ export default function ShipStatusPanel(props) {
   return (
     <React.Fragment>
       {!!props.summaries && (
-        <div style={{ width: "100%" }}>
-          <div
-            style={{ width: "100%", height: 10, backgroundColor: props.color }}
-          ></div>
-          <div style={{ width: "100%" }}>
-            <ListItem style={{ width: "100%" }}>
-              <Grid justifyContent="center" container>
-                <GridBoldTypography
-                  value={props.summaries.summary?.capacity.misc.signatureRadius}
-                >{`Signature Radius (m)`}</GridBoldTypography>
-                <GridBoldTypography
-                  value={
-                    props.summaries.summary?.capacity.propulsion.maximumVelocity
-                  }
-                >{`Max Velocity (m/sec)`}</GridBoldTypography>
-              </Grid>
-            </ListItem>
-          </div>
-          <div style={{ width: "100%" }}>
-            <LinearProgressLabel
-              showDivider
+        <Grid container>
+          <Header color={props.color} summaries={props.summaries} />
+          <Grid
+            style={{
+              width: 60,
+            }}
+            item
+            container
+            justifyContent="center"
+            alignContent="center"
+          >
+            <EveCapacitorProgress
               value={
-                (props.summaries.summary?.load.shield.HP /
-                  props.summaries.summary?.capacity.shield.HP) *
+                (props.summaries.summary?.load.capacitor.HP /
+                  props.summaries.summary?.capacity.capacitor.HP) *
                 100
               }
-              label={`${props.summaries.summary?.load.shield.HP.toFixed(1)}`}
-              /*  description={`/ ${props.summaries.summary?.capacity.shield.HP.toFixed(
-                1
-              )}`} */
-              typographyProps={{
-                style: {
-                  color: theme.palette.text.primary,
-                  fontWeight: 600,
-                  fontSize: 14,
-                },
-              }}
-              /*   backgroundColor={theme.palette.property.blueSecondary}
-              color={theme.palette.property.blue} */
-              backgroundColor={theme.palette.action.opaqueHover}
-              color={theme.palette.background.paper}
+              numOfColumn={Math.min(
+                props.summaries.summary?.capacity.capacitor.HP / 50,
+                18
+              )}
+            />
+          </Grid>
+          <Grid
+            style={{
+              flex: 1,
+              position: "relative",
+            }}
+          >
+            <HPprogress
+              type="shield"
+              summaries={props.summaries}
               Icon={
                 <div style={{ height: 24 }}>
                   <ShieldIcon color={theme.palette.text.primary} />
                 </div>
               }
             />
-            <LinearProgressLabel
-              showDivider
-              value={
-                (props.summaries.summary?.load.armor.HP /
-                  props.summaries.summary?.capacity.armor.HP) *
-                100
-              }
-              label={`${props.summaries.summary?.load.armor.HP.toFixed(
-                1
-              )} / ${props.summaries.summary?.capacity.armor.HP.toFixed(1)}`}
-              typographyProps={{
-                style: {
-                  color: theme.palette.text.primary,
-                  fontWeight: 600,
-                  fontSize: 14,
-                },
-              }}
-              /*  backgroundColor={theme.palette.property.redSecondary}
-              color={theme.palette.property.red} */
-              backgroundColor={theme.palette.action.opaqueHover}
-              color={theme.palette.background.paper}
+            <HPprogress
+              type="armor"
+              summaries={props.summaries}
               Icon={
                 <div style={{ height: 24 }}>
                   <ArmorIcon color={theme.palette.text.primary} />
                 </div>
               }
             />
-            <LinearProgressLabel
-              showDivider
-              value={
-                (props.summaries.summary?.load.structure.HP /
-                  props.summaries.summary?.capacity.structure.HP) *
-                100
-              }
-              label={`${props.summaries.summary?.load.structure.HP.toFixed(
-                1
-              )} / ${props.summaries.summary?.capacity.structure.HP.toFixed(
-                1
-              )}`}
-              typographyProps={{
-                style: {
-                  color: theme.palette.text.primary,
-                  fontWeight: 600,
-                  fontSize: 14,
-                },
-              }}
-              backgroundColor={theme.palette.action.opaqueHover}
-              color={theme.palette.background.paper}
+            <HPprogress
+              type="structure"
+              summaries={props.summaries}
               Icon={
                 <div style={{ height: 24 }}>
                   <StructureIcon color={theme.palette.text.primary} />
                 </div>
               }
             />
-            <LinearProgressLabel
-              value={
-                (props.summaries.summary?.load.capacitor.HP /
-                  props.summaries.summary?.capacity.capacitor.HP) *
-                100
-              }
-              label={`${props.summaries.summary?.load.capacitor.HP.toFixed(
-                1
-              )} / ${props.summaries.summary?.capacity.capacitor.HP.toFixed(
-                1
-              )}`}
-              backgroundColor={theme.palette.property.orgSecondary}
-              color={theme.palette.property.org}
+            <div
+              style={{
+                top: 0,
+                width: 1,
+                height: "100%",
+                position: "absolute",
+                backgroundColor: theme.palette.action.opaqueHover,
+              }}
             />
-          </div>
-        </div>
+          </Grid>
+        </Grid>
       )}
     </React.Fragment>
   );
@@ -184,8 +284,50 @@ function feedSource(summary) {
   return (
     <img
       draggable="false"
-      style={{ width: "100%" }}
-      src={`https://images.evetech.net/types/${itemID}/icon?size=64`}
+      style={{ width: 50, height: 50 }}
+      src={`https://images.evetech.net/types/${itemID}/icon?size=128`}
     />
   );
+}
+
+function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
+  const angleInRadians = ((angleInDegrees - 90) * Math.PI) / 180.0;
+
+  // X axis is reversed. intended
+  return {
+    x: centerX - radius * Math.cos(angleInRadians),
+    y: centerY + radius * Math.sin(angleInRadians),
+  };
+}
+
+function describeArc(x, y, radius, startAngle, endAngle) {
+  const start = polarToCartesian(x, y, radius, endAngle);
+  const end = polarToCartesian(x, y, radius, startAngle);
+
+  var d = [
+    "M",
+    end.x,
+    end.y,
+    "A",
+    radius,
+    radius,
+    0,
+    0,
+    0,
+    start.x,
+    start.y,
+  ].join(" ");
+
+  return d;
+}
+
+function getStroke(props, angle, angleGap, theme) {
+  //angle 0~360, value 0~100, layerCount 2~5
+  //multiplier 3.601 : 0.001 is added to round up value 99.999 -> over 100
+
+  //console.log(angleGap, angle - (5 - props.layerCount) * (angleGap / 4));
+
+  return props.value * 3.601 > angle - (5 - props.layerCount) * (angleGap / 4)
+    ? theme.palette.property.org
+    : theme.palette.action.opaqueHover;
 }

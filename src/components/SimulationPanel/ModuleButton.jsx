@@ -5,6 +5,7 @@ import ModuleButtonChargeBadge from "./ModuleButtonChargeBadge";
 import ModuleActivation from "./ModuleActivation";
 import ModuleReloading from "./ModuleReloading";
 import ModuleButtonCountBadge from "./ModuleButtonCountBadge";
+import { useEffect } from "react";
 
 const useStyles = makeStyles((theme) => ({
   rootDiv: {
@@ -55,9 +56,14 @@ export default function ModuleButton(props) {
   //props.isActivating : for visual purpose. props.moduleSet[0].summary.activationState.isActive : synced real value
   const [isActivating, setIsActivating] = useState(false);
 
+  useEffect(() => {
+    setIsActivating(false);
+  }, [props.updateFlag]);
+
   return (
     <div style={{ position: "relative" }}>
       <ModuleReloading
+        updateFlag={props.updateFlag}
         moduleSet={props.moduleSet}
         dispatchSummaries={props.dispatchSummaries}
         setIsReloading={setIsReloading}

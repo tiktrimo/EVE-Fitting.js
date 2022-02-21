@@ -212,6 +212,7 @@ function dispatchActivation(props) {
       return;
     } else {
       // ancillary repair, booster runs out of charge.
+      console.log("dispatch");
       props.dispatchSummaries({
         type: "summary_update_item",
         payload: { moduleSet: props.moduleSet },

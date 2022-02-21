@@ -104,7 +104,7 @@ export function useInstaActivationInterval(callback, delay) {
 }
 
 //version 2
-export function useLazyActivationInterval(callback, delay) {
+export function useLazyActivationInterval(callback, delay, reset) {
   const cancleFlag = useRef(false);
   const savedCallback = useRef();
   const interval = useRef(false);
@@ -113,6 +113,14 @@ export function useLazyActivationInterval(callback, delay) {
   useEffect(() => {
     savedCallback.current = callback;
   }, [callback]);
+
+  // Reset timer
+  useEffect(() => {
+    if (interval.current) {
+      clearInterval(interval.current);
+      interval.current = false;
+    }
+  }, [reset]);
 
   // Set up the interval.
   useEffect(() => {

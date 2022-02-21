@@ -3,7 +3,7 @@ import React, { useReducer, useEffect, useState, useRef } from "react";
 import Fit from "../../fitter/src/Fit";
 import { HAL } from "../FitCard/Stats/services/Simulator";
 import Summary from "../FitCard/Stats/services/Summary";
-import ContorlPanel from "./ContorlPanel";
+import ControlPanel from "./ControlPanel";
 import ShipStatusPanel from "./ShipStatusPanel";
 
 // TODO: pause simulation on page exit. (4)
@@ -73,6 +73,8 @@ const summariesReducer = /* (props) => */ (state, action) => {
       itemSummary.load = slot.summary.load;
       itemSummary.root = slot.summary.root;
       itemSummary.target = slot.summary.target;
+      itemSummary.activationState.isActive =
+        slot.summary.activationState.isActive;
       slot.summary = itemSummary;
 
       return { ...state };
@@ -113,7 +115,7 @@ export default function ShipPanel(props) {
 
   //Initialize
   useEffect(() => {
-    if (!props.slots) return;
+    if (!props.slots?.ship) return;
 
     const newSummaries = Summary.getSummaries(props.slots, props.location);
     newSummaries.utils.dispatchLog = props.dispatchLog;
@@ -141,19 +143,21 @@ export default function ShipPanel(props) {
   }, [props.targetSummaries]);
 
   return (
-    <React.Fragment>
-      <Grid xs={12} container item justifyContent="center">
-        <ShipStatusPanel summaries={summaries} color={props.color} />
-      </Grid>
-      <Grid xs={12} container item justifyContent="center">
-        <ContorlPanel
-          summaries={summaries}
-          dispatchSummaries={dispatchSummaries}
-          dispatchTargetSummaries={props.dispatchTargetSummaries}
-          updateFlag={updateFlag}
-        />
-      </Grid>
-    </React.Fragment>
+    !!props.slots?.ship && (
+      <React.Fragment>
+        <Grid xs={12} container item justifyContent="center">
+          <ShipStatusPanel summaries={summaries} color={props.color} />
+        </Grid>
+        <Grid xs={12} container item justifyContent="center">
+          <ControlPanel
+            summaries={summaries}
+            dispatchSummaries={dispatchSummaries}
+            dispatchTargetSummaries={props.dispatchTargetSummaries}
+            updateFlag={updateFlag}
+          />
+        </Grid>
+      </React.Fragment>
+    )
   );
 }
 

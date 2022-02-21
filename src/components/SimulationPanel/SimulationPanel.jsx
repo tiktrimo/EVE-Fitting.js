@@ -4,6 +4,8 @@ import {
   Card,
   Grid,
   makeStyles,
+  Tooltip,
+  Typography,
   useTheme,
 } from "@material-ui/core";
 import SystemUpdateAltIcon from "@material-ui/icons/SystemUpdateAlt";
@@ -20,6 +22,12 @@ const useStyles = makeStyles((theme) => ({
   modeButton: {
     backgroundColor: theme.palette.background.paper,
     color: theme.palette.text.primary,
+  },
+  rootCard: {
+    width: "85%",
+    minWidth: 300,
+    maxWidth: 600,
+    marginBottom: 24,
   },
 }));
 
@@ -39,6 +47,8 @@ export default function SimulationPanel(props) {
   const [dispatchSummarizedSlot1, setDispatchSummarizedSlot1] = useState();
 
   const initialize = useCallback(() => {
+    if (!props.slotsSet[0].ship || !props.slotsSet[1].ship) return;
+
     const _slots0 = JSON.parse(JSON.stringify(props.slotsSet[0]));
     const _slots1 = JSON.parse(JSON.stringify(props.slotsSet[1]));
 
@@ -57,61 +67,57 @@ export default function SimulationPanel(props) {
 
   return (
     <React.Fragment>
-      <Card
-        style={{ width: "85%", minWidth: 300, maxWidth: 600, marginBottom: 24 }}
-        elevation={3}
-      >
-        <Grid style={{ width: "100%" }}>
-          <Grid xs={12} container item justifyContent="center">
-            <ButtonGroup
-              color="inherit"
-              variant="text"
-              fullWidth
-              disableElevation
-            >
-              <Button className={classes.modeButton} onClick={initialize}>
+      <Card className={classes.rootCard} elevation={3}>
+        <Grid xs={12} container item justifyContent="center">
+          <ButtonGroup
+            color="inherit"
+            variant="text"
+            fullWidth
+            disableElevation
+          >
+            <Button className={classes.modeButton} onClick={initialize}>
+              <Tooltip title="Import fit from above" placement="bottom" arrow>
                 <ArchiveIcon style={{ color: theme.palette.text.primary }} />
-                {/* <SystemUpdateAltIcon
-                  style={{ color: theme.palette.text.primary }}
-                /> */}
-              </Button>
-              <Button className={classes.modeButton} onClick={refresh}>
+              </Tooltip>
+            </Button>
+            <Button className={classes.modeButton} onClick={refresh}>
+              <Tooltip title="Restart the simulation" placement="bottom" arrow>
                 <ReplayIcon style={{ color: theme.palette.text.primary }} />
-              </Button>
-            </ButtonGroup>
-          </Grid>
-
-          <ShipPanel
-            slots={slots0}
-            setSlots={setSlots0}
-            //
-            targetSummaries={summaries1}
-            dispatchTargetSummaries={dispatchSummarizedSlot1}
-            //
-            location={props.situation?.onboard}
-            shareSummaries={setSummaries0}
-            shareDispatchSummaries={setDispatchSummarizedSlot0}
-            updateFlag={updateFlag}
-            //
-            dispatchLog={dispatchLog}
-            color={theme.palette.property.blue}
-          />
-          <ShipPanel
-            slots={slots1}
-            setSlots={setSlots1}
-            //
-            targetSummaries={summaries0}
-            dispatchTargetSummaries={dispatchSummarizedSlot0}
-            //
-            location={props.situation?.hostile}
-            shareSummaries={setSummaries1}
-            shareDispatchSummaries={setDispatchSummarizedSlot1}
-            updateFlag={updateFlag}
-            //
-            dispatchLog={dispatchLog}
-            color={theme.palette.property.red}
-          />
+              </Tooltip>
+            </Button>
+          </ButtonGroup>
         </Grid>
+
+        <ShipPanel
+          slots={slots0}
+          setSlots={setSlots0}
+          //
+          targetSummaries={summaries1}
+          dispatchTargetSummaries={dispatchSummarizedSlot1}
+          //
+          location={props.situation?.onboard}
+          shareSummaries={setSummaries0}
+          shareDispatchSummaries={setDispatchSummarizedSlot0}
+          updateFlag={updateFlag}
+          //
+          dispatchLog={dispatchLog}
+          color={theme.palette.property.blue}
+        />
+        <ShipPanel
+          slots={slots1}
+          setSlots={setSlots1}
+          //
+          targetSummaries={summaries0}
+          dispatchTargetSummaries={dispatchSummarizedSlot0}
+          //
+          location={props.situation?.hostile}
+          shareSummaries={setSummaries1}
+          shareDispatchSummaries={setDispatchSummarizedSlot1}
+          updateFlag={updateFlag}
+          //
+          dispatchLog={dispatchLog}
+          color={theme.palette.property.red}
+        />
       </Card>
 
       <Grid xs={12} container item justifyContent="center">
@@ -122,7 +128,13 @@ export default function SimulationPanel(props) {
           setDispatchLog={setDispatchLog}
         />
       </Grid>
-      <Grid xs={12} container item justifyContent="center">
+      <Grid
+        style={{ marginTop: 24 }}
+        xs={12}
+        container
+        item
+        justifyContent="center"
+      >
         <Button
           onClick={() => {
             createDebugFile(
@@ -133,7 +145,7 @@ export default function SimulationPanel(props) {
             );
           }}
         >
-          DEBUG
+          Download error log
         </Button>
       </Grid>
     </React.Fragment>
@@ -178,15 +190,38 @@ function createDebugFile(slots0, slots1, summaries0, summaries1) {
     return false;
   }
 
+  let data = {};
+  if (!summaries0?.utils || !summaries1?.utils) {
+    data = JSON.stringify({
+      up: {
+        slots: slots0,
+        fit: Fit.apply(slots0),
+      },
+      down: {
+        slots: slots1,
+        fit: Fit.apply(slots1),
+      },
+    });
+  } else {
+    data = JSON.stringify({
+      up: {
+        slots: slots0,
+        innerSlots: summaries0.utils.slots,
+        fit: Fit.apply(slots0),
+        innerFit: summaries0.utils.fit,
+        summaries: summaries0,
+      },
+      down: {
+        slots: slots1,
+        innerSlots: summaries1.utils.slots,
+        fit: Fit.apply(slots1),
+        innerFit: summaries1.utils.fit,
+        summaries: summaries1,
+      },
+    });
+  }
+
   const filename = "Error log";
-  const data = JSON.stringify({
-    slots0: { ...slots0, skills: undefined },
-    slots0EFT: EFT.buildTextFromFit(Fit.apply(slots0)),
-    slots0Summaries: summaries0,
-    slots1: { ...slots1, skills: undefined },
-    slots1EFT: EFT.buildTextFromFit(Fit.apply(slots1)),
-    slots1Summaries: summaries1,
-  });
 
   var file = new Blob([data], { type: "application/json" });
   if (window.navigator.msSaveOrOpenBlob)

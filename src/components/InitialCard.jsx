@@ -6,6 +6,7 @@ import {
   Grid,
   makeStyles,
   Paper,
+  Typography,
   useTheme,
 } from "@material-ui/core";
 import GitHubIcon from "@material-ui/icons/GitHub";
@@ -41,7 +42,7 @@ const Links = (props) => {
           href={"https://github.com/tiktrimo/EVE-Fitting.js/issues"}
           target="_blank"
         >
-          BUG REPORT
+          ERROR REPORT
         </Button>
         <Button
           href={
@@ -85,6 +86,48 @@ const Settings = (props) => {
         </Button>
       </ButtonGroup>
     </Paper>
+  );
+};
+
+const Header = (props) => {
+  const theme = useTheme();
+  return (
+    <Grid
+      style={{ position: "relative" }}
+      xs={12}
+      container
+      item
+      justifyContent="center"
+    >
+      <div
+        style={{
+          width: 400,
+          backgroundColor: theme.palette.divider,
+          height: 1,
+          position: "absolute",
+          top: 16,
+          zIndex: -1,
+        }}
+      />
+      <div
+        style={{
+          width: 200,
+          backgroundColor: theme.palette.background.paper,
+          display: "flex",
+          justifyContent: "center",
+        }}
+      >
+        <Typography
+          style={{
+            fontSize: 24,
+            fontWeight: 600,
+            color: theme.palette.divider,
+          }}
+        >
+          {props.label}
+        </Typography>
+      </div>
+    </Grid>
   );
 };
 
@@ -138,11 +181,14 @@ export default function InitialCard(props) {
         style={{
           width: width < 1000 ? "100%" : width - 600,
           margin: 0,
+          paddingTop: 12,
         }}
         container
         spacing={3}
       >
-        <Grid xs={12} container item justifyContent="center"></Grid>
+        <Grid xs={12} container item justifyContent="center">
+          <Header label="FITTING" />
+        </Grid>
         <Grid xs={12} container item justifyContent="center">
           <FitCard
             setSlots={setSlots0}
@@ -165,6 +211,11 @@ export default function InitialCard(props) {
             cache={props.cache}
           />
         </Grid>
+
+        <Grid xs={12} container item justifyContent="center">
+          <Header label="SIMULATION" />
+        </Grid>
+
         <Grid xs={12} container item justifyContent="center">
           <SimulationPanel
             slotsSet={[slots0, slots1]}

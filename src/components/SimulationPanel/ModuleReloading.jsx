@@ -31,6 +31,7 @@ export default function ModuleReloading(props) {
     props.moduleSet[0].summary.activationInfo.reloadTime
   )();
 
+  const [forceReset, setForceReset] = useState(false);
   const [reloadTimer, setActivationCounter] = useState(0);
   const [flip, setFlip] = useState(false);
   const [isProgressing, setIsProgressing] = useState(false);
@@ -50,23 +51,28 @@ export default function ModuleReloading(props) {
     props.moduleSet[0].summary.activationState.activationLeft,
   ]);
 
-  useLazyActivationInterval(() => {
-    //reloaded
-    console.log(props.moduleSet[0].summary.description, "reloaded");
+  useLazyActivationInterval(
+    () => {
+      // Ancillary booster/repairer
+      if (props.moduleSet[0].summary.activationInfo.isChargeNegligible)
+        props.dispatchSummaries({
+          type: "summary_update_item",
+          payload: { moduleSet: props.moduleSet },
+        });
 
-    // Ancillary booster/repairer
-    if (props.moduleSet[0].summary.activationInfo.isChargeNegligible)
+      // dispatch activation count
       props.dispatchSummaries({
-        type: "summary_update_item",
+        type: "activationLeft_active_charge",
         payload: { moduleSet: props.moduleSet },
       });
+    },
+    getReloadTime(props),
+    forceReset
+  );
 
-    // dispatch activation count
-    props.dispatchSummaries({
-      type: "activationLeft_active_charge",
-      payload: { moduleSet: props.moduleSet },
-    });
-  }, getReloadTime(props));
+  useEffect(() => {
+    setForceReset(!forceReset);
+  }, [props.updateFlag]);
 
   return (
     <React.Fragment>

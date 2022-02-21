@@ -74,9 +74,7 @@ export default function LinearProgressLabel(props) {
     <Grid className={classes.root}>
       <Grid className={classes.rootGrid}>
         <LinearProgressFixed
-          classes={
-            props.showDivider && { bar1Determinate: classes.barDeterminate }
-          }
+          classes={props.showDivider ? { bar: classes.barDeterminate } : {}}
           className={classes.progress}
           variant="determinate"
           value={props.value}

@@ -113,7 +113,7 @@ export default class Simulator {
     return delta;
   };
   static simulate_passive_shield_getDelta = (target) => {
-    if (target.summary.load.shield.HP <= 0) return 1;
+    if (target.summary.load.shield.HP <= 0) return 0.1;
 
     const shieldState = target.summary.load.shield;
     const shieldInfo = target.summary.capacity.shield;

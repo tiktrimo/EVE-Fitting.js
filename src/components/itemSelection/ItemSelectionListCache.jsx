@@ -62,17 +62,6 @@ export default React.memo(function ItemSelectionListCache(props) {
   }, [item?.typeID]);
 
   useEffect(() => {
-    const evelistConfigUpToDate = {
-      ...eveListConfig,
-      rootMarketGroupID: props.eveListConfig.rootMarketGroupID,
-      filter: props.eveListConfig.filter,
-      table: {
-        marketGroupTable: marketGroupTable,
-        invTypesTable: invTypesTable,
-      },
-      cache: props.cache,
-    };
-
     if (!!marketGroupTable && !!invTypesTable) {
       if (!props.nosave)
         props.cache
@@ -81,14 +70,37 @@ export default React.memo(function ItemSelectionListCache(props) {
             `eveListConfig:${JSON.stringify(props.eveListConfig)}}`,
             () => {
               return new Promise((resolve) => {
-                resolve(createEveList(evelistConfigUpToDate));
+                resolve(
+                  createEveList({
+                    ...eveListConfig,
+                    rootMarketGroupID: props.eveListConfig.rootMarketGroupID,
+                    filter: props.eveListConfig.filter,
+                    table: {
+                      marketGroupTable: marketGroupTable,
+                      invTypesTable: invTypesTable,
+                    },
+                    cache: props.cache,
+                  })
+                );
               });
             }
           )
           .then((data) => {
             setBuiltListStructure(data);
           });
-      else setBuiltListStructure(createEveList(evelistConfigUpToDate));
+      else
+        setBuiltListStructure(
+          createEveList({
+            ...eveListConfig,
+            rootMarketGroupID: props.eveListConfig.rootMarketGroupID,
+            filter: props.eveListConfig.filter,
+            table: {
+              marketGroupTable: marketGroupTable,
+              invTypesTable: invTypesTable,
+            },
+            cache: props.cache,
+          })
+        );
     }
   }, [marketGroupTable, invTypesTable, hashFilter(props.eveListConfig)]);
 
