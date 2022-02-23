@@ -208,7 +208,7 @@ export default function ShipStatusPanel(props) {
       {!!props.summaries && (
         <Grid container>
           <Header color={props.color} summaries={props.summaries} />
-          <Grid
+          {/* <Grid
             style={{
               width: 60,
             }}
@@ -228,7 +228,7 @@ export default function ShipStatusPanel(props) {
                 18
               )}
             />
-          </Grid>
+          </Grid> */}
           <Grid
             style={{
               flex: 1,
@@ -262,7 +262,22 @@ export default function ShipStatusPanel(props) {
                 </div>
               }
             />
-            <div
+            <LinearProgressLabel
+              value={
+                (props.summaries.summary?.load.capacitor.HP /
+                  props.summaries.summary?.capacity.capacitor.HP) *
+                100
+              }
+              label={`${props.summaries.summary?.load.capacitor.HP.toFixed(
+                1
+              )} / ${props.summaries.summary?.capacity.capacitor.HP.toFixed(
+                1
+              )}`}
+              backgroundColor={theme.palette.property.orgSecondary}
+              color={theme.palette.property.org}
+            />
+
+            {/*  <div
               style={{
                 top: 0,
                 width: 1,
@@ -270,7 +285,7 @@ export default function ShipStatusPanel(props) {
                 position: "absolute",
                 backgroundColor: theme.palette.action.opaqueHover,
               }}
-            />
+            /> */}
           </Grid>
         </Grid>
       )}
