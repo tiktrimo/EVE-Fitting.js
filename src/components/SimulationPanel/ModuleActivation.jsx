@@ -1,51 +1,70 @@
 import React, { useEffect } from "react";
 import { CircularProgress, makeStyles, useTheme } from "@material-ui/core";
 import { useState } from "react";
-import {
-  useInstaActivationInterval,
-  useLazyActivationInterval,
-  useProgressCircleInterval,
-} from "../../services/intervalHooks";
+import { useProgressCircleInterval } from "../../services/intervalHooks";
 import Simulator from "../FitCard/Stats/services/Simulator";
 import { toPath } from "./ShipPanel.jsx";
 
-const useStyles = (duration, flip) =>
-  makeStyles((theme) => ({
-    circularProrgess: {
-      position: "absolute",
-      left: 8,
-      top: 2,
-    },
-    circularTransition: {
-      transition: theme.transitions.create("stroke-dashoffset", {
-        easing: "linear",
-        duration: `${duration}s`,
-      }),
-    },
-    hiddenCircularTransition: {
-      transition: theme.transitions.create("stroke-dashoffset", {
-        easing: "linear",
-        duration: `0s`,
-      }),
-    },
-  }));
+const useStyles = makeStyles((theme) => ({
+  circularProrgess: {
+    position: "absolute",
+    left: 8,
+    top: 2,
+  },
+  circularTransition: (duration) => ({
+    transition: theme.transitions.create("stroke-dashoffset", {
+      easing: "linear",
+      duration: `${duration}s`, // 0.05 is only for visual purpose.
+    }),
+  }),
+  hiddenCircularTransition: {
+    transition: theme.transitions.create("stroke-dashoffset", {
+      easing: "linear",
+      duration: `0s`,
+    }),
+  },
+}));
 
-export default function ModuleActivation(props) {
+export default /* React.memo( */ function ModuleActivation(props) {
   const theme = useTheme();
-  const classes = useStyles(
-    props.moduleSet[0].summary.activationInfo.duration
-  )();
+  const classes = useStyles(props.moduleSet[0].summary.activationInfo.duration);
 
   const [flip, setFlip] = useState(false);
   const [activationCounter, setActivationCounter] = useState(0);
 
   useProgressCircleInterval(
     () => {
+      // these variables should assigned before dispatchActivation function call
+      const isPosEdge =
+        props.isActivating === true &&
+        props.moduleSet[0].summary.activationState.isActive === false;
+      const isNegEdge =
+        props.isActivating === false &&
+        props.moduleSet[0].summary.activationState.isActive === true;
+
       dispatchActivation(props);
       if (props.isActivating) {
         // visual effect(circling ring thingy)
+
         setActivationCounter(activationCounter + 100);
         setFlip(!flip);
+      }
+      if (isInstaActivationModule(props.moduleSet[0].summary)) {
+        // Instant activation module such as shield booster, projectile, hybrid, launcher etc...
+        if (!isNegEdge)
+          activateModules(
+            props.moduleSet,
+            props.dispatchSummaries,
+            props.dispatchTargetSummaries
+          );
+      } else {
+        // Delayed activation module  such as armor repairer, nodferatu etc...
+        if (!isPosEdge)
+          activateModules(
+            props.moduleSet,
+            props.dispatchSummaries,
+            props.dispatchTargetSummaries
+          );
       }
     },
     props.isActivating
@@ -53,28 +72,10 @@ export default function ModuleActivation(props) {
       : null
   );
 
-  // Instant activation module such as shield booster, projectile, hybrid, launcher etc...
-  useInstaActivationInterval(() => {
-    activateModules(
-      props.moduleSet,
-      props.dispatchSummaries,
-      props.dispatchTargetSummaries
-    );
-  }, getInstaActivationDelay(props.moduleSet[0].summary));
-
-  // Delayed activation module  such as armor repairer, nodferatu etc...
-  useLazyActivationInterval(() => {
-    activateModules(
-      props.moduleSet,
-      props.dispatchSummaries,
-      props.dispatchTargetSummaries
-    );
-  }, getLazyActivationDelay(props.moduleSet[0].summary));
-
   // Module that changes stat of module or ship. shield hardener, afterburner, stasis webifier etc...
   useEffect(() => {
     updateSummaries(
-      props.summaries,
+      props.utils,
       props.moduleSet,
       props.dispatchSummaries,
       props.dispatchTargetSummaries
@@ -87,7 +88,7 @@ export default function ModuleActivation(props) {
         size={46}
         thickness={2}
         style={{
-          color: getCircularProgressColor(props, !flip, theme),
+          color: getCircularProgressColor(props, !flip, theme, 1),
         }}
         className={classes.circularProrgess}
         classes={{
@@ -102,7 +103,7 @@ export default function ModuleActivation(props) {
         size={46}
         thickness={2}
         style={{
-          color: getCircularProgressColor(props, flip, theme),
+          color: getCircularProgressColor(props, flip, theme, 2),
         }}
         className={classes.circularProrgess}
         classes={{
@@ -115,10 +116,17 @@ export default function ModuleActivation(props) {
       />
     </React.Fragment>
   );
+} /* , compareFunc); */
+
+function compareFunc(prev, next) {
+  if (prev.isActivating !== next.isActivating) return false;
+  /*   if (prev.isActivating === true) return false; */
+
+  return Object.keys(prev).every((key) => prev[key] === next[key]);
 }
 
 function updateSummaries(
-  summaries,
+  utils,
   moduleSet,
   dispatchSummaries,
   dispatchTargetSummaries
@@ -134,7 +142,7 @@ function updateSummaries(
       dispatchTargetSummaries({
         type: "summary_update_exSlots",
         payload: {
-          exSlot: toPath(summaries.utils.fit, moduleSet[0].summary.path),
+          exSlot: toPath(utils.fit, moduleSet[0].summary.path),
           isActive: moduleSet[0].summary.activationState.isActive,
         },
       });
@@ -212,7 +220,6 @@ function dispatchActivation(props) {
       return;
     } else {
       // ancillary repair, booster runs out of charge.
-      console.log("dispatch");
       props.dispatchSummaries({
         type: "summary_update_item",
         payload: { moduleSet: props.moduleSet },
@@ -267,24 +274,15 @@ function dispatchActivation(props) {
   }
 }
 
-function getInstaActivationDelay(summary) {
+function isInstaActivationModule(summary) {
   if (
     summary.bonusPerAct?.self.armor > 0 ||
     summary.bonusPerAct?.self.structure > 0 ||
     summary.isNosferatu === true
   )
-    return null;
+    return false;
 
-  return summary.activationState.isActive
-    ? summary.activationInfo.duration * 1000
-    : null;
-}
-function getLazyActivationDelay(summary) {
-  if (getInstaActivationDelay(summary) != null) return null;
-
-  return summary.activationState.isActive
-    ? summary.activationInfo.duration * 1000
-    : null;
+  return true;
 }
 function getDamagePayload(moduleSet) {
   const defaultPayload = {
@@ -294,6 +292,7 @@ function getDamagePayload(moduleSet) {
     summary: moduleSet[0].summary,
     debug: [],
   };
+
   const target = {
     summary: JSON.parse(JSON.stringify(moduleSet[0].summary.target.summary)),
   };
@@ -333,7 +332,16 @@ function getCapacitorDispatchNecessity(summary) {
   else if (summary.isNosferatu) return { target: true, self: true };
   else return { target: true, self: false };
 }
-function getCircularProgressColor(props, flip, theme) {
+function getCircularProgressColor(props, flip, theme, tag) {
+  /* console.log(
+    tag,
+    !props.moduleSet[0].summary.activationState.isActive || flip
+      ? "transparent"
+      : props.isActivating
+      ? theme.palette.text.primary
+      : theme.palette.action.disabled
+  ); */
+
   return !props.moduleSet[0].summary.activationState.isActive || flip
     ? "transparent"
     : props.isActivating

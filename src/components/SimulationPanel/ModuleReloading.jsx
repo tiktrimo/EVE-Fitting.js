@@ -4,32 +4,31 @@ import { useState } from "react";
 import { useLazyActivationInterval } from "../../services/intervalHooks";
 import { useEffect } from "react";
 
-const useStyles = (duration) =>
-  makeStyles((theme) => ({
-    circularProrgess: {
-      position: "absolute",
-      left: 8,
-      top: 2,
-    },
-    circularTransition: {
-      transition: theme.transitions.create("stroke-dashoffset", {
-        easing: "linear",
-        duration: `${duration}s`,
-      }),
-    },
-    hiddenCircularTransition: {
-      transition: theme.transitions.create("stroke-dashoffset", {
-        easing: "linear",
-        duration: `0s`,
-      }),
-    },
-  }));
+const useStyles = makeStyles((theme) => ({
+  circularProrgess: {
+    position: "absolute",
+    left: 8,
+    top: 2,
+  },
+  circularTransition: (duration) => ({
+    transition: theme.transitions.create("stroke-dashoffset", {
+      easing: "linear",
+      duration: `${duration}s`,
+    }),
+  }),
+  hiddenCircularTransition: {
+    transition: theme.transitions.create("stroke-dashoffset", {
+      easing: "linear",
+      duration: `0s`,
+    }),
+  },
+}));
 
-export default function ModuleReloading(props) {
+export default /* React.memo( */ function ModuleReloading(props) {
   const theme = useTheme();
   const classes = useStyles(
     props.moduleSet[0].summary.activationInfo.reloadTime
-  )();
+  );
 
   const [forceReset, setForceReset] = useState(false);
   const [reloadTimer, setActivationCounter] = useState(0);
@@ -53,6 +52,7 @@ export default function ModuleReloading(props) {
 
   useLazyActivationInterval(
     () => {
+      console.log("reloaded");
       // Ancillary booster/repairer
       if (props.moduleSet[0].summary.activationInfo.isChargeNegligible)
         props.dispatchSummaries({
@@ -114,7 +114,17 @@ export default function ModuleReloading(props) {
       />
     </React.Fragment>
   );
+} /* , compareFunc); */
+function compareFunc(prev, next) {
+  if (
+    (prev.moduleSet[0].summary.activationState.isActive === true &&
+      next.moduleSet[0].summary.activationState.activationLeft === 0) ||
+    prev.updateFlag !== next.updateFlag
+  )
+    return false;
+  return Object.keys(prev).every((key) => prev[key] === next[key]);
 }
+
 function getReloadTime(props) {
   if (isStartReload(props))
     return props.moduleSet[0].summary.activationInfo.reloadTime * 1000;

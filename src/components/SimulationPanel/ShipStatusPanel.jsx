@@ -40,7 +40,7 @@ const GridBoldTypography = (props) => {
   const classes = useStyles();
 
   return (
-    <Grid style={{ flexBasis: 140, maxWidth: 140 }}>
+    <Grid style={{ flexBasis: 120, maxWidth: 120 }}>
       <TextField
         label={
           <Typography className={classes.boldTypography} noWrap>
@@ -65,7 +65,7 @@ const GridBoldTypography = (props) => {
   );
 };
 
-const Header = (props) => {
+const Header = React.memo((props) => {
   const classes = useStyles();
 
   return (
@@ -77,7 +77,7 @@ const Header = (props) => {
     >
       <Grid container item xs={2} justifyContent="center" alignContent="center">
         <Avatar className={classes.headerAvatar}>
-          {feedSource(props.summaries.summary)}
+          {feedSource(props.summary)}
         </Avatar>
       </Grid>
       <Grid
@@ -88,49 +88,54 @@ const Header = (props) => {
         alignContent="center"
       >
         <GridBoldTypography
-          value={props.summaries.summary?.capacity.propulsion.maximumVelocity.toFixed(
-            0
-          )}
+          value={props.maximumVelocity}
         >{`Max Velocity (m/sec)`}</GridBoldTypography>
         <GridBoldTypography
-          value={props.summaries.summary?.capacity.misc.signatureRadius.toFixed(
-            0
-          )}
+          value={props.signatureRadius}
         >{`Signature Radius (m)`}</GridBoldTypography>
       </Grid>
     </Grid>
   );
-};
+});
 
-const HPprogress = (props) => {
-  const theme = useTheme();
-  return (
-    <LinearProgressLabel
-      showDivider
-      value={
-        (props.summaries.summary?.load[props.type].HP /
-          props.summaries.summary?.capacity[props.type].HP) *
-        100
-      }
-      label={`${props.summaries.summary?.load[props.type].HP.toFixed(1)}`}
-      /*  description={`/ ${props.summaries.summary?.capacity.shield.HP.toFixed(
+const HPprogress = React.memo(
+  (props) => {
+    const theme = useTheme();
+    return (
+      <LinearProgressLabel
+        showDivider
+        value={(props.load / props.capacity) * 100}
+        label={`${props.load.toFixed(1)}`}
+        /*  description={`/ ${props.summaries.summary?.capacity.shield.HP.toFixed(
       1
     )}`} */
-      typographyProps={{
-        style: {
-          color: theme.palette.text.primary,
-          fontWeight: 600,
-          fontSize: 14,
-        },
-      }}
-      /*   backgroundColor={theme.palette.property.blueSecondary}
+        typographyProps={{
+          style: {
+            color: props.color,
+            fontWeight: 600,
+            fontSize: 14,
+          },
+        }}
+        /*   backgroundColor={theme.palette.property.blueSecondary}
     color={theme.palette.property.blue} */
-      backgroundColor={theme.palette.action.opaqueHover}
-      color={theme.palette.background.paper}
-      Icon={props.Icon}
-    />
-  );
-};
+        backgroundColor={theme.palette.action.opaqueHover}
+        color={theme.palette.background.paper}
+        Icon={
+          <div style={{ height: 24 }}>
+            {React.cloneElement(props.Icon, { color: props.color })}
+          </div>
+        }
+      />
+    );
+  },
+  (prev, curr) => {
+    return (
+      prev.load.toFixed(1) === curr.load.toFixed(1) &&
+      prev.capacity === curr.capacity &&
+      prev.color === curr.color
+    );
+  }
+);
 
 const CapacitorArc = React.memo((props) => {
   return (
@@ -207,10 +212,19 @@ export default function ShipStatusPanel(props) {
     <React.Fragment>
       {!!props.summaries && (
         <Grid container>
-          <Header color={props.color} summaries={props.summaries} />
-          {/* <Grid
+          <Header
+            color={props.color}
+            summary={props.summaries.summary}
+            maximumVelocity={
+              props.summaries.summary?.capacity.propulsion.maximumVelocity
+            }
+            signatureRadius={
+              props.summaries.summary?.capacity.misc.signatureRadius
+            }
+          />
+          {/*  <Grid
             style={{
-              width: 60,
+              width: 80,
             }}
             item
             container
@@ -236,31 +250,22 @@ export default function ShipStatusPanel(props) {
             }}
           >
             <HPprogress
-              type="shield"
-              summaries={props.summaries}
-              Icon={
-                <div style={{ height: 24 }}>
-                  <ShieldIcon color={theme.palette.text.primary} />
-                </div>
-              }
+              load={props.summaries.summary?.load.shield.HP}
+              capacity={props.summaries.summary?.capacity.shield.HP}
+              Icon={<ShieldIcon />}
+              color={theme.palette.text.primary}
             />
             <HPprogress
-              type="armor"
-              summaries={props.summaries}
-              Icon={
-                <div style={{ height: 24 }}>
-                  <ArmorIcon color={theme.palette.text.primary} />
-                </div>
-              }
+              load={props.summaries.summary?.load.armor.HP}
+              capacity={props.summaries.summary?.capacity.armor.HP}
+              Icon={<ArmorIcon />}
+              color={theme.palette.text.primary}
             />
             <HPprogress
-              type="structure"
-              summaries={props.summaries}
-              Icon={
-                <div style={{ height: 24 }}>
-                  <StructureIcon color={theme.palette.text.primary} />
-                </div>
-              }
+              load={props.summaries.summary?.load.structure.HP}
+              capacity={props.summaries.summary?.capacity.structure.HP}
+              Icon={<StructureIcon />}
+              color={theme.palette.text.primary}
             />
             <LinearProgressLabel
               value={
@@ -276,14 +281,13 @@ export default function ShipStatusPanel(props) {
               backgroundColor={theme.palette.property.orgSecondary}
               color={theme.palette.property.org}
             />
-
-            {/*  <div
+            {/* <div
               style={{
                 top: 0,
                 width: 1,
                 height: "100%",
                 position: "absolute",
-                backgroundColor: theme.palette.action.opaqueHover,
+                backgroundColor: theme.palette.background.paper,
               }}
             /> */}
           </Grid>

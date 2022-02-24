@@ -40,12 +40,14 @@ export default function ImportExportButtons(props) {
   const [title, setTitle] = useState("");
   const [text, setText] = useState(false);
 
-  const handleImportClick = useCallback(() => {
-    copyTextFromClipboard().then((text) => {
-      setOpenAlert(true);
-      if (text === false) return setTitle("Permission denied");
+  const handleImportClick = useCallback(async () => {
+    const text = await navigator.clipboard.readText();
+    setOpenAlert(true);
+    if (!text) setTitle("Permission denied");
+    else {
+      setTitle("Importing EFT");
       setText(text);
-    });
+    }
   }, [setText, setTitle, setOpenAlert]);
 
   useEffect(() => {
@@ -129,14 +131,18 @@ export default function ImportExportButtons(props) {
     </React.Fragment>
   );
 }
-async function copyTextFromClipboard() {
-  const permisson = await navigator.permissions.query({
-    name: "clipboard-read",
-  });
-  if (permisson.state === "granted" || permisson.state === "prompt") {
-    return navigator.clipboard.readText();
+async function handleClickEvent(clickEvent) {
+  let items = await navigator.clipboard.read();
+  for (let item of items) {
+    if (!item.types.includes("text/plain")) continue;
+
+    let reader = new FileReader();
+    reader.addEventListener("load", (loadEvent) => {
+      console.log(reader.result);
+    });
+    reader.readAsText(await item.getType("text/plain"));
+    break;
   }
-  return false;
 }
 function getSnackbarBorder(title, theme) {
   switch (title) {

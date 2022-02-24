@@ -16,8 +16,9 @@ const summariesReducer = /* (props) => */ (state, action) => {
     case "initialize":
       return action.payload;
 
-    case "update_dispatchLog":
-      return { ...state, utils: { dispatchLog: action.payload } };
+    case "reset_logQueue":
+      state.utils.logQueue = [];
+      return { ...state };
 
     case "moduleSet_update_activation":
       action.payload.moduleSet.forEach((module) => {
@@ -53,10 +54,10 @@ const summariesReducer = /* (props) => */ (state, action) => {
 
       if (!!action.operation) {
         const delta = getSum(state) - oldSum;
-        state.utils.dispatchLog({
-          type: "update",
-          payload: getLog(state, action, delta),
-        });
+        state.utils.logQueue = [
+          ...state.utils.logQueue,
+          getLog(state, action, delta),
+        ];
       }
 
       return { ...state };
@@ -102,12 +103,19 @@ export default function ShipPanel(props) {
   const [updateFlag, setUpdateFlag] = useState(false);
 
   useEffect(() => {
-    if (!!summaries && !!props.dispatchLog)
-      dispatchSummaries({
-        type: "update_dispatchLog",
-        payload: props.dispatchLog,
+    if (
+      !!summaries &&
+      !!props.dispatchLog &&
+      summaries.utils.logQueue.length > 0
+    ) {
+      props.dispatchLog({
+        type: "update",
+        payload: summaries.utils.logQueue,
       });
-  }, [props.dispatchLog]);
+
+      dispatchSummaries({ type: "reset_logQueue" });
+    }
+  }, [summaries.utils?.logQueue]);
 
   useEffect(() => {
     props.shareDispatchSummaries(() => dispatchSummaries);
@@ -118,7 +126,7 @@ export default function ShipPanel(props) {
     if (!props.slots?.ship) return;
 
     const newSummaries = Summary.getSummaries(props.slots, props.location);
-    newSummaries.utils.dispatchLog = props.dispatchLog;
+    newSummaries.utils.logQueue = [];
     dispatchSummaries({ type: "initialize", payload: newSummaries });
     props.shareSummaries(newSummaries);
     setUpdateFlag(!updateFlag);
@@ -220,6 +228,8 @@ function getUpdatedItemSummary(summaries, payload) {
 }
 
 function updateSummariesCapacity(state, action) {
+  if (!state.utils.slots) return;
+
   if (!state.utils.slots.exSlots) state.utils.slots.exSlots = [];
   const indexOfSlot = state.utils.slots.exSlots.findIndex(
     (slot) =>

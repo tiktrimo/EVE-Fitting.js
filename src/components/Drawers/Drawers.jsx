@@ -194,14 +194,16 @@ export default function Drawers(props) {
       props.setFitID(EFT.buildCompareTextFromFit(slots));
       props.setSlots(slots);
 
-      const appliedFitExportText = EFT.buildTextFromFit(appliedFit);
-      const appliedSlotsModified = { ...slots, skills: undefined };
-      setExportFitText(appliedFitExportText);
-      localStorage.setItem(
-        `${props.tag}SLOTS`,
-        JSON.stringify(appliedSlotsModified)
-      );
-      localStorage.setItem(`${props.tag}EFT`, appliedFitExportText);
+      if (!!slots.ship?.typeID) {
+        const appliedFitExportText = EFT.buildTextFromFit(appliedFit);
+        const appliedSlotsModified = { ...slots, skills: undefined };
+        setExportFitText(appliedFitExportText);
+        localStorage.setItem(
+          `${props.tag}SLOTS`,
+          JSON.stringify(appliedSlotsModified)
+        );
+        localStorage.setItem(`${props.tag}EFT`, appliedFitExportText);
+      }
     })();
   }, [EFT.buildCompareTextFromFit(slots), importFitText]);
 

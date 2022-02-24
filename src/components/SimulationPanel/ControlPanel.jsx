@@ -41,7 +41,7 @@ export default function ControlPanel(props) {
         return (
           <ModuleButton
             key={moduleSet[0].summary.path}
-            summaries={props.summaries}
+            utils={props.summaries.utils}
             updateFlag={props.updateFlag}
             moduleSet={moduleSet}
             dispatchSummaries={props.dispatchSummaries}

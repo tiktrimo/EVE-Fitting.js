@@ -123,25 +123,25 @@ function anchorReducer(state, action) {
   }
 }
 
-const logReducer = () => (state, action) => {
+const logReducer = (state, action) => {
   switch (action.type) {
     case "update":
-      state.push(action.payload);
+      action.payload.forEach((log) => {
+        state.push(log);
+      });
+
       return state.slice(state.length - 20 > 0 ? state.length - 20 : 0);
-    case "reset":
-      return [];
     default:
       return state;
   }
 };
 
-const ShipCanvasButtonGroup = (props) => {
+const ShipCanvasButtonGroup = React.memo((props) => {
   const theme = useTheme();
   const handleResetClick = useCallback(() => {
-    props.setStagePoint({});
+    props.setStagePoint({ x: 0, y: 0 });
     props.dispatchOnBoardAnchor({ type: "reset", value: onBoardAnchorInitial });
     props.dispatchHostileAnchor({ type: "reset", value: hostileAnchorInitial });
-    props.dispatchLog({ type: "reset" });
   }, []);
 
   const handleMagnifyButton = useCallback(() => {
@@ -196,6 +196,219 @@ const ShipCanvasButtonGroup = (props) => {
       </Grid>
     </Grid>
   );
+});
+
+const ShipCanvasTacticalMap = React.memo((props) => {
+  const [distanceVector, setDistanceVector] = useState({
+    x:
+      props.hostileAnchor.anchors.anchor1X -
+      props.onBoardAnchor.anchors.anchor1X,
+    y:
+      props.hostileAnchor.anchors.anchor1Y -
+      props.onBoardAnchor.anchors.anchor1Y,
+  });
+  const [distance, setDistance] = useState(
+    Math.sqrt(Math.pow(distanceVector.x, 2) + Math.pow(distanceVector.y, 2)) /
+      100
+  );
+
+  useEffect(() => {
+    const _distanceVector = {
+      x:
+        props.hostileAnchor.anchors.anchor1X -
+        props.onBoardAnchor.anchors.anchor1X,
+      y:
+        props.hostileAnchor.anchors.anchor1Y -
+        props.onBoardAnchor.anchors.anchor1Y,
+    };
+    const _distance =
+      Math.sqrt(
+        Math.pow(_distanceVector.x, 2) + Math.pow(_distanceVector.y, 2)
+      ) / 100;
+    setDistanceVector(_distanceVector);
+    setDistance(_distance);
+  }, [
+    props.hostileAnchor.anchors.anchor1X,
+    props.onBoardAnchor.anchors.anchor1X,
+    props.hostileAnchor.anchors.anchor1Y,
+    props.onBoardAnchor.anchors.anchor1Y,
+  ]);
+
+  return (
+    <Layer>
+      <Text
+        x={props.onBoardAnchor.anchors.anchor1X + props.onBoardAnchor.vector.x}
+        y={props.onBoardAnchor.anchors.anchor1Y + props.onBoardAnchor.vector.y}
+        fill={props.theme.palette.text.primary}
+        text={`${(
+          Math.sqrt(
+            Math.pow(props.onBoardAnchor.vector.x, 2) +
+              Math.pow(props.onBoardAnchor.vector.y, 2)
+          ) * 3
+        ).toFixed(1)}m/s`}
+        fontSize={12 / props.stageScale}
+        offsetX={-2}
+      />
+      <Text
+        x={props.hostileAnchor.anchors.anchor1X + props.hostileAnchor.vector.x}
+        y={props.hostileAnchor.anchors.anchor1Y + props.hostileAnchor.vector.y}
+        fill={props.theme.palette.text.primary}
+        text={`${(
+          Math.sqrt(
+            Math.pow(props.hostileAnchor.vector.x, 2) +
+              Math.pow(props.hostileAnchor.vector.y, 2)
+          ) * 3
+        ).toFixed(1)}m/s`}
+        fontSize={12 / props.stageScale}
+        offsetX={-2}
+      />
+      <Text
+        x={props.hostileAnchor.anchors.anchor1X + 12 / props.stageScale}
+        y={props.hostileAnchor.anchors.anchor1Y - 15 / props.stageScale}
+        fontSize={12 / props.stageScale}
+        fill={props.theme.palette.text.primary}
+        text={`${angleBetweenTwoVectors(
+          distanceVector,
+          props.hostileAnchor.vector
+        ).toFixed(0)}°`}
+      />
+      <Arrow
+        pointerLength={4 / props.stageScale}
+        pointerWidth={4 / props.stageScale}
+        points={[
+          props.hostileAnchor.anchors.anchor1X,
+          props.hostileAnchor.anchors.anchor1Y,
+          props.hostileAnchor.anchors.anchor2X,
+          props.hostileAnchor.anchors.anchor2Y,
+        ]}
+        strokeWidth={2 / props.stageScale}
+        stroke={props.theme.palette.property.red}
+        fill={props.theme.palette.property.red}
+      />
+      <Circle
+        x={props.hostileAnchor.anchors.anchor1X}
+        y={props.hostileAnchor.anchors.anchor1Y}
+        fill="#C0C0C0"
+        opacity={0.1}
+        radius={20 / props.stageScale}
+        draggable
+        onDragMove={handleAnchor1OnDragMove(
+          props.dispatchHostileAnchor,
+          props.hostileAnchor
+        )}
+        onDragEnd={props.dispatchSituation}
+      />
+      <Circle
+        x={props.hostileAnchor.anchors.anchor2X}
+        y={props.hostileAnchor.anchors.anchor2Y}
+        fill="#C0C0C0"
+        opacity={0.1}
+        radius={10 / props.stageScale}
+        draggable
+        onDragMove={handleAnchor2OnDragMove(props.dispatchHostileAnchor)}
+        onDragEnd={(e) => {
+          handleAnchor2OnDragEnd(
+            props.dispatchHostileAnchor,
+            props.hostileAnchor
+          )(e);
+          props.dispatchSituation();
+        }}
+      />
+      <Arrow
+        pointerLength={4 / props.stageScale}
+        pointerWidth={4 / props.stageScale}
+        points={[
+          props.onBoardAnchor.anchors.anchor1X,
+          props.onBoardAnchor.anchors.anchor1Y,
+          props.onBoardAnchor.anchors.anchor2X,
+          props.onBoardAnchor.anchors.anchor2Y,
+        ]}
+        strokeWidth={2 / props.stageScale}
+        stroke={props.theme.palette.property.blue}
+        fill={props.theme.palette.property.blue}
+      />
+      <Circle
+        x={props.onBoardAnchor.anchors.anchor1X}
+        y={props.onBoardAnchor.anchors.anchor1Y}
+        radius={20 / props.stageScale}
+        draggable
+        onDragMove={handleAnchor1OnDragMove(
+          props.dispatchOnBoardAnchor,
+          props.onBoardAnchor
+        )}
+        onDragEnd={props.dispatchSituation}
+        on
+      />
+      <Circle
+        x={props.onBoardAnchor.anchors.anchor2X}
+        y={props.onBoardAnchor.anchors.anchor2Y}
+        radius={20 / props.stageScale}
+        draggable
+        onDragMove={handleAnchor2OnDragMove(props.dispatchOnBoardAnchor)}
+        onDragEnd={(e) => {
+          handleAnchor2OnDragEnd(
+            props.dispatchOnBoardAnchor,
+            props.onBoardAnchor
+          )(e);
+          props.dispatchSituation();
+        }}
+      />
+      <Line
+        points={[
+          props.onBoardAnchor.anchors.anchor1X,
+          props.onBoardAnchor.anchors.anchor1Y,
+          props.hostileAnchor.anchors.anchor1X,
+          props.hostileAnchor.anchors.anchor1Y,
+        ]}
+        strokeWidth={2 / props.stageScale}
+        stroke={props.theme.palette.primary.main}
+        fill={props.theme.palette.primary.main}
+        dash={[5 / props.stageScale, 5 / props.stageScale]}
+      />
+      <Text
+        x={
+          (props.onBoardAnchor.anchors.anchor1X +
+            props.hostileAnchor.anchors.anchor1X) /
+          2
+        }
+        y={
+          (props.onBoardAnchor.anchors.anchor1Y +
+            props.hostileAnchor.anchors.anchor1Y) /
+          2
+        }
+        fill={props.theme.palette.text.primary}
+        fontSize={12 / props.stageScale}
+        text={`${distance.toFixed(2)}km`}
+        offsetX={-2}
+        /* rotation={handleRotation(distanceVector)} */
+      />
+    </Layer>
+  );
+});
+
+const ShipCanvasLog = (props) => {
+  const [logs, dispatchLog] = useReducer(logReducer, []);
+
+  useEffect(() => {
+    props.setDispatchLog(() => dispatchLog);
+  }, []);
+
+  return (
+    <Layer>
+      <EventConsoleKonvaHtml
+        theme={props.theme}
+        logs={logs}
+        target={props.hostileAnchor}
+        stageScale={props.stageScale}
+      />
+      <EventConsoleKonvaHtml
+        theme={props.theme}
+        logs={logs}
+        target={props.onBoardAnchor}
+        stageScale={props.stageScale}
+      />
+    </Layer>
+  );
 };
 
 export default function ShipCanvas(props) {
@@ -210,43 +423,14 @@ export default function ShipCanvas(props) {
     anchorReducer,
     onBoardAnchorInitial
   );
-  const [distanceVector, setDistanceVector] = useState({
-    x: hostileAnchor.anchors.anchor1X - onBoardAnchor.anchors.anchor1X,
-    y: hostileAnchor.anchors.anchor1Y - onBoardAnchor.anchors.anchor1Y,
-  });
-  const [distance, setDistance] = useState(
-    Math.sqrt(Math.pow(distanceVector.x, 2) + Math.pow(distanceVector.y, 2)) /
-      100
-  );
+
   const [stageScale, setStageScale] = useState(1);
   const [stagePoint, setStagePoint] = useState({ x: 0, y: 0 });
   const [isStageDrragable, setStageDraggable] = useState(false);
 
-  const logReducerRef = useRef(logReducer());
-  const [logs, dispatchLog] = useReducer(logReducerRef.current, []);
-
   useEffect(() => {
     dispatchSituation();
-    props.setDispatchLog(() => dispatchLog);
   }, []);
-
-  useEffect(() => {
-    const _distanceVector = {
-      x: hostileAnchor.anchors.anchor1X - onBoardAnchor.anchors.anchor1X,
-      y: hostileAnchor.anchors.anchor1Y - onBoardAnchor.anchors.anchor1Y,
-    };
-    const _distance =
-      Math.sqrt(
-        Math.pow(_distanceVector.x, 2) + Math.pow(_distanceVector.y, 2)
-      ) / 100;
-    setDistanceVector(_distanceVector);
-    setDistance(_distance);
-  }, [
-    hostileAnchor.anchors.anchor1X,
-    onBoardAnchor.anchors.anchor1X,
-    hostileAnchor.anchors.anchor1Y,
-    onBoardAnchor.anchors.anchor1Y,
-  ]);
 
   useEffect(() => {
     if (!!props.hostileSummaries?.summary.capacity.propulsion.maximumVelocity)
@@ -271,7 +455,7 @@ export default function ShipCanvas(props) {
       onboard: onBoardAnchor,
       hostile: hostileAnchor,
     });
-  }, [onBoardAnchor, hostileAnchor, distance]);
+  }, [onBoardAnchor, hostileAnchor]);
 
   return (
     <Card className={classes.root} elevation={3}>
@@ -281,7 +465,6 @@ export default function ShipCanvas(props) {
         isStageDrragable={isStageDrragable}
         setStageDraggable={setStageDraggable}
         setStagePoint={setStagePoint}
-        dispatchLog={dispatchLog}
         dispatchHostileAnchor={dispatchHostileAnchor}
         dispatchOnBoardAnchor={dispatchOnBoardAnchor}
       />
@@ -296,159 +479,22 @@ export default function ShipCanvas(props) {
         draggable={isStageDrragable}
         onDragMove={() => {}} // Only here to supress warning message (if draggable = true there should be onDragMove function)
       >
-        <Layer>
-          <Text
-            x={onBoardAnchor.anchors.anchor1X + onBoardAnchor.vector.x}
-            y={onBoardAnchor.anchors.anchor1Y + onBoardAnchor.vector.y}
-            fill={theme.palette.text.primary}
-            text={`${(
-              Math.sqrt(
-                Math.pow(onBoardAnchor.vector.x, 2) +
-                  Math.pow(onBoardAnchor.vector.y, 2)
-              ) * 3
-            ).toFixed(1)}m/s`}
-            fontSize={12 / stageScale}
-            offsetX={-2}
-          />
-          <Text
-            x={hostileAnchor.anchors.anchor1X + hostileAnchor.vector.x}
-            y={hostileAnchor.anchors.anchor1Y + hostileAnchor.vector.y}
-            fill={theme.palette.text.primary}
-            text={`${(
-              Math.sqrt(
-                Math.pow(hostileAnchor.vector.x, 2) +
-                  Math.pow(hostileAnchor.vector.y, 2)
-              ) * 3
-            ).toFixed(1)}m/s`}
-            fontSize={12 / stageScale}
-            offsetX={-2}
-          />
-          <Text
-            x={hostileAnchor.anchors.anchor1X + 12 / stageScale}
-            y={hostileAnchor.anchors.anchor1Y - 15 / stageScale}
-            fontSize={12 / stageScale}
-            fill={theme.palette.text.primary}
-            text={`${angleBetweenTwoVectors(
-              distanceVector,
-              hostileAnchor.vector
-            ).toFixed(0)}°`}
-          />
-          <Arrow
-            pointerLength={4 / stageScale}
-            pointerWidth={4 / stageScale}
-            points={[
-              hostileAnchor.anchors.anchor1X,
-              hostileAnchor.anchors.anchor1Y,
-              hostileAnchor.anchors.anchor2X,
-              hostileAnchor.anchors.anchor2Y,
-            ]}
-            strokeWidth={2 / stageScale}
-            stroke={theme.palette.property.red}
-            fill={theme.palette.property.red}
-          />
-          <Circle
-            x={hostileAnchor.anchors.anchor1X}
-            y={hostileAnchor.anchors.anchor1Y}
-            fill="#C0C0C0"
-            opacity={0.1}
-            radius={20 / stageScale}
-            draggable
-            onDragMove={handleAnchor1OnDragMove(
-              dispatchHostileAnchor,
-              hostileAnchor
-            )}
-            onDragEnd={dispatchSituation}
-          />
-          <Circle
-            x={hostileAnchor.anchors.anchor2X}
-            y={hostileAnchor.anchors.anchor2Y}
-            fill="#C0C0C0"
-            opacity={0.1}
-            radius={10 / stageScale}
-            draggable
-            onDragMove={handleAnchor2OnDragMove(dispatchHostileAnchor)}
-            onDragEnd={(e) => {
-              handleAnchor2OnDragEnd(dispatchHostileAnchor, hostileAnchor)(e);
-              dispatchSituation();
-            }}
-          />
-          <Arrow
-            pointerLength={4 / stageScale}
-            pointerWidth={4 / stageScale}
-            points={[
-              onBoardAnchor.anchors.anchor1X,
-              onBoardAnchor.anchors.anchor1Y,
-              onBoardAnchor.anchors.anchor2X,
-              onBoardAnchor.anchors.anchor2Y,
-            ]}
-            strokeWidth={2 / stageScale}
-            stroke={theme.palette.property.blue}
-            fill={theme.palette.property.blue}
-          />
-          <Circle
-            x={onBoardAnchor.anchors.anchor1X}
-            y={onBoardAnchor.anchors.anchor1Y}
-            radius={20 / stageScale}
-            draggable
-            onDragMove={handleAnchor1OnDragMove(
-              dispatchOnBoardAnchor,
-              onBoardAnchor
-            )}
-            onDragEnd={dispatchSituation}
-            on
-          />
-          <Circle
-            x={onBoardAnchor.anchors.anchor2X}
-            y={onBoardAnchor.anchors.anchor2Y}
-            radius={20 / stageScale}
-            draggable
-            onDragMove={handleAnchor2OnDragMove(dispatchOnBoardAnchor)}
-            onDragEnd={(e) => {
-              handleAnchor2OnDragEnd(dispatchOnBoardAnchor, onBoardAnchor)(e);
-              dispatchSituation();
-            }}
-          />
-          <Line
-            points={[
-              onBoardAnchor.anchors.anchor1X,
-              onBoardAnchor.anchors.anchor1Y,
-              hostileAnchor.anchors.anchor1X,
-              hostileAnchor.anchors.anchor1Y,
-            ]}
-            strokeWidth={2 / stageScale}
-            stroke={theme.palette.primary.main}
-            fill={theme.palette.primary.main}
-            dash={[5 / stageScale, 5 / stageScale]}
-          />
-          <Text
-            //prettier-ignore
-            x={
-              (onBoardAnchor.anchors.anchor1X + hostileAnchor.anchors.anchor1X) / 2
-            }
-            //prettier-ignore
-            y={
-              (onBoardAnchor.anchors.anchor1Y + hostileAnchor.anchors.anchor1Y) / 2
-            }
-            fill={theme.palette.text.primary}
-            fontSize={12 / stageScale}
-            text={`${distance.toFixed(2)}km`}
-            offsetX={-2}
-            /* rotation={handleRotation(distanceVector)} */
-          />
-
-          <EventConsoleKonvaHtml
-            theme={theme}
-            logs={logs}
-            target={hostileAnchor}
-            stageScale={stageScale}
-          />
-          <EventConsoleKonvaHtml
-            theme={theme}
-            logs={logs}
-            target={onBoardAnchor}
-            stageScale={stageScale}
-          />
-        </Layer>
+        <ShipCanvasTacticalMap
+          theme={theme}
+          stageScale={stageScale}
+          onBoardAnchor={onBoardAnchor}
+          hostileAnchor={hostileAnchor}
+          dispatchSituation={dispatchSituation}
+          dispatchHostileAnchor={dispatchHostileAnchor}
+          dispatchOnBoardAnchor={dispatchOnBoardAnchor}
+        />
+        <ShipCanvasLog
+          theme={theme}
+          stageScale={stageScale}
+          setDispatchLog={props.setDispatchLog}
+          onBoardAnchor={onBoardAnchor}
+          hostileAnchor={hostileAnchor}
+        />
       </Stage>
     </Card>
   );

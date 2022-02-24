@@ -12,10 +12,6 @@ const useStyles = makeStyles((theme) => ({
     fontSize: 9,
     border: `0.1px solid ${theme.palette.divider}`,
     paddingRight: 10,
-    transition: theme.transitions.create("color", {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.leavingScreen,
-    }),
   },
 }));
 
