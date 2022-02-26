@@ -21,7 +21,7 @@ import EventConsoleKonvaHtml from "../SimulationPanel/EventConsoleKonvaHtml";
 
 const useStyles = makeStyles((theme) => ({
   root: {
-    width: "85%",
+    width: "90%",
     minWidth: 300,
     maxWidth: 600,
     height: "100%",

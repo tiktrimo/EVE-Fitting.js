@@ -102,7 +102,7 @@ export default function FitCard(props) {
   return (
     <React.Fragment>
       <Card
-        style={{ width: "85%", minWidth: 300, maxWidth: 600 }}
+        style={{ width: "90%", minWidth: 300, maxWidth: 600 }}
         elevation={3}
       >
         <EditButton

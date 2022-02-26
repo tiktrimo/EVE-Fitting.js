@@ -28,6 +28,15 @@ const lightTheme = createTheme({
       green: green[500],
     },
   },
+  breakpoints: {
+    values: {
+      xs: 0,
+      sm: 600,
+      md: 1100,
+      lg: 1200,
+      xl: 1536,
+    },
+  },
 });
 
 const darkTheme = createTheme({
@@ -54,6 +63,15 @@ const darkTheme = createTheme({
       org: "#ff994d", // For some f'ed reson using "orange"name make problem.
       orgSecondary: "#f3cb90", // So instead of looking for problem just used or(an)g(e)
       green: green[500],
+    },
+  },
+  breakpoints: {
+    values: {
+      xs: 0,
+      sm: 600,
+      md: 1100,
+      lg: 1200,
+      xl: 1536,
     },
   },
   overrides: {

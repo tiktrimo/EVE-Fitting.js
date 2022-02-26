@@ -79,8 +79,8 @@ export default function StatDrawer(props) {
       }}
     >
       <div className={classes.child}>
-        {props.slot?.charge && (
-          <ButtonGroup fullWidth variant="text">
+        {!!props.slot?.charge && (
+          <ButtonGroup style={{ width: 280 }} fullWidth variant="text">
             <Button style={styleButton(0)} onClick={() => setTabIndex(0)}>
               ITEM
             </Button>
