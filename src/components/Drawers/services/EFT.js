@@ -6,7 +6,7 @@ export default class EFT {
     return typeNames.reduce((acc, typeName) => {
       const type = typeIDs.find((typeID) => typeID.typeName === typeName);
       if (!!type) acc.push(type.typeID);
-      else console.log("ERROR", "EFT:typeName is not found", typeName);
+      /* else console.log("ERROR", "EFT:typeName is not found", typeName); */
       return acc;
     }, []);
   }
@@ -93,8 +93,9 @@ export default class EFT {
     //prettier-ignore
     if (EFT.#buildFitFromText_readoutTextBlock(droneText, typeIDs) !== "droneSlots")
       return {};
-
-    const droneTextLines = droneText.split(/\r?\n/);
+    //prettier-ignore
+    // filter ''. if there is empty lines under block "" create faulty slot
+    const droneTextLines = droneText.split(/\r?\n/).filter(text => text !== "");
     const droneSlots = droneTextLines.map((droneTextLine) => {
       //prettier-ignore
       const {typeName, typeCount} = EFT.#buildFitFromText_divideBy_x(droneTextLine)
@@ -174,6 +175,8 @@ export default class EFT {
 
   //prettier-ignore
   static buildCompareTextFromFit = function (fit) {
+    if(!fit?.ship) return "Invalid_fit"; // this line is intentional. makes drawer's fit.apply fired only once when ship is deleted(aka resetting)
+
     const ship = `[${fit?.ship?.typeName}, ${fit?.ship?.typeName} fit] ${fit?.ship?.typeState}`;
     const miscSlots = EFT.#buildCompareTextFromFit_moduleSlots(fit?.miscSlots, "[Empty Misc slot]");
     const lowSlots = EFT.#buildCompareTextFromFit_moduleSlots(fit?.lowSlots, "[Empty Low slot]");
@@ -181,6 +184,7 @@ export default class EFT {
     const highSlots = EFT.#buildCompareTextFromFit_moduleSlots(fit?.highSlots, "[Empty High slot]");
     const rigSlots = EFT.#buildCompareTextFromFit_moduleSlots(fit?.rigSlots, "[Empty Rig slot]");
     const drones = EFT.#buildCompareTextFromFit_droneSlots(fit?.droneSlots);
+    const skills = !!fit.skills ? "skills" : "noSkills";
 
     return [
       ship,
@@ -190,6 +194,7 @@ export default class EFT {
       highSlots,
       rigSlots,
       drones,
+      skills
     ].join("\n\n");
   }
   static #buildCompareTextFromFit_moduleSlots = function (slots, blankText) {

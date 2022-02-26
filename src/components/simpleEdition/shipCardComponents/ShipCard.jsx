@@ -68,7 +68,7 @@ export default React.memo(function ShipCanvas(props) {
   /*54: optimal  160: tracking 158: falloff*/
   return (
     <Card className={classes.root} elevation={!!ship.highSlotsCount ? 1 : 6}>
-      <Grid container justify="center">
+      <Grid container justifyContent="center">
         <Grid
           className={classes.gridHead}
           style={{ height: "100%" }}

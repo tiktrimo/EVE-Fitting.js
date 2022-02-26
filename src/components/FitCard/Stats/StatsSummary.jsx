@@ -9,7 +9,8 @@ import { useEffect } from "react";
 
 export default function StatsSummary(props) {
   useEffect(() => {
-    props.setStat(Stat.stat(props.fit));
+    const stat = Stat.stat(props.fit);
+    props.setStat(stat);
   }, [props.fitID]);
 
   return (

@@ -1,4 +1,7 @@
 src/key/ignore/
+src/fitter/yamls/ignore/
+src/fitter/yamls/legacy/
+src/fitter/jsons/ignore/
 
 # Logs
 logs
@@ -66,3 +69,4 @@ node_modules/
 
 # dotenv environment variables file
 .env
+

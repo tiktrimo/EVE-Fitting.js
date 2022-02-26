@@ -30,7 +30,7 @@ const useStyles = makeStyles((theme) => ({
   passiveButton: {
     width: "100%",
     minWidth: 20,
-    backgroundColor: theme.palette.property.orange,
+    backgroundColor: theme.palette.property.org,
   },
   offlineButton: {
     width: "100%",

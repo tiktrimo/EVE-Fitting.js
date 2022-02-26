@@ -52,6 +52,7 @@ export default function ListDrawer(props) {
           ...props.filter,
         ],
       },
+      tag: props.tag,
     };
   }, [
     props.variant,

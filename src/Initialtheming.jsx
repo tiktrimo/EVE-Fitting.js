@@ -1,9 +1,9 @@
 import InitialFetch from "./InitialFetch";
-import { MuiThemeProvider, createMuiTheme } from "@material-ui/core/styles";
+import { MuiThemeProvider, createTheme } from "@material-ui/core/styles";
 import { red, orange, blue, blueGrey, green } from "@material-ui/core/colors";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
-const lightTheme = createMuiTheme({
+const lightTheme = createTheme({
   palette: {
     primary: {
       light: "#6d6d6d",
@@ -28,9 +28,18 @@ const lightTheme = createMuiTheme({
       green: green[500],
     },
   },
+  breakpoints: {
+    values: {
+      xs: 0,
+      sm: 600,
+      md: 1100,
+      lg: 1200,
+      xl: 1536,
+    },
+  },
 });
 
-const darkTheme = createMuiTheme({
+const darkTheme = createTheme({
   palette: {
     type: "dark",
     primary: {
@@ -54,6 +63,15 @@ const darkTheme = createMuiTheme({
       org: "#ff994d", // For some f'ed reson using "orange"name make problem.
       orgSecondary: "#f3cb90", // So instead of looking for problem just used or(an)g(e)
       green: green[500],
+    },
+  },
+  breakpoints: {
+    values: {
+      xs: 0,
+      sm: 600,
+      md: 1100,
+      lg: 1200,
+      xl: 1536,
     },
   },
   overrides: {

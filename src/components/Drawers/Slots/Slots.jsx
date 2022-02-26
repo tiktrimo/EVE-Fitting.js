@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useRef } from "react";
 import Slot from "./Slot";
 import { useState, useEffect } from "react";
 import EFT from "../services/EFT";
@@ -6,7 +6,7 @@ import { translateVariant } from "../Drawers";
 import { getSlotCount } from "../FittingDrawer/FittingDrawer.jsx";
 import Fit from "../../../fitter/src/Fit";
 import { findAttributebyID } from "../../../services/dataManipulation/findAttributes";
-import { Avatar, Divider, makeStyles, Typography } from "@material-ui/core";
+import { Avatar, Divider, makeStyles } from "@material-ui/core";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -45,14 +45,7 @@ export default function Slots(props) {
   const [activeSlotNumber, setActiveSlotNumber] = useState(0);
   const [isLoop, setIsLoop] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
-  const [session, setSession] = useState(0);
-
-  useEffect(() => {
-    if (!!props.importFitText || props.variant === "SHIP") return undefined;
-
-    setRawItems(new Array(props.slotCount).fill(false));
-    setRawCharges(new Array(props.slotCount).fill(false));
-  }, [props.slots?.ship?.typeID]);
+  const sessionRef = useRef(0);
 
   useEffect(() => {
     if (!!props.importFitText || props.variant === "SHIP") return undefined;
@@ -63,10 +56,23 @@ export default function Slots(props) {
     setRawCharges(Array.from(rawCharges, (charge) => charge || false));
   }, [props.slotCount]);
 
+  useEffect(() => {
+    if (!!props.importFitText || props.variant === "SHIP") return undefined;
+
+    setRawItems(new Array(props.slotCount).fill(false));
+    setRawCharges(new Array(props.slotCount).fill(false));
+  }, [props.slots.ship?.typeID]);
+
   //Import fitText using EFT class
   useEffect(() => {
-    if (props.importFitText !== false) importSlots(props, setters);
-  }, [props.importFitText]);
+    if (!props.importFitText) return;
+
+    // Check if ship in the slots is loaded first. if not dont import module.
+    (async () => {
+      if (await getIsShipLoaded(props))
+        importSlots(props, rawItems, rawCharges, setters);
+    })();
+  }, [props.importFitText, props.slots.ship?.typeID]);
 
   //Raw items, charges input [REFACTOR!!]
   useEffect(() => {
@@ -81,7 +87,9 @@ export default function Slots(props) {
       case "ADD":
         const activeItem = rawItems[activeSlotNumber];
         activeItem["typeCount"] = loopNumber(activeItem.typeCount, 1, 6);
-        break;
+        setRawItems([...rawItems]);
+        props.dispatchListItems({ type: props.variant, payload: false });
+        return;
       case "activation":
         changeState(rawItems[activeSlotNumber], "activation");
         break;
@@ -143,7 +151,7 @@ export default function Slots(props) {
 
   //Fetched items, charges input
   useEffect(() => {
-    setSession(session + 1);
+    sessionRef.current = sessionRef.current + 1;
     setIsLoading(true);
     (async function (props, rawItems, rawCharges, session) {
       const data = await Promise.all(
@@ -153,25 +161,27 @@ export default function Slots(props) {
       const sessionData = data[data.length - 1];
       const fetchedData = data.slice(0, data.length - 1);
 
-      if (sessionData === false || sessionData !== session) {
-        //prettier-ignore
-        console.log( "FETCH ERROR:SESSION MISFETCHED", props.variant, {sessionData, session, fetchedData, rawItems, rawCharges} );
+      if (sessionData !== sessionRef.current) {
+        //console.warn("ERROR_SESSION_NOT_MATCHING", props.variant, {FETCHED_SESSION: sessionData,VALID_SESSION: sessionRef.current,fetchedData,});
         return undefined;
-      } else
+      } else if (fetchedData === false) {
+        //console.warn("WARN_ITEM_CHARGE_COUNT_DEFECTED", props.variant, {rawItems,rawCharges,});
+      } else {
         processFetchedData(props, fetchedData, rawItems, rawCharges, setters);
+      }
+
       setIsLoading(false);
-    })(props, rawItems, rawCharges, session + 1);
+    })(props, rawItems, rawCharges, sessionRef.current);
   }, [checkData(rawItems, rawCharges)]);
 
   if (props.slotCount > 0)
     return (
       <React.Fragment>
-        <div
-          className={classes.root}
-          style={{
-            padding: props.variant === "SHIP" ? 0 : "10px 0px 10px 0px",
-          }}
-        >
+        <div className={classes.root}>
+          <Divider
+            className={classes.divider}
+            style={{ backgroundColor: props.backgroundColor }}
+          />
           {new Array(props.slotCount).fill(undefined).map((slot, index) => {
             return (
               <Slot
@@ -191,6 +201,7 @@ export default function Slots(props) {
                 }
                 index={index}
                 setActiveSlotNumber={setActiveSlotNumber}
+                setImportFitText={props.setImportFitText}
                 cache={props.cache}
               />
             );
@@ -199,7 +210,6 @@ export default function Slots(props) {
             <Avatar className={classes.lodingIndicator}>{""}</Avatar>
           )}
         </div>
-        <Divider className={classes.divider} />
       </React.Fragment>
     );
   else return false;
@@ -240,7 +250,7 @@ function extractHardpoints(fit) {
   );
   return { turretPointLoad, launcherPointLoad };
 }
-function importSlots(props, setters) {
+function importSlots(props, rawItems, rawCharges, setters) {
   if (!props.importFitText) return undefined;
 
   (async (fitText) => {
@@ -250,9 +260,9 @@ function importSlots(props, setters) {
 
     if (props.variant === "SHIP") {
       setters.setRawItems([fitFromText.ship]);
+      props.dispatchImportStateFlag({ type: props.variant });
       return undefined;
     }
-
     const slotCount = getSlotCountAtImport({ ship }, fitFromText, props);
     const items = new Array(slotCount).fill(false);
     const charges = new Array(slotCount).fill(false);
@@ -264,12 +274,25 @@ function importSlots(props, setters) {
       items[index] = !!slot.item && { ...slot.item, typeState: "activation" };
       charges[index] = !!slot.charge && {...slot.charge, typeState: "passive",};
     });
+    // If there is no change, set import flag true. If there is change than set import flag true at end of @processFetchedData
+    if (checkData(rawItems, rawCharges) === checkData(items, charges))
+      props.dispatchImportStateFlag({ type: props.variant });
+    else {
+      setters.setRawItems(items);
+      setters.setRawCharges(charges);
+    }
+  })(props.importFitText);
+}
+async function getIsShipLoaded(props) {
+  if (props.variant === "SHIP") return true;
 
-    setters.setRawItems(items);
-    setters.setRawCharges(charges);
+  return await (async (fitText) => {
+    const typeIDs = await props.cache.wait("/typeIDsTable");
+    const fitFromText = EFT.buildFitFromText(fitText, typeIDs);
+    const ship = await props.cache.wait(`typeID/${fitFromText.ship.typeID}`);
 
-    props.importStateFlag[props.variant] = true;
-    props.setImportStateFlag({ ...props.importStateFlag });
+    if (!ship) return false;
+    else return ship.typeID === props.slots.ship?.typeID;
   })(props.importFitText);
 }
 function getSlotCountAtImport(fit, fitFromText, props) {
@@ -279,7 +302,8 @@ function getSlotCountAtImport(fit, fitFromText, props) {
   else return getSlotCount(fit, props.variant);
 }
 function createFetchPromises(props, rawItems, rawCharges, session) {
-  if (rawItems.length !== rawCharges.length) return [Promise.resolve(false)];
+  if (rawItems.length !== rawCharges.length)
+    return [Promise.resolve(false), Promise.resolve(session)];
 
   const promisesItem = rawItems.map((rawItem) => {
     if (rawItem === false) return Promise.resolve(false);
@@ -293,24 +317,38 @@ function createFetchPromises(props, rawItems, rawCharges, session) {
   return [...promisesItem, ...promisesCharge, sessionPromise];
 }
 function processFetchedData(props, data, rawItems, rawCharges, setters) {
-  const items = data.slice(0, data.length / 2);
-  const charges = data.slice(data.length / 2);
+  const fetchedItems = data.slice(0, data.length / 2);
+  const fetchedCharges = data.slice(data.length / 2);
+  const items = new Array(fetchedItems.length).fill(false);
+  const charges = new Array(fetchedCharges.length).fill(false);
   const payload = [];
-  items.forEach((fetcheditem, index) => {
+
+  fetchedItems.forEach((fetcheditem, index) => {
+    const itemCount = rawItems[index]?.typeCount;
     const itemState = !!rawItems[index]
       ? Fit.getCurrentState({
-          ...rawItems[index],
           ...fetcheditem,
+          ...rawItems[index],
         })
       : undefined;
     const item = !!rawItems[index]
-      ? { ...rawItems[index], ...fetcheditem, typeState: itemState }
+      ? {
+          ...rawItems[index],
+          ...fetcheditem,
+          typeState: itemState,
+          typeCount: itemCount,
+        }
       : false;
-    const charge = Fit.validateChargeSlot({ item, charge: charges[index] })
-      ? { ...rawCharges[index], ...charges[index] }
+
+    const charge = Fit.validateChargeSlot({
+      item,
+      charge: fetchedCharges[index],
+    })
+      ? { ...rawCharges[index], ...fetchedCharges[index] }
       : false;
-    rawItems[index] = item;
-    rawCharges[index] = charge;
+
+    items[index] = item;
+    charges[index] = charge;
     payload.push({ item, charge });
     // If validation of charge fails, set rawCharge as false value
     if (charge === false) rawCharges[index] = false;
@@ -318,10 +356,23 @@ function processFetchedData(props, data, rawItems, rawCharges, setters) {
     if (!!rawItems[index] && !!itemState)
       rawItems[index]["typeState"] = itemState;
   });
+  if (validateFetchedSlots(payload))
+    props.dispatchSlots({ type: props.variant, payload: payload });
+  setters.setFetchedCharges([...charges]);
+  setters.setFetchedItems([...items]);
 
-  props.dispatchSlots({ type: props.variant, payload: payload });
-  setters.setFetchedCharges([...rawCharges]); // If validation of charge fails, set rawCharge as false value
-  setters.setFetchedItems([...rawItems]);
+  if (!!props.importFitText)
+    props.dispatchImportStateFlag({ type: props.variant });
+}
+
+function validateFetchedSlots(slots) {
+  return slots.reduce((isValid, slot) => {
+    if (!isValid) return false;
+    if (!!slot.item?.typeID && !slot.item?.typeAttributesStats) return false;
+    if (!!slot.charge?.typeID && !slot.charge?.typeAttributesStats)
+      return false;
+    return true;
+  }, true);
 }
 
 function assignItemToSlot(props, rawItems, rawCharges, activeSlotNumber) {
@@ -353,20 +404,21 @@ function changeState(activeItem, state) {
 }
 function checkData(rawItems, rawCharges) {
   return [
-    ...hashTypes(rawItems),
-    ...hashState(rawItems),
-    ...hashCount(rawItems),
-    ...hashTypes(rawCharges),
+    hashTypes(rawItems),
+    hashState(rawItems),
+    hashCount(rawItems),
+    hashTypes(rawCharges),
   ].join(":");
 }
+// type && type.typeName -X-> type.typeName. type can be false. int that case [undefined].join() === [].join(). TLDR; it's intentional
 function hashTypes(types) {
-  return types.map((type) => !!type && type.typeName).join("-");
+  return types.map((type) => type && type.typeName).join("-");
 }
 function hashState(rawTypes) {
-  return rawTypes.map((type) => !!type && type.typeState).join("-");
+  return rawTypes.map((type) => type && type.typeState).join("-");
 }
 function hashCount(rawTypes) {
-  return rawTypes.map((type) => !!type && type.typeCount).join("-");
+  return rawTypes.map((type) => type && type.typeCount).join("-");
 }
 function loopNumber(number, floor, ceiling, variant) {
   if (variant === "DRONE_SLOT") {

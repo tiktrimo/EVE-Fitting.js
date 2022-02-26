@@ -99,8 +99,12 @@ function createStatList(item, attributesCategories) {
 function filterAttributes(type, attributesCategories) {
   if (!type || !type.typeAttributesStats) return undefined;
   const typeAttributesStats = type.typeAttributesStats;
-
-  const filteredAttributes = new Array(50)
+  const categoryIDmax =
+    typeAttributesStats.reduce((acc, attr) => {
+      if (attr.attributeCategoryID > acc) return attr.attributeCategoryID;
+      return acc;
+    }, 1) + 1;
+  const filteredAttributes = new Array(categoryIDmax)
     .fill(undefined)
     .map((attr, index) => ({
       name: attributesCategories[index]?.name,

@@ -20,6 +20,7 @@ import {
 import Stat from "./services/Stat";
 import { useCallback } from "react";
 import ResourcesMiscellaneousListItem from "./ResourcesMiscellaneousListItem";
+import { useRef } from "react";
 
 const TurretHardpoint = (props) => {
   const theme = useTheme();
@@ -188,10 +189,16 @@ const useStyles = makeStyles((theme) => ({
 
 export default function Hardpoints(props) {
   const classes = useStyles();
+  const widthRef = useRef(null);
 
   const [open, setOpen] = useState(true);
   const [load, setLoad] = useState(Stat.defaultStat.resource.load);
   const [capacity, setCapacity] = useState(Stat.defaultStat.resource.capacity);
+  const [isCompact, setIsCompact] = useState(false);
+
+  useEffect(() => {
+    setIsCompact(widthRef.current?.offsetWidth < 400);
+  }, [widthRef.current?.offsetWidth]);
 
   useEffect(() => {
     setLoad(props.stat.resource.load);
@@ -205,31 +212,36 @@ export default function Hardpoints(props) {
   return (
     <React.Fragment>
       <List className={classes.root}>
-        <ListItem className={classes.rootChild} dense onClick={handleClick}>
+        <ListItem
+          innerRef={widthRef}
+          className={classes.rootChild}
+          dense
+          onClick={handleClick}
+        >
           <Grid container item alignContent="center">
-            <Grid item xs={4} sm={2}>
+            <Grid item xs={isCompact ? 4 : 2}>
               <TurretHardpoint label={`${load.turret}/${capacity.turret}`} />
             </Grid>
-            <Grid item xs={4} sm={2}>
+            <Grid item xs={isCompact ? 4 : 2}>
               <LauncherHardpoint
                 label={`${load.launcher}/${capacity.launcher}`}
               />
             </Grid>
 
-            <Grid item xs={4} sm={2}>
+            <Grid item xs={isCompact ? 4 : 2}>
               <Calibration
                 label={`${load.calibration}/${capacity.calibration}`}
               />
             </Grid>
 
-            <Grid item xs={6} sm={3}>
+            <Grid item xs={isCompact ? 6 : 3}>
               <DroneBay
                 value={load.droneBay / capacity.droneBay}
                 label={`${load.droneBay}/${capacity.droneBay}m3`}
                 isError={load.droneBay > capacity.droneBay}
               />
             </Grid>
-            <Grid item xs={6} sm={3}>
+            <Grid item xs={isCompact ? 6 : 3}>
               <DroneBandwidth
                 value={load.droneBandwidth / capacity.droneBandwidth}
                 label={`${load.droneBandwidth}/${capacity.droneBandwidth}Mbit/s`}

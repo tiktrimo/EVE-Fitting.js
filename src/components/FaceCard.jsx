@@ -123,7 +123,7 @@ export default function FaceCard(props) {
     <React.Fragment>
       <Grid spacing={2} container>
         <Grid style={{ height: 40 }} container item xs={12}></Grid>
-        <Grid container item xs={12} justify="center">
+        <Grid container item xs={12} justifyContent="center">
           <ShipCard
             skills={skills}
             calculatedValues={calculatedValue}
@@ -134,13 +134,13 @@ export default function FaceCard(props) {
           />
         </Grid>
 
-        <Grid container item xs={12} justify="center">
+        <Grid container item xs={12} justifyContent="center">
           <ShipSelection
             setSignatureRadius={setSignatureRadius}
             cache={cache}
           />
         </Grid>
-        <Grid container item xs={12} justify="center">
+        <Grid container item xs={12} justifyContent="center">
           <div style={{ width: 320 }}>
             <Chip
               style={{ marginInlineEnd: 5 }}
@@ -157,7 +157,7 @@ export default function FaceCard(props) {
           </div>
         </Grid>
 
-        <Grid container item xs={12} justify="center">
+        <Grid container item xs={12} justifyContent="center">
           <ShipCanvas
             distance={setDistance}
             hostileVector={setHostileVector}
@@ -166,12 +166,12 @@ export default function FaceCard(props) {
           />
         </Grid>
 
-        {/* <Grid container item xs={12} justify="center">
+        {/* <Grid container item xs={12} justifyContent="center">
           <SkillSlider setSkills={setSkills} />
         </Grid> */}
       </Grid>
 
-      <Grid container item xs={12} justify="center">
+      <Grid container item xs={12} justifyContent="center">
         <Card
           style={{ height: 100, width: 320, margin: 5, padding: 10 }}
           elevation={0}
@@ -193,7 +193,7 @@ export default function FaceCard(props) {
           </List>
         </Card>
       </Grid>
-      <Grid container item xs={12} justify="center">
+      <Grid container item xs={12} justifyContent="center">
         <Chip
           color="primary"
           variant="default"
@@ -204,7 +204,13 @@ export default function FaceCard(props) {
           clickable
         />
       </Grid>
-      <Grid style={{ height: 50 }} container item xs={12} justify="center">
+      <Grid
+        style={{ height: 50 }}
+        container
+        item
+        xs={12}
+        justifyContent="center"
+      >
         {openLicense && (
           <div>
             <Card style={{ padding: 10, margin: 10 }} elevation={2}>

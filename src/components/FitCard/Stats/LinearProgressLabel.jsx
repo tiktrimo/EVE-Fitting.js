@@ -26,6 +26,24 @@ const useStyles = makeStyles((theme) => ({
     width: "100%",
     height: "100%",
   },
+  rootProgress: (props) => ({
+    width: "100%",
+    height: "100%",
+    backgroundColor: !!props.backgroundColor
+      ? props.backgroundColor
+      : theme.palette.background.paper,
+  }),
+  rootBar: (props) => ({
+    backgroundColor: !!props.color
+      ? props.color
+      : theme.palette.background.paper,
+  }),
+  dashedBar: (props) => ({
+    borderRight: `dashed ${theme.palette.text.primary} 0.1px`,
+    backgroundColor: !!props.color
+      ? props.color
+      : theme.palette.background.paper,
+  }),
   childGrid: {
     width: "100%",
     height: "100%",
@@ -46,31 +64,16 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function LinearProgressLabel(props) {
-  const classes = useStyles();
-  const theme = useTheme();
-
-  const LinearProgressFixed = useCallback(
-    withStyles(() => ({
-      root: {
-        width: "100%",
-        height: "100%",
-        backgroundColor: !!props.backgroundColor
-          ? props.backgroundColor
-          : theme.palette.background.paper,
-      },
-      bar: {
-        backgroundColor: !!props.color
-          ? props.color
-          : theme.palette.background.paper,
-      },
-    }))(LinearProgress),
-    [props.backgroundColor, props.color, theme]
-  );
+  const classes = useStyles(props);
 
   return (
     <Grid className={classes.root}>
       <Grid className={classes.rootGrid}>
-        <LinearProgressFixed
+        <LinearProgress
+          classes={{
+            root: classes.rootProgress,
+            bar: !props.showDivider ? classes.rootBar : classes.dashedBar,
+          }}
           className={classes.progress}
           variant="determinate"
           value={props.value}

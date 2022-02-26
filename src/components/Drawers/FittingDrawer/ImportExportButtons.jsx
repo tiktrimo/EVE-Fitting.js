@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect } from "react";
 import ArchiveIcon from "@material-ui/icons/Archive";
 import UnarchiveIcon from "@material-ui/icons/Unarchive";
 import RecButton from "../RecButton";
@@ -29,9 +29,6 @@ const useStyles = makeStyles((theme) => ({
     width: 35,
     minWidth: 10,
   },
-  warning: {
-    color: theme.palette.text.primary,
-  },
 }));
 
 export default function ImportExportButtons(props) {
@@ -40,24 +37,38 @@ export default function ImportExportButtons(props) {
 
   const [openAlert, setOpenAlert] = useState(false);
 
-  const [title, setTitle] = useState("Welcome to Fitting.js");
+  const [title, setTitle] = useState("");
   const [text, setText] = useState(false);
 
-  const handleImportClick = useCallback(() => {
-    copyTextFromClipboard().then((text) => {
-      setOpenAlert(true);
-      if (text === false) return setTitle("Permission denied");
+  const handleImportClick = useCallback(async () => {
+    const text = await navigator.clipboard.readText();
+    setOpenAlert(true);
+    if (!text) setTitle("Permission denied");
+    else {
+      setTitle("Importing EFT");
       setText(text);
+    }
+  }, [setText, setTitle, setOpenAlert]);
+
+  useEffect(() => {
+    if (props.importFitText === false) {
+      setText(false);
+      setOpenAlert(false);
+    }
+  }, [props.importFitText]);
+
+  useEffect(() => {
+    if (text !== false) {
       props.setImportFitText(text);
-      props.setImportStateFlag(importInitializeFlag);
+      props.dispatchImportStateFlag({ type: "START" });
       props.cache.wait("/typeIDsTable").then((typeIDs) => {
         const IDs = EFT.extractIDs(text, typeIDs);
         if (!IDs || IDs.length === 0) setTitle("Unvalid EFT");
         else setTitle("Importing EFT");
         fittingLazyFetch(props.cache, IDs);
       });
-    });
-  }, [props.setImportFitText, props.setImportStateFlag, props.cache]);
+    }
+  }, [text]);
 
   return (
     <React.Fragment>
@@ -91,24 +102,26 @@ export default function ImportExportButtons(props) {
         ContentProps={{
           elevation: 3,
           style: {
-            backgroundColor: theme.palette.background.paper,
-            border: getSnackbarBorder(title, theme),
+            backgroundColor: getSnackbarColor(title, theme),
           },
         }}
         message={
           <ListItem className={classes.listItem}>
             <ListItemIcon>
-              <ArchiveIcon className={classes.warning} />
+              <ArchiveIcon style={{ color: getPrimaryColor(title, theme) }} />
             </ListItemIcon>
 
             <ListItemText
               primary={title}
               secondary={text}
               primaryTypographyProps={{
-                style: { color: theme.palette.text.primary, fontWeight: 700 },
+                style: {
+                  color: getPrimaryColor(title, theme),
+                  fontWeight: 700,
+                },
               }}
               secondaryTypographyProps={{
-                style: { color: theme.palette.text.secondary },
+                style: { color: getSecondaryColor(title, theme) },
               }}
             />
           </ListItem>
@@ -118,14 +131,18 @@ export default function ImportExportButtons(props) {
     </React.Fragment>
   );
 }
-async function copyTextFromClipboard() {
-  const permisson = await navigator.permissions.query({
-    name: "clipboard-read",
-  });
-  if (permisson.state === "granted" || permisson.state === "prompt") {
-    return navigator.clipboard.readText();
+async function handleClickEvent(clickEvent) {
+  let items = await navigator.clipboard.read();
+  for (let item of items) {
+    if (!item.types.includes("text/plain")) continue;
+
+    let reader = new FileReader();
+    reader.addEventListener("load", (loadEvent) => {
+      console.log(reader.result);
+    });
+    reader.readAsText(await item.getType("text/plain"));
+    break;
   }
-  return false;
 }
 function getSnackbarBorder(title, theme) {
   switch (title) {
@@ -137,5 +154,41 @@ function getSnackbarBorder(title, theme) {
       return `solid 3px ${theme.palette.property.red}`;
     default:
       return "none";
+  }
+}
+function getSnackbarColor(title, theme) {
+  switch (title) {
+    case "Importing EFT":
+      return theme.palette.background.paper;
+    case "Unvalid EFT":
+      return theme.palette.property.org;
+    case "Permission denied":
+      return theme.palette.property.red;
+    default:
+      return theme.palette.background.paper;
+  }
+}
+function getPrimaryColor(title, theme) {
+  switch (title) {
+    case "Importing EFT":
+      return theme.palette.text.primary;
+    case "Unvalid EFT":
+      return theme.palette.button.color;
+    case "Permission denied":
+      return theme.palette.button.color;
+    default:
+      return theme.palette.text.primary;
+  }
+}
+function getSecondaryColor(title, theme) {
+  switch (title) {
+    case "Importing EFT":
+      return theme.palette.text.secondary;
+    case "Unvalid EFT":
+      return theme.palette.button.color;
+    case "Permission denied":
+      return theme.palette.button.color;
+    default:
+      return theme.palette.text.secondary;
   }
 }

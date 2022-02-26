@@ -8,16 +8,20 @@ export default class cacheService {
       useClones: false,
     });
   }
+  set(key, value) {
+    if (!this.cache.get(key)) this.cache.set(key, value);
+    /* console.log(key, ": Cache Operation[SET]"); */
+  }
 
   get(key, storeFunction) {
     const value = this.cache.get(key);
     if (value) {
-      /*       console.log(`${key}: Cache Operation[GET]`); */
+      /* console.log(`${key}: Cache Operation[GET]`); */
       return Promise.resolve(value);
     }
 
     return storeFunction().then((result) => {
-      /*       console.log(`${key}: Cache set`); */
+      /* console.log(`${key}: Cache set[GET_NETWORK]`); */
       this.cache.set(key, result);
       return result;
     });
@@ -32,12 +36,12 @@ export default class cacheService {
       function check(count, cache) {
         return () => {
           const value = cache.get(key);
-          /* console.log(key, count); */
           if (value !== undefined || count > 120) {
             /*  console.log(`${key}: Cache Operation[WAIT]`); */
             return resolve(value);
           }
-          setTimeout(check(count++, cache), 100);
+          /* console.log(key, count); */
+          setTimeout(check(++count, cache), 100);
         };
       }
       check(0, this.cache)();

@@ -7,6 +7,13 @@ import Fit from "../../fitter/src/Fit";
 import StatDrawer from "./Stats/StatDrawer.jsx";
 import EFT from "./services/EFT.js";
 import ListDrawers from "./ListDrawer/ListDrawers.jsx";
+import { createWorkerFactory, useWorker } from "@shopify/react-web-worker";
+const createFitWorker = createWorkerFactory(() =>
+  import("../../fitter/src/FitWorker")
+);
+// eslint-disable-next-line import/no-webpack-loader-syntax
+/* import worker from "workerize-loader!../../fitter/src/FitWorker";
+const fitWorker = worker(); */
 
 const initialSlots = {
   skills: false,
@@ -136,6 +143,7 @@ function listItemsReducer(state, action) {
 }
 
 export default function Drawers(props) {
+  const fitWorker = useWorker(createFitWorker);
   //prettier-ignore
   const [activeSlot, setActiveSlot] = useState({ type: false, index: false});
 
@@ -151,6 +159,7 @@ export default function Drawers(props) {
 
   const [fit, setFit] = useState(false);
   const [exportFitText, setExportFitText] = useState(false);
+  const [importFitText, setImportFitText] = useState(false);
 
   useEffect(() => {
     props.cache
@@ -164,25 +173,44 @@ export default function Drawers(props) {
   }, [props.open]);
 
   useEffect(() => {
-    /*  console.log(
-      "∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨FitCalc∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨"
-    );
-    console.time("Fit Stat Calculation"); */
-    const appliedFit = Fit.apply(slots);
-    /*  console.timeEnd("Fit Stat Calculation");
-    console.log(appliedFit);
-    console.log(
-      `∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧`
-    ); */
-    setFit(appliedFit);
-    setExportFitText(EFT.buildTextFromFit(appliedFit));
-    props.setFit(appliedFit);
-    props.setFitID(EFT.buildCompareTextFromFit(slots));
-  }, [EFT.buildCompareTextFromFit(slots)]);
+    (async () => {
+      if (importFitText !== false) return;
+      /* console.log(
+        "∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨FitCalc∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨"
+      );
+      console.time("Fit Stat Calculation"); */
+      /* const appliedFit = await fitWorker.fit(slots); */
+      const appliedFit = await fitWorker.fit(
+        !!slots.ship ? slots : initialSlots
+      );
+      /* const appliedFit = Fit.apply(slots); */
+      /* console.timeEnd("Fit Stat Calculation");
+      console.log(appliedFit);
+      console.log(
+        `∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧`
+      ); */
+      setFit(appliedFit);
+      props.setFit(appliedFit);
+      props.setFitID(EFT.buildCompareTextFromFit(slots));
+      props.setSlots(slots);
+
+      if (!!slots.ship?.typeID) {
+        const appliedFitExportText = EFT.buildTextFromFit(appliedFit);
+        const appliedSlotsModified = { ...slots, skills: undefined };
+        setExportFitText(appliedFitExportText);
+        localStorage.setItem(
+          `${props.tag}SLOTS`,
+          JSON.stringify(appliedSlotsModified)
+        );
+        localStorage.setItem(`${props.tag}EFT`, appliedFitExportText);
+      }
+    })();
+  }, [EFT.buildCompareTextFromFit(slots), importFitText]);
 
   return (
     <React.Fragment>
       <ListDrawers
+        tag={props.tag}
         expand={props.expand}
         slotsOpen={slotsOpen}
         fit={fit}
@@ -195,13 +223,17 @@ export default function Drawers(props) {
       />
 
       <FittingDrawer
+        tag={props.tag}
         fit={fit}
         slots={slots}
         open={props.open}
         setOpen={props.setOpen}
         expand={props.expand}
         setExpand={props.setExpand}
+        backgroundColor={props.backgroundColor}
         exportFitText={exportFitText}
+        importFitText={importFitText}
+        setImportFitText={setImportFitText}
         slotsOpen={slotsOpen}
         dispatchSlotsOpen={dispatchSlotsOpen}
         listItems={listItems}

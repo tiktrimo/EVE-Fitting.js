@@ -1,0 +1,24 @@
+[Dragoon, Dragoon fit]
+
+Small Armor Repairer II
+Thermal Coating II
+EM Armor Hardener II
+[Empty Low slot]
+
+Small Shield Booster II
+EM Shield Hardener II
+[Empty Med slot]
+
+Gatling Pulse Laser II, Conflagration S
+Gatling Pulse Laser II, Conflagration S
+Gatling Pulse Laser II, Conflagration S
+[Empty High slot]
+[Empty High slot]
+
+[Empty Rig slot]
+[Empty Rig slot]
+[Empty Rig slot]
+
+
+Hobgoblin II x5
+

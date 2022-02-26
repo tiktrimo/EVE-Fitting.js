@@ -25,12 +25,15 @@ module.exports = function buildTypeDogmaAttributes(ID, props) {
   return typeAttributesStats;
 };
 function addMissingAttributes(type, typeDogma) {
-  //Add massAttribute to typeDogma
+  //Add massAttribute to ship. to affected propulsion system(MWD)
   if (!!type.mass)
     typeDogma.dogmaAttributes.push({ attributeID: 4, value: type.mass });
 
-  //Add Missile Damage Bonus if type is missile
-  if (!!typeDogma?.dogmaEffects?.find((efft) => efft.effectID === 9))
-    // effectID: 9, effectName: "missileLaunching",
+  //Add Missile Damage Bonus attribute to missiles. to affected by ballistics cotrol
+  if (!!typeDogma?.dogmaEffects?.find((efft) => efft.effectID === 9))// effectID: 9, effectName: "missileLaunching"
     typeDogma.dogmaAttributes.push({ attributeID: 212, value: 1 });
+
+  //Add nosferatu ovverided attribute to nodferatu. to affected by blood raider ships
+  if(!!typeDogma?.dogmaEffects?.find((efft) => efft.effectID === 6197))//effectID: 6197, effectName: "energyNosferatuFalloff"
+    typeDogma.dogmaAttributes.push({attributeID: 1945, value: 0}); //0: false, 1: true
 }

@@ -138,13 +138,13 @@ export default function ShipCardHead(props) {
 
   return (
     <Grid container alignContent="flex-start">
-      <Grid container item xs={4} justify="center"></Grid>
+      <Grid container item xs={4} justifyContent="center"></Grid>
       <Grid
         style={{ height: 105, width: 105 }}
         container
         item
         xs={4}
-        justify="center"
+        justifyContent="center"
       >
         <Avatar
           className={classes.avatar}
@@ -158,9 +158,9 @@ export default function ShipCardHead(props) {
         </Avatar>
       </Grid>
 
-      <Grid container item xs={4} justify="center"></Grid>
+      <Grid container item xs={4} justifyContent="center"></Grid>
 
-      <Grid container item xs={12} justify="center">
+      <Grid container item xs={12} justifyContent="center">
         <Button
           style={{ width: "100%", fontSize: 16 }}
           size="small"
@@ -170,8 +170,14 @@ export default function ShipCardHead(props) {
           {ship.typeName ? ship.typeName : "SELECT SHIP"}
         </Button>
       </Grid>
-      <Grid container item xs={12} justify="center">
-        <Grid style={{ margin: 10 }} container item xs={12} justify="center">
+      <Grid container item xs={12} justifyContent="center">
+        <Grid
+          style={{ margin: 10 }}
+          container
+          item
+          xs={12}
+          justifyContent="center"
+        >
           {isDataFetching && <CircularProgress />}
           {props.activeBonuses.tracking > 1 && (
             <Chip
@@ -201,7 +207,13 @@ export default function ShipCardHead(props) {
             />
           )}
         </Grid>
-        <Grid style={{ margin: 10 }} container item xs={12} justify="center">
+        <Grid
+          style={{ margin: 10 }}
+          container
+          item
+          xs={12}
+          justifyContent="center"
+        >
           {props.calculatedValues.tracking > 0 ? (
             <Chip
               color="primary"
@@ -212,7 +224,7 @@ export default function ShipCardHead(props) {
             />
           ) : undefined}
         </Grid>
-        <Grid container item xs={12} justify="center">
+        <Grid container item xs={12} justifyContent="center">
           {props.calculatedValues.tracking > 0 ? (
             <Chip
               color="primary"

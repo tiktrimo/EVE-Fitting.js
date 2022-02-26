@@ -1,5 +1,5 @@
 import React from "react";
-import { Badge, Avatar, makeStyles, useTheme } from "@material-ui/core";
+import { Badge, Avatar, makeStyles, useTheme, Button } from "@material-ui/core";
 import { useCallback } from "react";
 import { useState } from "react";
 import { useEffect } from "react";
@@ -52,6 +52,7 @@ export default function SlotChargeBadge(props) {
     },
     [props.index, props.variant, props.item]
   );
+
   useEffect(() => {
     if (props.count !== undefined && props.count.constructor === Number) {
       // count of item
@@ -78,7 +79,7 @@ export default function SlotChargeBadge(props) {
       setBadgeColor({
         color: theme.palette.text.primary,
         backgroundColor: theme.palette.background.paper,
-        border: `0.1px solid ${theme.palette.background.paper}`,
+        border: `0.1px solid ${theme.palette.divider}`,
       });
       setBadgeIcon(<AdjustIcon fontSize="small" />);
     }
@@ -86,7 +87,7 @@ export default function SlotChargeBadge(props) {
 
   return (
     <Badge
-      overlap="circle"
+      overlap="circular"
       anchorOrigin={{
         vertical: "bottom",
         horizontal: "right",
@@ -101,7 +102,7 @@ export default function SlotChargeBadge(props) {
             }}
             onClick={handleBadgeClick}
           >
-            {badgeIcon}
+            <Button>{badgeIcon}</Button>
           </Avatar>
         ) : undefined
       }
@@ -132,10 +133,10 @@ export function getLoadableGroup(item) {
   // Charge size[attributeID] = 128
   const loadableSize = typeAttributesStats.find(
     (attr) => attr.attributeID === 128
-  );
+  )?.value;
 
   return {
     group: loadableGroupIDs,
-    size: loadableSize?.value,
+    size: loadableSize,
   };
 }

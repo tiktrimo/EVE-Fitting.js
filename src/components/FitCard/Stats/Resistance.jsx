@@ -48,7 +48,7 @@ export default function Resistance(props) {
         <ResistanceProgressLabel
           variant="structure"
           Icon={
-            <div>
+            <div style={{ height: 24 }}>
               <StructureIcon color={theme.palette.text.primary} />
             </div>
           }

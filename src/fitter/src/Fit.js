@@ -27,8 +27,14 @@ export default class Fit {
 
     if (!loadableGroupIDs.includes(charge.groupID)) return false;
 
-    // Used with (Launcher Group)[attributeID] = 137,602,603
-    // Seems not necessary skip the test and return true
+    const itemCapacity = item.capacity;
+    const chargeVolume = charge.volume;
+    const chargePerCycle = Fit.#common_findAttributeByID(item, 56)?.value; //attributeID: 56, attributeName: "Charges Per Cycle"
+    const chargeVolumePerAct = !!chargePerCycle
+      ? chargeVolume * chargePerCycle
+      : 0;
+    const activationLimit = Math.floor(itemCapacity / chargeVolumePerAct);
+    if (activationLimit <= 0) return false;
 
     return true;
   };
@@ -42,6 +48,7 @@ export default class Fit {
       lowSlots: false,
       rigSlots: false,
       droneSlots: false,
+      exSlots: false,
     },
   };
   static mapSlots = function (fit, callback, partialConfig) {
@@ -60,6 +67,7 @@ export default class Fit {
       "lowSlots",
       "rigSlots",
       "droneSlots",
+      "exSlots",
     ].reduce((acc, slotName) => {
       if (config.isIterate[slotName] === true)
         return acc.concat(Fit.#mapSlots_slots(fit[slotName], callback));
@@ -67,18 +75,20 @@ export default class Fit {
     }, []);
   };
   static #mapSlots_slots = function (slots, callback) {
+    if (!slots) return [];
     return slots.map((slot) => {
       return callback(slot);
     });
   };
 
-  static apply = function (fit) {
-    const fitWithDomainID = Fit.#giveDomainID(fit);
+  static apply = function (slots) {
+    const fitWithDomainID = Fit.#giveDomainID(slots);
 
     const board = Fit.#createBoard(fitWithDomainID);
     const staticBoard = Fit.#applyBoard_createStaticBoard(board);
+    const fit = Fit.#applyBoard(fitWithDomainID, staticBoard);
 
-    return Fit.#applyBoard(fitWithDomainID, staticBoard);
+    return fit;
   };
 
   static #applyBoard = function (fit, staticBoard) {
@@ -175,11 +185,12 @@ export default class Fit {
           values: {
             baseValue: baseValue,
             appliedValue: value,
-            penalizedModifyingAttributeValue: Fit.#common_penalizedModifyingValue(
-              mod.modifyingAttributeValue,
-              mod.operation,
-              penCount
-            ),
+            penalizedModifyingAttributeValue:
+              Fit.#common_penalizedModifyingValue(
+                mod.modifyingAttributeValue,
+                mod.operation,
+                penCount
+              ),
           },
         });
         if (mod.isPenalized === true) penCount++;
@@ -222,11 +233,12 @@ export default class Fit {
           values: {
             baseValue: baseValue,
             appliedValue: value,
-            penalizedModifyingAttributeValue: Fit.#common_penalizedModifyingValue(
-              appliedMod.modifyingAttributeValue,
-              appliedMod.operation,
-              penCount
-            ),
+            penalizedModifyingAttributeValue:
+              Fit.#common_penalizedModifyingValue(
+                appliedMod.modifyingAttributeValue,
+                appliedMod.operation,
+                penCount
+              ),
           },
         });
         if (appliedMod.isPenalized === true) penCount++;
@@ -265,18 +277,14 @@ export default class Fit {
     const modStackables = [];
     const modNotStackables = [];
     mods.forEach((mod) => {
-      if (
-        mod.operation === "modAdd" ||
-        mod.operation === "modSub" ||
-        mod.operation === "postDiv" ||
-        mod.isStackException === true
-      )
+      if (mod.operation === "modAdd" || mod.operation === "modSub")
+        modStackables.unshift(mod);
+      else if (mod.operation === "postDiv" || mod.isStackException === true)
         modStackables.push(mod);
       else modNotStackables.push(mod);
     });
 
     const isModstackable = sampleMod.modifiedAttributeStackable;
-
     if (isModstackable === false) {
       modNotStackables.sort(compareFunc);
       modNotStackables.forEach((mod, index, array) => {
@@ -287,28 +295,16 @@ export default class Fit {
   };
   static #applyBoard_modIsModApplicable = function (targetMod, applyMod) {
     if (!Fit.#applyBoard_modIsStateApplicable(applyMod)) {
-      /*  if (
-        !(
-          applyMod.typeState === "activation" &&
-          applyMod.effectCategory === "overload"
-        )
-      )
-        console.log(
-          "STATE",
-          `${applyMod.typeState} <-/- ${applyMod.effectCategory}`,
-          targetMod,
-          "<-",
-          applyMod
-        ); */ //TESTETS
       return false;
     }
+
     switch (applyMod.domain) {
       case "itemID":
         switch (applyMod.func) {
           case "ItemModifier":
             return targetMod.domainID === applyMod.domainID;
-          default:
-            return false;
+          /* default:
+            return false; */
         }
       case "shipID":
         switch (applyMod.func) {
@@ -317,80 +313,83 @@ export default class Fit {
           case "LocationGroupModifier":
             return targetMod.typeGroupID === applyMod.groupID;
           case "LocationRequiredSkillModifier":
-            return targetMod?.typeSkills?.includes(applyMod.skillTypeID);
-          default:
-            return false;
+            return targetMod.typeSkills?.includes(applyMod.skillTypeID);
+          /* default:
+            return false; */
         }
-      /*    case "structureID":
-        return false; */
+      case "charID":
+        switch (applyMod.func) {
+          case "OwnerRequiredSkillModifier":
+            return targetMod.typeSkills?.includes(applyMod.skillTypeID);
+          case "ItemModifier": // ballistics computer
+            return true;
+        }
+      case "target":
+        return false;
       default:
-        /* console.log("UNKNOWN", targetMod, "<-", applyMod); */
-        return true;
+        // Temporary exception. Only to bipass error message. seems this mod applied to NPC ships
+        if (
+          targetMod.effectName ===
+          "shadowBarrageFalloffWithFalloffPostPercentBarrageFalloffMutator"
+        )
+          return false;
+
+        console.error("MOD_APPLICABLE_UNKNOWN", targetMod, "<-", applyMod);
+        return false;
     }
   };
-  static #applyBoard_modIsTypeApplicable = function (type, mod) {
-    if (!Fit.#applyBoard_modIsStateApplicable(mod)) {
-      /* if (
-        !(mod.typeState === "activation" && mod.effectCategory === "overload")
-      )
-        console.log(
-          "STATE",
-          `${mod.typeState} <-/- ${mod.effectCategory}`,
-          type,
-          "<-",
-          mod
-        );  */ //TESTETS
+  static #applyBoard_modIsTypeApplicable = function (type, applyMod) {
+    if (!Fit.#applyBoard_modIsStateApplicable(applyMod)) {
       return false;
     }
     if (type.domainID === undefined) console.log("domainID missing", type);
-    switch (mod.domain) {
+    switch (applyMod.domain) {
       case "itemID":
-        switch (mod.func) {
+        switch (applyMod.func) {
           case "ItemModifier":
-            return type.domainID === mod.domainID;
-          default:
-            /*  console.log("UNKNOWN", type, "<-", mod); */ //TESTETS
-            return false;
+            return type.domainID === applyMod.domainID;
+          /* default:
+            return false; */
         }
+      case "target":
+        if (applyMod.rootID === type.rootID) return false; // if rootID is different switch case is same with shipID
       case "shipID":
-        switch (mod.func) {
+        switch (applyMod.func) {
           case "ItemModifier":
             return type.domainID === "ship";
           case "LocationGroupModifier":
-            return type.groupID === mod.groupID;
+            return type.groupID === applyMod.groupID;
           case "LocationRequiredSkillModifier":
-            return (
-              !!type.typeSkills && type.typeSkills.includes(mod.skillTypeID)
-            );
-          default:
-            /* console.log("UNKNOWN", type, "<-", mod); */ //TESTETS
-            return false;
+            return type.typeSkills?.includes(applyMod.skillTypeID);
+
+          /* default:
+            return false; */
         }
       case "charID":
-        switch (mod.func) {
+        switch (applyMod.func) {
           case "OwnerRequiredSkillModifier":
-            return (
-              !!type.typeSkills && type.typeSkills.includes(mod.skillTypeID)
-            );
+            return type.typeSkills?.includes(applyMod.skillTypeID);
+
           case "ItemModifier":
             return true;
-          default:
-            /* console.log("UNKNOWN", type, "<-", mod); */ //TESTETS
-            return false;
+          /* default:
+            return false; */
         }
       case "otherID":
-        switch (mod.func) {
+        switch (applyMod.func) {
           case "ItemModifier":
-            return type.domainID.split(":")[0] === mod.domainID.split(":")[0];
-          default:
-            /* console.log("UNKNOWN", type, "<-", mod); */ //TESTETS
-            return false;
+            return (
+              type.domainID.split(".")[0] === applyMod.domainID.split(".")[0] &&
+              type.domainID.split(".")[1] === applyMod.domainID.split(".")[1]
+            );
+          /* default:
+            return false; */
         }
       case "structureID":
         return false;
       default:
-        /* console.log("UNKNOWN", type, "<-", mod); */ //TESTETS
-        return true;
+        console.error("TYPE_APPLICABLE_UNKNOWN", type, "<-", applyMod); //TESTETS
+        return false;
     }
   };
   static #applyBoard_modIsStateApplicable = function (mod) {
@@ -432,6 +431,7 @@ export default class Fit {
     const highSlots = Fit.#giveDomainID_slots(fit.highSlots, "highSlots");
     const rigSlots = Fit.#giveDomainID_slots(fit.rigSlots, "rigSlots");
     const droneSlots = Fit.#giveDomainID_slots(fit.droneSlots, "droneSlots");
+    const exSlots = Fit.#giveDomainID_slots(fit.exSlots, "exSlots");
 
     return {
       skills,
@@ -442,6 +442,7 @@ export default class Fit {
       highSlots,
       rigSlots,
       droneSlots,
+      exSlots,
     };
   };
   static #giveDomainID_slots = function (slots, slotName) {
@@ -449,10 +450,10 @@ export default class Fit {
 
     return slots.map((slot, index) => {
       const item = !!slot.item.typeID
-        ? { ...slot.item, domainID: `${slotName}(${index}):item` }
+        ? { ...slot.item, domainID: `${slotName}.${index}.item` }
         : false;
       const charge = !!slot.charge.typeID
-        ? { ...slot.charge, domainID: `${slotName}(${index}):charge` }
+        ? { ...slot.charge, domainID: `${slotName}.${index}.charge` }
         : false;
       return { item, charge };
     });
@@ -481,6 +482,10 @@ export default class Fit {
     const highSlots = Fit.#createBoard_slots(fit.highSlots);
     const rigSlots = Fit.#createBoard_slots(fit.rigSlots);
     const droneSlots = Fit.#createBoard_slots(fit.droneSlots);
+    // exSlots is for electronic warfare. other ship's calculated slot will be inserted. and the mod should have domain: target to affect current calculating ship
+    const exSlots = Fit.#createBoard_slots(fit.exSlots).filter(
+      (mod) => mod.domain === "target"
+    );
 
     return [
       ...skills,
@@ -491,6 +496,7 @@ export default class Fit {
       ...highSlots,
       ...rigSlots,
       ...droneSlots,
+      ...exSlots,
     ];
   };
   static #createBoard_slots = function (slots, isStackException = false) {
@@ -565,6 +571,7 @@ export default class Fit {
           effectName: effect.effectName,
           effectCategory: effect.effectCategory,
           modifyingAttributeValue: modifyingAttributeValue,
+          rootID: type.rootID,
           typeID: type.typeID,
           typeState: type.iconID !== 33 ? type.typeState : "passive",
           typeGroupID: type.groupID,
@@ -634,7 +641,7 @@ export default class Fit {
     operation,
     penCount
   ) {
-    //TODO: findout why does eve developers make shit like this typeID=31760 effect is weird
+    //TODO: findout why does eve developers made shit like this typeID=31760 effect is weird
     if (applyValue === undefined) return baseValue;
 
     let value = baseValue;
@@ -656,6 +663,8 @@ export default class Fit {
       case "postDiv":
         value = Fit.#operation_div(baseValue, applyValue);
         break;
+      case "postAssignment":
+        return applyValue;
       default:
         break;
     }

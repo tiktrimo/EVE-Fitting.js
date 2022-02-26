@@ -3,7 +3,7 @@ import ReactDOM from "react-dom";
 import "./index.css";
 import * as serviceWorker from "./serviceWorker";
 import firebaseAPI from "./key/ignore/firebaseAPI";
-import * as firebase from "firebase/app";
+import firebase from "firebase/app";
 import "firebase/analytics";
 import "firebase/database";
 import "firebase/storage";

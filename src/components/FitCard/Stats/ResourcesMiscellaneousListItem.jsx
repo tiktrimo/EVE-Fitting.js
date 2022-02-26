@@ -63,43 +63,45 @@ export default function ResourcesMiscellaneousListItem(props) {
 
   return (
     <ListItem className={classes.root} key="onlyOne">
-      <Grid justify="center" container>
+      <Grid justifyContent="center" container>
         <GridBoldTypography
-          value={misc.maximumLockedTarget}
+          value={misc.sensor.maximumLockedTarget}
         >{`Max Locked Target`}</GridBoldTypography>
         <GridBoldTypography
-          value={misc.maximumTargetingRange}
+          value={misc.sensor.maximumTargetingRange}
         >{`Max Trageting Range (m)`}</GridBoldTypography>
         <GridBoldTypography
-          value={misc.scanResolution}
+          value={misc.sensor.scanResolution}
         >{`Scan Resolution (mm)`}</GridBoldTypography>
 
-        <GridBoldTypography value={misc.sensorStrength.gravimetric?.toFixed(1)}>
+        <GridBoldTypography
+          value={misc.sensor.strength.gravimetric?.toFixed(1)}
+        >
           {`Gravimetric (point)`}
         </GridBoldTypography>
         <GridBoldTypography
-          value={misc.sensorStrength.magnetometric?.toFixed(1)}
+          value={misc.sensor.strength.magnetometric?.toFixed(1)}
         >
           {`Magnetometric (point)`}
         </GridBoldTypography>
         <GridBoldTypography
-          value={misc.sensorStrength.ladar?.toFixed(1)}
+          value={misc.sensor.strength.ladar?.toFixed(1)}
         >{`Ladar (point)`}</GridBoldTypography>
         <GridBoldTypography
-          value={misc.sensorStrength.radar?.toFixed(1)}
+          value={misc.sensor.strength.radar?.toFixed(1)}
         >{`Radar (point)`}</GridBoldTypography>
 
         <GridBoldTypography
-          value={misc.maximumVelocity?.toFixed(2)}
+          value={misc.propulsion.maximumVelocity?.toFixed(2)}
         >{`Max Velocity (m/sec)`}</GridBoldTypography>
         <GridBoldTypography
-          value={misc.inertialModifier?.toFixed(6)}
+          value={misc.propulsion.inertialModifier?.toFixed(6)}
         >{`Inertia Modifier (x)`}</GridBoldTypography>
         <GridBoldTypography
-          value={misc.warpSpeedMultiplier}
+          value={misc.propulsion.warpSpeedMultiplier}
         >{`Warp Speed Modifier (x)`}</GridBoldTypography>
         <GridBoldTypography
-          value={misc.signatureRadius?.toFixed(2)}
+          value={misc.misc.signatureRadius?.toFixed(2)}
         >{`Signature Radius (m)`}</GridBoldTypography>
         <Grid style={{ flexBasis: 140 }} item />
       </Grid>
