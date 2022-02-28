@@ -6,8 +6,8 @@ export default function headFilterInvTypesTable(props) {
   if (allowedAttributes.constructor === Array) {
     let invTypesTable = props.table.invTypesTable;
 
-    allowedAttributes.forEach((entry) => {
-      invTypesTable = bodyFilterInvTypesTable(entry, invTypesTable);
+    allowedAttributes.forEach((allowedAttribute) => {
+      invTypesTable = bodyFilterInvTypesTable(allowedAttribute, invTypesTable);
     });
 
     return invTypesTable;
@@ -23,7 +23,10 @@ function bodyFilterInvTypesTable(allowedAttribute, invTypesTable) {
     switch (allowedAttribute?.value?.constructor) {
       case Boolean:
       case Number:
-        return entry[allowedAttribute.attributeName] === allowedAttribute.value;
+        return allowedAttribute.value === 0
+          ? entry[allowedAttribute.attributeName] === undefined ||
+              entry[allowedAttribute.attributeName] === allowedAttribute.value
+          : entry[allowedAttribute.attributeName] === allowedAttribute.value;
       case Array:
         return allowedAttribute.value.includes(
           entry[allowedAttribute.attributeName]

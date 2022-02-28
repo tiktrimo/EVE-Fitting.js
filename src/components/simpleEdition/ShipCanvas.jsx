@@ -1,13 +1,6 @@
 import React, { useRef } from "react";
 import { Stage, Layer, Arrow, Circle, Line, Text, Group } from "react-konva";
-import {
-  makeStyles,
-  Card,
-  Button,
-  Grid,
-  ButtonGroup,
-  Typography,
-} from "@material-ui/core";
+import { Button, Grid, ButtonGroup, Tooltip } from "@material-ui/core";
 import { useState } from "react";
 import { useEffect } from "react";
 import { useReducer } from "react";
@@ -18,15 +11,6 @@ import ZoomInIcon from "@material-ui/icons/ZoomIn";
 import ZoomOutIcon from "@material-ui/icons/ZoomOut";
 import ReplayIcon from "@material-ui/icons/Replay";
 import EventConsoleKonvaHtml from "../SimulationPanel/EventConsoleKonvaHtml";
-
-const useStyles = makeStyles((theme) => ({
-  root: {
-    width: "90%",
-    minWidth: 300,
-    maxWidth: 600,
-    height: "100%",
-  },
-}));
 
 const hostileAnchorInitial = {
   rootID: "hostileID",
@@ -123,19 +107,6 @@ function anchorReducer(state, action) {
   }
 }
 
-const logReducer = (state, action) => {
-  switch (action.type) {
-    case "update":
-      action.payload.forEach((log) => {
-        state.push(log);
-      });
-
-      return state.slice(state.length - 20 > 0 ? state.length - 20 : 0);
-    default:
-      return state;
-  }
-};
-
 const ShipCanvasButtonGroup = React.memo((props) => {
   const theme = useTheme();
   const handleResetClick = useCallback(() => {
@@ -165,15 +136,21 @@ const ShipCanvasButtonGroup = React.memo((props) => {
     >
       <Grid item xs={8}>
         <ButtonGroup fullWidth style={{ color: theme.palette.text.primary }}>
-          <Button onClick={handleMagnifyButton}>
-            <ZoomInIcon />
-          </Button>
-          <Button onClick={handleResetClick}>
-            <ReplayIcon />
-          </Button>
-          <Button onClick={handleMinifyButton}>
-            <ZoomOutIcon />
-          </Button>
+          <Tooltip title="Zoom In" placement="bottom" arrow>
+            <Button onClick={handleMagnifyButton}>
+              <ZoomInIcon />
+            </Button>
+          </Tooltip>
+          <Tooltip title="Reset" placement="bottom" arrow>
+            <Button onClick={handleResetClick}>
+              <ReplayIcon />
+            </Button>
+          </Tooltip>
+          <Tooltip title="Zoom Out" placement="bottom" arrow>
+            <Button onClick={handleMinifyButton}>
+              <ZoomOutIcon />
+            </Button>
+          </Tooltip>
         </ButtonGroup>
       </Grid>
       <Grid item xs={4}>
@@ -387,23 +364,17 @@ const ShipCanvasTacticalMap = React.memo((props) => {
 });
 
 const ShipCanvasLog = (props) => {
-  const [logs, dispatchLog] = useReducer(logReducer, []);
-
-  useEffect(() => {
-    props.setDispatchLog(() => dispatchLog);
-  }, []);
-
   return (
     <Layer>
       <EventConsoleKonvaHtml
         theme={props.theme}
-        logs={logs}
+        logs={props.logs}
         target={props.hostileAnchor}
         stageScale={props.stageScale}
       />
       <EventConsoleKonvaHtml
         theme={props.theme}
-        logs={logs}
+        logs={props.logs}
         target={props.onBoardAnchor}
         stageScale={props.stageScale}
       />
@@ -413,7 +384,6 @@ const ShipCanvasLog = (props) => {
 
 export default function ShipCanvas(props) {
   const theme = useTheme();
-  const classes = useStyles();
 
   const [hostileAnchor, dispatchHostileAnchor] = useReducer(
     anchorReducer,
@@ -458,7 +428,7 @@ export default function ShipCanvas(props) {
   }, [onBoardAnchor, hostileAnchor]);
 
   return (
-    <Card className={classes.root} elevation={3}>
+    <React.Fragment>
       <ShipCanvasButtonGroup
         stageScale={stageScale}
         setStageScale={setStageScale}
@@ -491,12 +461,12 @@ export default function ShipCanvas(props) {
         <ShipCanvasLog
           theme={theme}
           stageScale={stageScale}
-          setDispatchLog={props.setDispatchLog}
+          logs={props.logs}
           onBoardAnchor={onBoardAnchor}
           hostileAnchor={hostileAnchor}
         />
       </Stage>
-    </Card>
+    </React.Fragment>
   );
 }
 function handleAnchor1OnDragMove(dispatchAnchor, anchor) {

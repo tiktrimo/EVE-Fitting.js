@@ -41,14 +41,30 @@ export default function ImportExportButtons(props) {
   const [text, setText] = useState(false);
 
   const handleImportClick = useCallback(async () => {
-    const text = await navigator.clipboard.readText();
+    const _text = await navigator.clipboard.readText();
     setOpenAlert(true);
-    if (!text) setTitle("Permission denied");
-    else {
+    setText(_text);
+
+    if (!_text) return setTitle("Permission denied");
+
+    const isValid = await props.cache.wait("/typeIDsTable").then((typeIDs) => {
+      const IDs = EFT.extractIDs(_text, typeIDs);
+      if (!IDs || IDs.length === 0) return false;
+      else {
+        fittingLazyFetch(props.cache, IDs);
+        return true;
+      }
+    });
+    console.log("Valid", isValid);
+    if (isValid) {
+      props.setImportFitText(_text);
+      props.dispatchImportStateFlag({ type: "START" });
       setTitle("Importing EFT");
-      setText(text);
+    } else {
+      props.setImportFitText(false);
+      setTitle("Unvalid EFT");
     }
-  }, [setText, setTitle, setOpenAlert]);
+  }, [setText, setTitle, setOpenAlert, props.cache]);
 
   useEffect(() => {
     if (props.importFitText === false) {
@@ -56,19 +72,6 @@ export default function ImportExportButtons(props) {
       setOpenAlert(false);
     }
   }, [props.importFitText]);
-
-  useEffect(() => {
-    if (text !== false) {
-      props.setImportFitText(text);
-      props.dispatchImportStateFlag({ type: "START" });
-      props.cache.wait("/typeIDsTable").then((typeIDs) => {
-        const IDs = EFT.extractIDs(text, typeIDs);
-        if (!IDs || IDs.length === 0) setTitle("Unvalid EFT");
-        else setTitle("Importing EFT");
-        fittingLazyFetch(props.cache, IDs);
-      });
-    }
-  }, [text]);
 
   return (
     <React.Fragment>

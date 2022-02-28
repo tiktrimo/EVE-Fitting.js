@@ -115,6 +115,7 @@ export default function ModuleButton(props) {
       />
       <ModuleActivation
         utils={props.utils}
+        updateFlag={props.updateFlag}
         moduleSet={props.moduleSet}
         dispatchSummaries={props.dispatchSummaries}
         dispatchTargetSummaries={props.dispatchTargetSummaries}

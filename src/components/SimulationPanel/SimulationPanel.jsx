@@ -15,8 +15,9 @@ import { useState } from "react";
 import ShipPanel from "./ShipPanel";
 import Fit from "../../fitter/src/Fit";
 import ReplayIcon from "@material-ui/icons/Replay";
-import ShipCanvas from "../simpleEdition/ShipCanvas";
+import SituationalPanel from "../simpleEdition/SituationalPanel.jsx";
 import EFT from "../Drawers/services/EFT";
+import { useReducer } from "react";
 
 const useStyles = makeStyles((theme) => ({
   modeButton: {
@@ -28,12 +29,27 @@ const useStyles = makeStyles((theme) => ({
     minWidth: 300,
     maxWidth: 600,
     marginBottom: 24,
+    height: "fit-content",
   },
 }));
 
+const logReducer = (state, action) => {
+  switch (action.type) {
+    case "update":
+      action.payload.forEach((log) => {
+        state.push(log);
+      });
+      console.log(state);
+      return state.slice(state.length - 20 > 0 ? state.length - 20 : 0);
+    default:
+      return state;
+  }
+};
 export default function SimulationPanel(props) {
   const classes = useStyles();
   const theme = useTheme();
+
+  const [logs, dispatchLog] = useReducer(logReducer, []);
 
   const [updateFlag, setUpdateFlag] = useState(false);
 
@@ -42,7 +58,6 @@ export default function SimulationPanel(props) {
   const [summaries0, setSummaries0] = useState();
   const [summaries1, setSummaries1] = useState();
 
-  const [dispatchLog, setDispatchLog] = useState();
   const [dispatchSummarizedSlot0, setDispatchSummarizedSlot0] = useState();
   const [dispatchSummarizedSlot1, setDispatchSummarizedSlot1] = useState();
 
@@ -67,67 +82,84 @@ export default function SimulationPanel(props) {
 
   return (
     <React.Fragment>
-      <Card className={classes.rootCard} elevation={3}>
-        <Grid xs={12} container item justifyContent="center">
-          <ButtonGroup
-            color="inherit"
-            variant="text"
-            fullWidth
-            disableElevation
-          >
-            <Button className={classes.modeButton} onClick={initialize}>
-              <Tooltip title="Import fit from above" placement="bottom" arrow>
-                <ArchiveIcon style={{ color: theme.palette.text.primary }} />
-              </Tooltip>
-            </Button>
-            <Button className={classes.modeButton} onClick={refresh}>
-              <Tooltip title="Restart the simulation" placement="bottom" arrow>
-                <ReplayIcon style={{ color: theme.palette.text.primary }} />
-              </Tooltip>
-            </Button>
-          </ButtonGroup>
-        </Grid>
+      <Grid
+        xs={props.isCompact ? 12 : 6}
+        container
+        item
+        justifyContent="center"
+      >
+        <Card className={classes.rootCard} elevation={3}>
+          <Grid xs={12} container item justifyContent="center">
+            <ButtonGroup
+              color="inherit"
+              variant="text"
+              fullWidth
+              disableElevation
+            >
+              <Button className={classes.modeButton} onClick={initialize}>
+                <Tooltip title="Import fit from above" placement="bottom" arrow>
+                  <ArchiveIcon style={{ color: theme.palette.text.primary }} />
+                </Tooltip>
+              </Button>
+              <Button className={classes.modeButton} onClick={refresh}>
+                <Tooltip
+                  title="Restart the simulation"
+                  placement="bottom"
+                  arrow
+                >
+                  <ReplayIcon style={{ color: theme.palette.text.primary }} />
+                </Tooltip>
+              </Button>
+            </ButtonGroup>
+          </Grid>
 
-        <ShipPanel
-          slots={slots0}
-          setSlots={setSlots0}
-          //
-          targetSummaries={summaries1}
-          dispatchTargetSummaries={dispatchSummarizedSlot1}
-          //
-          location={props.situation?.onboard}
-          shareSummaries={setSummaries0}
-          shareDispatchSummaries={setDispatchSummarizedSlot0}
-          updateFlag={updateFlag}
-          //
-          dispatchLog={dispatchLog}
-          color={theme.palette.property.blue}
-        />
-        <ShipPanel
-          slots={slots1}
-          setSlots={setSlots1}
-          //
-          targetSummaries={summaries0}
-          dispatchTargetSummaries={dispatchSummarizedSlot0}
-          //
-          location={props.situation?.hostile}
-          shareSummaries={setSummaries1}
-          shareDispatchSummaries={setDispatchSummarizedSlot1}
-          updateFlag={updateFlag}
-          //
-          dispatchLog={dispatchLog}
-          color={theme.palette.property.red}
-        />
-      </Card>
+          <ShipPanel
+            slots={slots0}
+            setSlots={setSlots0}
+            //
+            targetSummaries={summaries1}
+            dispatchTargetSummaries={dispatchSummarizedSlot1}
+            //
+            location={props.situation?.onboard}
+            shareSummaries={setSummaries0}
+            shareDispatchSummaries={setDispatchSummarizedSlot0}
+            updateFlag={updateFlag}
+            //
+            dispatchLog={dispatchLog}
+            color={theme.palette.property.blue}
+          />
+          <ShipPanel
+            slots={slots1}
+            setSlots={setSlots1}
+            //
+            targetSummaries={summaries0}
+            dispatchTargetSummaries={dispatchSummarizedSlot0}
+            //
+            location={props.situation?.hostile}
+            shareSummaries={setSummaries1}
+            shareDispatchSummaries={setDispatchSummarizedSlot1}
+            updateFlag={updateFlag}
+            //
+            dispatchLog={dispatchLog}
+            color={theme.palette.property.red}
+          />
+        </Card>
+      </Grid>
 
-      <Grid xs={12} container item justifyContent="center">
-        <ShipCanvas
+      <Grid
+        xs={props.isCompact ? 12 : 6}
+        container
+        item
+        justifyContent="center"
+      >
+        <SituationalPanel
+          logs={logs}
           onBoardSummaries={summaries0}
           hostileSummaries={summaries1}
           setSituation={props.setSituation}
-          setDispatchLog={setDispatchLog}
         />
       </Grid>
+
       <Grid
         style={{ marginTop: 24 }}
         xs={12}
@@ -170,7 +202,7 @@ function initializeSlots(slots) {
 }
 
 function createDebugFile(slots0, slots1, summaries0, summaries1) {
-  /* if (!!"remove this block if you need to save log file seperately!") {
+  if (!!"remove this block if you need to save log file seperately!") {
     console.log({
       up: {
         slots: slots0,
@@ -188,7 +220,7 @@ function createDebugFile(slots0, slots1, summaries0, summaries1) {
       },
     });
     return false;
-  } */
+  }
 
   let data = {};
   if (!summaries0?.utils || !summaries1?.utils) {

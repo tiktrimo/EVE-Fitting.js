@@ -170,10 +170,11 @@ export default class Simulator {
     };
   };
   static activateDamage = (summary) => {
+    const debug = [];
     const owner = summary.isDrone ? summary : summary.root;
     const target = summary.target;
     //prettier-ignore
-    const situationalModifiedSummary = Simulator.#activateDamage_getSituationalModifiedSummary(summary, owner, target);
+    const situationalModifiedSummary = Simulator.#activateDamage_getSituationalModifiedSummary(summary, owner, target, debug );
     //prettier-ignore
     const alpha = Simulator.activateDamage_getAlpha(situationalModifiedSummary, target);
     // MUTATION!
@@ -314,44 +315,44 @@ export default class Simulator {
       //prettier-ignore
       const droneAccuracy = EveMath.getDroneAccuracy(summary, owner, target, debug);
       const randomDamageModifier = EveMath.getTurretRandomDamageModifier();
-      debug.push({ type: "drone_accuracy", value: droneAccuracy });
+      const isHit = Math.random() <= droneAccuracy;
       debug.push({
         type: "drone_random_damage_multiplier",
         value: randomDamageModifier,
       });
+      debug.push({
+        type: "hit",
+        value: isHit,
+      });
 
-      return Math.random() <= droneAccuracy ? randomDamageModifier : 0;
+      return isHit ? randomDamageModifier : 0;
     } else if (!!summary.range.tracking) {
       //prettier-ignore
       const turretAccuracy = EveMath.getTurretAcurracy(summary, owner, target, debug);
       const randomDamageModifier = EveMath.getTurretRandomDamageModifier();
-      debug.push({
-        type: "turret_accuracy",
-        value: turretAccuracy,
-      });
+      const isHit = Math.random() <= turretAccuracy;
       debug.push({
         type: "turret_random_damage_multiplier",
         value: randomDamageModifier,
       });
+      debug.push({
+        type: "hit",
+        value: isHit,
+      });
 
-      return Math.random() <= turretAccuracy ? randomDamageModifier : 0;
+      return isHit ? randomDamageModifier : 0;
     } else if (!!summary.range.explosionRadius) {
       //prettier-ignore
       const launcherAccracy = EveMath.getLauncherAccuracy(summary, owner, target, debug);
-      const randomDamageModifier = EveMath.getLauncherDamageModifier(
-        summary,
-        target
-      );
+      //prettier-ignore
+      const damageModifier = EveMath.getLauncherDamageModifier(summary, target, debug);
+      const isHit = Math.random() <= launcherAccracy;
       debug.push({
-        type: "launcher_accuracy",
-        value: launcherAccracy,
-      });
-      debug.push({
-        type: "launcher_random_damage_multiplier",
-        value: randomDamageModifier,
+        type: "hit",
+        value: isHit,
       });
 
-      return Math.random() <= launcherAccracy ? randomDamageModifier : 0;
+      return isHit ? damageModifier : 0;
     } else return 0;
   };
 

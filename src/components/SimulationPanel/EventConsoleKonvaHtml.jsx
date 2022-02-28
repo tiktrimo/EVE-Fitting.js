@@ -74,12 +74,22 @@ export function EventConsole(props) {
         .filter((log) => log.rootID === props.rootID)
         .map((log) => {
           const [itemName, chargeName] = log.summary.description.split(",");
+          const hitCount = log.debugs?.reduce((acc, debug) => {
+            const hit = debug.find((d) => d.type === "hit");
+            if (hit.value) return acc + 1;
+            return acc;
+          }, 0);
+
+          const descriptions = [
+            chargeName !== "undefined" && !!chargeName
+              ? `${chargeName}`
+              : `${itemName}`,
+          ];
+          if (hitCount !== undefined)
+            descriptions.push(`${hitCount}/${log.debugs.length}`);
 
           return {
-            description:
-              chargeName !== "undefined"
-                ? `${itemName}, ${chargeName}`
-                : `${itemName}`,
+            description: descriptions.join(" "),
             value: log.delta,
             ID: log.ID,
           };

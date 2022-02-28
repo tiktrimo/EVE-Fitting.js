@@ -1,0 +1,38 @@
+[Loki, Твой отец!]
+Caldari Navy Ballistic Control System
+Domination Ballistic Control System
+Domination Ballistic Control System
+Domination Ballistic Control System
+
+Federation Navy 10MN Afterburner
+Caldari Navy Large Shield Extender
+Gistum A-Type Medium Shield Booster
+Caldari Navy Large Shield Extender
+Pithum C-Type Multispectrum Shield Hardener
+Pithum C-Type Multispectrum Shield Hardener
+
+Caldari Navy Heavy Assault Missile Launcher
+Sisters Expanded Probe Launcher
+Caldari Navy Heavy Assault Missile Launcher
+Caldari Navy Heavy Assault Missile Launcher
+Caldari Navy Heavy Assault Missile Launcher
+Caldari Navy Heavy Assault Missile Launcher
+Salvager I
+
+Medium Hydraulic Bay Thrusters I
+Medium Hydraulic Bay Thrusters II
+Medium Rocket Fuel Cache Partition II
+
+Loki Core - Dissolution Sequencer
+Loki Defensive - Adaptive Defense Node
+Loki Offensive - Launcher Efficiency Configuration
+Loki Propulsion - Wake Limiter
+
+
+Warrior II x6
+
+
+Nova Javelin Heavy Assault Missile x5950
+Nova Rage Heavy Assault Missile x6590
+Nanite Repair Paste x292
+Sisters Core Scanner Probe x8

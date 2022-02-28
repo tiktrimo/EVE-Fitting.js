@@ -27,7 +27,7 @@ export function useAlwaysActivationInterval(callback, delay) {
 }
 
 //version 1
-export function useProgressCircleInterval(callback, delay) {
+export function useProgressCircleInterval(callback, delay, reset) {
   const pauseFlag = useRef(false);
   const savedCallback = useRef();
   const interval = useRef(false);
@@ -36,6 +36,15 @@ export function useProgressCircleInterval(callback, delay) {
   useEffect(() => {
     savedCallback.current = callback;
   }, [callback]);
+
+  // Reset timer
+  useEffect(() => {
+    if (interval.current) {
+      clearInterval(interval.current);
+      interval.current = false;
+      console.log("reset");
+    }
+  }, [reset]);
 
   // Set up the interval.
   useEffect(() => {

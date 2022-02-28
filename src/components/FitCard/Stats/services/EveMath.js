@@ -2,7 +2,7 @@ export default class EveMath {
   static getAmbientChargeRateMath(Cmax, Cnow, Tchg) {
     return ((10 * Cmax) / Tchg) * (Math.sqrt(Cnow / Cmax) - Cnow / Cmax) || 0;
   }
-  static getTurretAcurracy(summary, owner, target) {
+  static getTurretAcurracy(summary, owner, target, debug = []) {
     const onBoardVector = owner.summary.location.vector;
     const hostileVector = target.summary.location.vector;
     const distanceVector = {
@@ -14,7 +14,10 @@ export default class EveMath {
         owner.summary.location.anchors.anchor1Y,
     };
     const distance =
-      Math.sqrt(Math.pow(distanceVector.x, 2) + Math.pow(distanceVector.y, 2)) /
+      (1000 *
+        Math.sqrt(
+          Math.pow(distanceVector.x, 2) + Math.pow(distanceVector.y, 2)
+        )) /
       100;
 
     const trackingValue =
@@ -36,6 +39,19 @@ export default class EveMath {
     const trackingModifier = Math.pow(0.5, _trackingPart);
     const rangeModifier = EveMath.getRangeModifier(summary, owner, target);
 
+    debug.push({
+      type: "turret_accuracy",
+      value: (trackingModifier * rangeModifier).toFixed(3),
+      payload: {
+        distance,
+        optimalRange: summary.range.optimalRange,
+        falloffRange: summary.range.falloffRange,
+        tracking: summary.range.tracking,
+        signatureRadius,
+        angularVelocity: _angularVelocity,
+      },
+    });
+
     return (trackingModifier * rangeModifier).toFixed(3);
   }
   static getLauncherAccuracy(summary, owner, target) {
@@ -53,7 +69,7 @@ export default class EveMath {
 
     return summary.range.optimalRange < distance * 1000 ? 0 : 1;
   }
-  static getDroneAccuracy(summary, owner, target) {
+  static getDroneAccuracy(summary, owner, target, debug = []) {
     // owner is owner of drone! which is ship
     const targetVelocity = EveMath.#common_getVelocity(target);
     const randomUnitVector = EveMath.#common_makeRandomUnitVector();
@@ -67,7 +83,7 @@ export default class EveMath {
         ...owner.summary.location,
         vector: { x: 0, y: 0 },
       };
-      return EveMath.getTurretAcurracy(summary, drone, target);
+      return EveMath.getTurretAcurracy(summary, drone, target, debug);
     }
     // drone is slower than target. In this case drone cant reach its turret range and cant hit the target
     if (droneMWDvelocity < targetVelocity) return 0;
@@ -88,15 +104,23 @@ export default class EveMath {
         y: (randomUnitVector.y * droneOrbitVelocity) / 3,
       },
     };
-
+    const droneBaseAccuracy = EveMath.getTurretAcurracy(
+      summary,
+      drone,
+      target,
+      debug
+    );
     const droneAccuracyModifier =
       droneOrbitVelocity < targetVelocity
         ? EveMath.#getDroneAccracy_getAccuracyModifier(summary, targetVelocity)
         : 1;
 
-    return (
-      droneAccuracyModifier * EveMath.getTurretAcurracy(summary, drone, target)
-    );
+    debug.push({
+      type: "drone_speculated_accuracy_modifier",
+      value: droneAccuracyModifier,
+    });
+
+    return droneAccuracyModifier * droneBaseAccuracy;
   }
 
   static #getDroneAccracy_getAccuracyModifier = (summary, targetVelocity) => {
@@ -107,7 +131,7 @@ export default class EveMath {
     if (value >= 1) return 1;
     return value >= 0 ? value : 0.01;
   };
-  static getLauncherDamageModifier(summary, target) {
+  static getLauncherDamageModifier(summary, target, debug = []) {
     const signatureRadius = target.summary.capacity.misc.signatureRadius;
     const explosionRadius = summary.range.explosionRadius;
     const explosionVelocity = summary.range.explosionVelocity;
@@ -124,6 +148,18 @@ export default class EveMath {
         (explosionRadius * targetVelocity),
       damageReductionFactor
     );
+
+    debug.push({
+      type: "launcher_damage_modifier",
+      value: Math.min(1, simplePart, complexPart),
+      payload: {
+        signatureRadius,
+        explosionRadius,
+        explosionVelocity,
+        damageReductionFactor,
+        targetVelocity,
+      },
+    });
 
     return Math.min(1, simplePart, complexPart);
   }
@@ -192,8 +228,8 @@ export default class EveMath {
         onBoardVector
       );
       const trueObitalVelocity =
-        (hostileOrbitalVelocity - onBoardOrbitalVelocity) * 3;
-      return trueObitalVelocity / (distance * 1000);
+        (onBoardOrbitalVelocity - hostileOrbitalVelocity) * 3;
+      return trueObitalVelocity / distance;
     } else return false;
   };
   static #getTurretAcurracy_innerProduct = (unitVector, velocityVector) => {

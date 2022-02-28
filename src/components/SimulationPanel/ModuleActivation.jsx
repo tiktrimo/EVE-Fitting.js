@@ -29,8 +29,13 @@ export default /* React.memo( */ function ModuleActivation(props) {
   const theme = useTheme();
   const classes = useStyles(props.moduleSet[0].summary.activationInfo.duration);
 
+  const [forceReset, setForceReset] = useState(false);
   const [flip, setFlip] = useState(false);
   const [activationCounter, setActivationCounter] = useState(0);
+
+  useEffect(() => {
+    setForceReset(!forceReset);
+  }, [props.updateFlag]);
 
   useProgressCircleInterval(
     () => {
@@ -69,7 +74,8 @@ export default /* React.memo( */ function ModuleActivation(props) {
     },
     props.isActivating
       ? props.moduleSet[0].summary.activationInfo.duration * 1000
-      : null
+      : null,
+    forceReset
   );
 
   // Module that changes stat of module or ship. shield hardener, afterburner, stasis webifier etc...
@@ -290,19 +296,19 @@ function getDamagePayload(moduleSet) {
     shieldDelta: 0,
     structureDelta: 0,
     summary: moduleSet[0].summary,
-    debug: [],
+    debugs: [],
   };
 
-  const target = {
+  const _target = {
     summary: JSON.parse(JSON.stringify(moduleSet[0].summary.target.summary)),
   };
 
   return moduleSet
     .map((module) => {
-      const delta = Simulator.simulate_damage_getDelta(module.summary, target);
-      target.summary.load.shield.HP += delta.shieldDelta;
-      target.summary.load.armor.HP += delta.armorDelta;
-      target.summary.load.structure.HP += delta.structureDelta;
+      const delta = Simulator.simulate_damage_getDelta(module.summary, _target);
+      _target.summary.load.shield.HP += delta.shieldDelta;
+      _target.summary.load.armor.HP += delta.armorDelta;
+      _target.summary.load.structure.HP += delta.structureDelta;
 
       return delta;
     })
@@ -310,7 +316,7 @@ function getDamagePayload(moduleSet) {
       payload.armorDelta += delta.armorDelta;
       payload.shieldDelta += delta.shieldDelta;
       payload.structureDelta += delta.structureDelta;
-      payload.debug = payload.debug.concat(delta.debug);
+      payload.debugs.push(delta.debug);
       return payload;
     }, defaultPayload);
 }

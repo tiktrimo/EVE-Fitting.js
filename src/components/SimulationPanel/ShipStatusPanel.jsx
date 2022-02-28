@@ -88,10 +88,10 @@ const Header = React.memo((props) => {
         alignContent="center"
       >
         <GridBoldTypography
-          value={props.maximumVelocity}
+          value={props.maximumVelocity.toFixed(1)}
         >{`Max Velocity (m/sec)`}</GridBoldTypography>
         <GridBoldTypography
-          value={props.signatureRadius}
+          value={props.signatureRadius.toFixed(1)}
         >{`Signature Radius (m)`}</GridBoldTypography>
       </Grid>
     </Grid>

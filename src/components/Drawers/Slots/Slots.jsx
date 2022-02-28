@@ -284,6 +284,7 @@ function importSlots(props, rawItems, rawCharges, setters) {
   })(props.importFitText);
 }
 async function getIsShipLoaded(props) {
+  if (!props.importFitText) return false;
   if (props.variant === "SHIP") return true;
 
   return await (async (fitText) => {
@@ -298,7 +299,7 @@ async function getIsShipLoaded(props) {
 function getSlotCountAtImport(fit, fitFromText, props) {
   const isTacCruiser = fit.ship.groupID === 963;
   if (isTacCruiser === true)
-    return fitFromText[translateVariant(props.variant)].length;
+    return fitFromText[translateVariant(props.variant)]?.length;
   else return getSlotCount(fit, props.variant);
 }
 function createFetchPromises(props, rawItems, rawCharges, session) {

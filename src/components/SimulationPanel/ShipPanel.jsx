@@ -6,10 +6,8 @@ import Summary from "../FitCard/Stats/services/Summary";
 import ControlPanel from "./ControlPanel";
 import ShipStatusPanel from "./ShipStatusPanel";
 
-// TODO: pause simulation on page exit. (4)
-// TODO: sorting capacitor booster charge is not working (3) ancillary shield booster not working(small)
-// TODO: Rig dont get deleted! even if they are not fit in(different size)
-// TODO: updating ship summary in electronic warfare is now done. start working on updating item summary (such as tracking disruptor)
+// TODO: make verbose console shows everything
+// TODO: Renew DOCS
 
 const summariesReducer = /* (props) => */ (state, action) => {
   switch (action.type) {
@@ -291,7 +289,7 @@ function getLog(state, action, delta) {
     delta: delta,
     summary: action.payload.summary,
     ID: Date.now(),
-    debug: action.payload.debug,
+    debugs: action.payload.debugs,
   };
 }
 
