@@ -4,7 +4,8 @@ import List from "@material-ui/core/List";
 import Collapse from "@material-ui/core/Collapse";
 import createEveList from "../../services/eveListConstruction/createEveList";
 import { defalutEveListConfigStructure } from "../../services/eveListConstruction/createEveList";
-import { database } from "../../index";
+import { database, storage } from "../../index";
+import cJSON from "compressed-json";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -49,6 +50,25 @@ export default React.memo(function ItemSelectionListCache(props) {
     if (!!item?.typeID) {
       props.cache
         .get(`typeID/${item.typeID}`, () => {
+          //storage version
+          const saved = localStorage.getItem(`typeID/${item.typeID}`);
+          if (saved !== null) return Promise.resolve(saved);
+
+          return storage
+            .ref(`/typeIDs/typeID${item.typeID}.json`)
+            .getDownloadURL()
+            .then(async (url) => {
+              const result = await fetch(url)
+                .then((data) => data.json())
+                .then((data) => cJSON.decompress(data));
+              localStorage.setItem(
+                `typeID/${item.typeID}`,
+                JSON.stringify(result)
+              );
+              return result;
+            });
+
+          //realtime database version
           return database
             .ref(`/typeIDs/${item.typeID}`)
             .once("value")

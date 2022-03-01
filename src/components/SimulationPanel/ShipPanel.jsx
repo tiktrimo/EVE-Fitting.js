@@ -6,7 +6,6 @@ import Summary from "../FitCard/Stats/services/Summary";
 import ControlPanel from "./ControlPanel";
 import ShipStatusPanel from "./ShipStatusPanel";
 
-// TODO: make verbose console shows everything
 // TODO: Renew DOCS
 
 const summariesReducer = /* (props) => */ (state, action) => {

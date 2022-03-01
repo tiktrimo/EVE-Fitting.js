@@ -26,52 +26,72 @@ export default function InitialD(props) {
 
   useEffect(() => {
     cache.get("/marketCategories", () => {
+      const saved = localStorage.getItem("/marketCategories");
+      if (saved !== null) return Promise.resolve(saved);
+
       return storage
         .ref("/marketCategories.json")
         .getDownloadURL()
         .then(async (url) => {
-          return await fetch(url)
+          const result = await fetch(url)
             .then((data) => data.json())
             .then((data) => cJSON.decompress(data));
+          localStorage.setItem("/marketCategories", JSON.stringify(result));
+          return result;
         });
     });
   }, []);
 
   useEffect(() => {
     cache.get("/typeIDsTable", () => {
+      const saved = localStorage.getItem("/typeIDsTable");
+      if (saved !== null) return Promise.resolve(saved);
+
       return storage
         .ref("/listInvTypesTable.json")
         .getDownloadURL()
         .then(async (url) => {
-          return await fetch(url)
+          const result = await fetch(url)
             .then((data) => data.json())
             .then((data) => cJSON.decompress(data));
+          localStorage.setItem("/typeIDsTable", JSON.stringify(result));
+          return result;
         });
     });
   }, []);
 
   useEffect(() => {
     cache.get("/skillsStaticBoard", () => {
+      const saved = localStorage.getItem("/skillsStaticBoard");
+      if (saved !== null) return Promise.resolve(saved);
+
       return storage
         .ref("/skillsStaticBoard.json")
         .getDownloadURL()
         .then(async (url) => {
-          return await fetch(url)
+          const result = await fetch(url)
             .then((data) => data.json())
             .then((data) => cJSON.decompress(data));
+          localStorage.setItem("/skillsStaticBoard", JSON.stringify(result));
+          return result;
         });
     });
   }, []);
 
   useEffect(() => {
     cache.get("/attributesCategories", () => {
+      const saved = localStorage.getItem("/attributesCategories");
+      if (saved !== null) return Promise.resolve(saved);
+
       return storage
         .ref("/attributesCategories.json")
         .getDownloadURL()
         .then(async (url) => {
-          return await fetch(url)
+          const result = await fetch(url)
             .then((data) => data.json())
             .then((data) => cJSON.decompress(data));
+          localStorage.setItem("/attributesCategories", JSON.stringify(result));
+          return result;
         });
     });
   }, []);
