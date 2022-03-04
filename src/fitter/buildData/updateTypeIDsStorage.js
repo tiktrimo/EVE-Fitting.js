@@ -65,3 +65,6 @@ const uploadInRange = async (typeIDs, from, to) => {
   const isGood = await uploadInRange(typeIDs, 0, 500);
   console.log("finish", isGood);
 })();
+
+// Update all typeIDs in storage/typeIDs folder. it will take some time. be patient. error will be shown when fetch fails
+// IMPORTANT!! dont forget to update storage rule -> write = true!

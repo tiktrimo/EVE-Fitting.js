@@ -6,7 +6,7 @@ export default function lazyFetch(cache, typeIDs) {
     cache.get(`typeID/${typeID}`, () => {
       //storage version
       const saved = localStorage.getItem(`typeID/${typeID}`);
-      if (saved !== null) return Promise.resolve(saved);
+      if (saved !== null) return Promise.resolve(JSON.parse(saved));
 
       return storage
         .ref(`/typeIDs/typeID${typeID}.json`)

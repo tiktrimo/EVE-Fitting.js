@@ -116,7 +116,7 @@ function getLatex(log) {
         applied: `{\\scriptsize 0.5}^{((\\frac{${payload.angularVelocity.toFixed(5)} \\times 40000m}
         {${payload.tracking.toFixed(2)} \\times ${payload.signatureRadius.toFixed(0)}})^{2}+
         (\\frac{max(0,${payload.distance.toFixed(0)} - ${payload.optimalRange.toFixed(0)})}
-        {${payload.falloffRange.toFixed(0)}})^{2})}={\\scriptsize ${log.debugs[0][0].value}}`,
+        {${payload.falloffRange.toFixed(0)}})^{2})}={\\scriptsize ${(log.debugs[0][0].value * 100).toFixed(1)}\\%}`,
       };
     }
     case "launcher_damage_modifier":

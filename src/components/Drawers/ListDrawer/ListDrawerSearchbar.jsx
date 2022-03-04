@@ -7,7 +7,7 @@ import {
   withStyles,
 } from "@material-ui/core";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import ItemSelectionListCache from "../../itemSelection/ItemSelectionListCache";
+import ItemSelectionList from "../../itemSelection/ItemSelectionList.jsx";
 
 const useStyles = makeStyles((theme) => ({
   textField: {
@@ -68,6 +68,7 @@ export default function ListDrawerSearchbar(props) {
   const classes = useStyles();
   const anchorEl = useRef(null);
 
+  const [searchEveListConfig, setSearchEveListConfig] = useState({});
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchVisible, setSearchVisible] = useState(false);
   const [searchText, setSearchText] = useState("");
@@ -79,6 +80,12 @@ export default function ListDrawerSearchbar(props) {
       setSearchVisible(true);
     }
   });
+
+  useEffect(() => {
+    setSearchEveListConfig(
+      mutateEveListConfig(props.eveListConfig, searchText)
+    );
+  }, [props.eveListConfig, searchText]);
 
   return (
     <ClickAwayListener
@@ -115,13 +122,9 @@ export default function ListDrawerSearchbar(props) {
         >
           <Paper className={classes.popperPaper} elevation={3}>
             <div className={classes.popperChild}>
-              <ItemSelectionListCache
-                eveListConfig={mutateEveListConfig(
-                  props.eveListConfig,
-                  searchText
-                )}
+              <ItemSelectionList
+                eveListConfig={searchEveListConfig}
                 cache={props.cache}
-                nosave
               />
             </div>
           </Paper>

@@ -1,9 +1,7 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import List from "@material-ui/core/List";
-import Collapse from "@material-ui/core/Collapse";
-import { useEffect } from "react";
-import { useState } from "react";
+import { Collapse, useTheme } from "@material-ui/core";
 import createEveList from "../../services/eveListConstruction/createEveList";
 import { defalutEveListConfigStructure } from "../../services/eveListConstruction/createEveList";
 import { database, storage } from "../../index";
@@ -15,133 +13,84 @@ const useStyles = makeStyles((theme) => ({
     minWidth: 350,
     height: "100%",
     backgroundColor: theme.palette.background.paper,
+    paddingTop: 0,
   },
 }));
 
-export default function ItemSelectionList(props) {
+export default React.memo(function ItemSelectionList(props) {
   const classes = useStyles();
+  const [item, setItem] = useState(false);
+
   const [marketGroupTable, setMarketGroupTable] = useState(false);
   const [invTypesTable, setInvTypesTable] = useState(false);
-  const [builtListStructure, setBuiltListStructure] = useState(undefined);
-  const [eveListConfig] = useState({
-    ...defalutEveListConfigStructure,
-    ...props.eveListConfig,
-    table: {
-      marketGroupTable: marketGroupTable,
-      invTypesTable: invTypesTable,
-    },
-  });
+  const [builtEveList, setBuiltEveList] = useState({ eveList: false });
 
-  //TEST
   useEffect(() => {
-    if (!!props.test) {
-      props.eveListConfig.state.setItem(props.test);
-    }
+    props.cache.wait("/marketCategories").then((data) => {
+      setMarketGroupTable(data);
+    });
   }, []);
 
   useEffect(() => {
-    props.cache
-      .get("/marketCategories", () => {
-        return storage
-          .ref("json/test/marketCategories.json")
-          .getDownloadURL()
-          .then(async (url) => {
-            return await fetch(url)
-              .then((data) => data.json())
-              .then((data) => cJSON.decompress(data));
-          });
-        /* return database
-          .ref("/compressed/compressedArray/marketCategories")
-          .once("value")
-          .then((data) => data.val()); */
-
-        /* return fetch(
-          "https://us-central1-eve-damagecontrol.cloudfunctions.net/compressed-getMarketCategories"
-        ).then((data) => data.json()); */
-      })
-      .then((data) => {
-        setMarketGroupTable(data);
-      });
+    props.cache.wait("/typeIDsTable").then((data) => setInvTypesTable(data));
   }, []);
 
   useEffect(() => {
-    props.cache
-      .get("/typeIDsTable", () => {
-        return storage
-          .ref("/json/test/listInvTypesTable.json")
-          .getDownloadURL()
-          .then(async (url) => {
-            return await fetch(url)
-              .then((data) => data.json())
-              .then((data) => cJSON.decompress(data));
-          });
-
-        /* return database
-          .ref("/compressed/compressedArray/typeIDsTable")
-          .once("value")
-          .then((data) => data.val()); */
-
-        /* return fetch(
-          "https://us-central1-eve-damagecontrol.cloudfunctions.net/compressed-getArrayTypeIDsTable"
-        ).then((data) => data.json()); */
-      })
-      .then((data) => setInvTypesTable(data));
-  }, []);
-
-  useEffect(() => {
-    if (!!props?.eveListConfig?.state?.item?.typeID) {
+    if (!!item?.typeID) {
       props.cache
-        .get(`typeID/${props.eveListConfig.state.item.typeID}`, () => {
-          return database
-            .ref(
-              `/compressed/completeInvTypesTable/${props.eveListConfig.state.item.typeID}`
-            )
-            .once("value")
-            .then((data) => data.val());
+        .get(`typeID/${item.typeID}`, () => {
+          //storage version
+          const saved = localStorage.getItem(`typeID/${item.typeID}`);
+          if (saved !== null) return Promise.resolve(JSON.parse(saved));
 
-          /* return fetch(
-            `https://us-central1-eve-damagecontrol.cloudfunctions.net/compressed-getCompleteTypeID?typeID=${props.eveListConfig.state.item.typeID}`
-          ).then((data) => data.json()); */
+          return storage
+            .ref(`/typeIDs/typeID${item.typeID}.json`)
+            .getDownloadURL()
+            .then(async (url) => {
+              const result = await fetch(url)
+                .then((data) => data.json())
+                .then((data) => cJSON.decompress(data));
+              localStorage.setItem(
+                `typeID/${item.typeID}`,
+                JSON.stringify(result)
+              );
+              return result;
+            });
         })
         .then((data) => {
-          props.eveListConfig.state.setItem(data);
+          setItem(data);
           return;
         });
     }
-  }, [props?.eveListConfig?.state?.item?.typeID]);
+  }, [item?.typeID]);
 
   useEffect(() => {
-    if (!!marketGroupTable && !!invTypesTable) {
-      props.cache
-        .get(
-          //prettier-ignore
-          `eveListConfig:${JSON.stringify(eveListConfig)}`,
-          () => {
-            return new Promise((resolve, reject) => {
-              resolve(
-                createEveList({
-                  ...eveListConfig,
-                  table: {
-                    marketGroupTable: marketGroupTable,
-                    invTypesTable: invTypesTable,
-                  },
-                  cache: props.cache,
-                })
-              );
-            });
-          }
-        )
-        .then((data) => {
-          setBuiltListStructure(data);
-        });
-    }
-  }, [marketGroupTable, invTypesTable]);
+    if (marketGroupTable && invTypesTable)
+      setBuiltEveList({
+        eveList: createEveList({
+          ...defalutEveListConfigStructure,
+          ...props.eveListConfig,
+          state: {
+            item: item,
+            setItem: setItem,
+            outboundSetItem: props.eveListConfig.state.outboundSetItem,
+          },
+          rootMarketGroupID: props.eveListConfig.rootMarketGroupID,
+          filter: props.eveListConfig.filter,
+          table: {
+            marketGroupTable: marketGroupTable,
+            invTypesTable: invTypesTable,
+          },
+          cache: props.cache,
+        }),
+      });
+  }, [props.eveListConfig, props.cache, marketGroupTable, invTypesTable, setItem]);
 
   return (
     <List className={classes.root} dense>
       <Collapse in timeout="auto">
-        {builtListStructure}
+        {builtEveList.eveList}
       </Collapse>
     </List>
   );
-}
+});

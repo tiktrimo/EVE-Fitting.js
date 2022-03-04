@@ -227,15 +227,17 @@ export function getSlotCount(fit, variant) {
           return 0;
       }
     case "HIGH_SLOT":
-      return attrs.find((attr) => attr.attributeID === 14)?.value;
+      return attrs.find((attr) => attr.attributeID === 14)?.value || 0;
     case "MID_SLOT":
-      return attrs.find((attr) => attr.attributeID === 13)?.value;
+      return attrs.find((attr) => attr.attributeID === 13)?.value || 0;
     case "LOW_SLOT":
-      return attrs.find((attr) => attr.attributeID === 12)?.value;
+      return attrs.find((attr) => attr.attributeID === 12)?.value || 0;
     case "RIG_SLOT":
-      return attrs.find((attr) => attr.attributeID === 1137)?.value; //rigslot count is not sure 1137 or 1154
+      return attrs.find((attr) => attr.attributeID === 1137)?.value || 0; //rigslot count is not sure 1137 or 1154
     case "DRONE_SLOT":
-      return getDroneSlotCount(fit);
+      return getDroneSlotCount(fit) || 0;
+    default:
+      return 0;
   }
 }
 function getDroneSlotCount(slots) {

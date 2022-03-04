@@ -23,7 +23,6 @@ const useStyles = makeStyles((theme) => ({
     display: "inline-flex",
   },
   text: {
-    marginRight: 5,
     pointerEvents: "none",
     userSelect: "none",
     msUserSelect: "none",
@@ -117,6 +116,7 @@ export function EventConsole(props) {
               className={classes.text}
               style={{
                 fontSize: 12 / props.stageScale,
+                marginRight: 5 / props.stageScale,
                 color: props.theme.palette.text.primary,
               }}
             >
@@ -126,6 +126,7 @@ export function EventConsole(props) {
               className={classes.text}
               style={{
                 fontSize: 12 / props.stageScale,
+                marginRight: 5 / props.stageScale,
                 color:
                   event.value === 0
                     ? props.theme.palette.property.org

@@ -155,20 +155,22 @@ const ShipCanvasButtonGroup = React.memo((props) => {
       </Grid>
       <Grid item xs={4}>
         <ButtonGroup fullWidth>
-          <Button
-            style={{
-              color: props.isStageDrragable
-                ? theme.palette.background.paper
-                : theme.palette.text.primary,
-              backgroundColor: props.isStageDrragable
-                ? theme.palette.text.primary
-                : theme.palette.background.paper,
-            }}
-            variant={props.isStageDrragable ? "contained" : "outlined"}
-            onClick={handleStageDrragable}
-          >
-            <PanToolIcon />
-          </Button>
+          <Tooltip title="Move" placement="bottom" arrow>
+            <Button
+              style={{
+                color: props.isStageDrragable
+                  ? theme.palette.background.paper
+                  : theme.palette.text.primary,
+                backgroundColor: props.isStageDrragable
+                  ? theme.palette.text.primary
+                  : theme.palette.background.paper,
+              }}
+              variant={props.isStageDrragable ? "contained" : "outlined"}
+              onClick={handleStageDrragable}
+            >
+              <PanToolIcon />
+            </Button>
+          </Tooltip>
         </ButtonGroup>
       </Grid>
     </Grid>

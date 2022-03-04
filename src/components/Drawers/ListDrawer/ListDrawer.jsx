@@ -1,7 +1,7 @@
 import React from "react";
 import { Drawer, Button, makeStyles } from "@material-ui/core";
 import { useState } from "react";
-import ItemSelectionListCache from "../../itemSelection/ItemSelectionListCache";
+import ItemSelectionList from "../../itemSelection/ItemSelectionList.jsx";
 import { useEffect } from "react";
 import LastPageIcon from "@material-ui/icons/LastPage";
 import FirstPageIcon from "@material-ui/icons/FirstPage";
@@ -37,11 +37,12 @@ const useStyles = makeStyles((theme) => ({
 export default function ListDrawer(props) {
   const classes = useStyles();
 
+  const [eveListConfig, setEveListConfig] = useState({});
   const [item, setItem] = useState(false);
   const [width, setWidth] = useState(0);
 
-  const getEveListConfig = useCallback(() => {
-    return {
+  useEffect(() => {
+    setEveListConfig({
       rootMarketGroupID: getRootMarketGroupID(props.slots, props.variant),
       state: {
         outboundSetItem: setItem,
@@ -53,8 +54,9 @@ export default function ListDrawer(props) {
         ],
       },
       tag: props.tag,
-    };
+    });
   }, [
+    setItem,
     props.variant,
     getFilterID(props.filter),
     getRootMarketGroupID(props.slots, props.variant),
@@ -91,15 +93,9 @@ export default function ListDrawer(props) {
       variant="persistent"
     >
       <ListDrawerButtons setItem={setItem} {...props} />
-      <ListDrawerSearchbar
-        eveListConfig={getEveListConfig()}
-        cache={props.cache}
-      />
+      <ListDrawerSearchbar eveListConfig={eveListConfig} cache={props.cache} />
       <div className={classes.child}>
-        <ItemSelectionListCache
-          eveListConfig={getEveListConfig()}
-          cache={props.cache}
-        />
+        <ItemSelectionList eveListConfig={eveListConfig} cache={props.cache} />
       </div>
       <Button
         className={classes.retractButton}

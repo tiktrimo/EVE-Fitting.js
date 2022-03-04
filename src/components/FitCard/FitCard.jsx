@@ -14,9 +14,15 @@ import StatsSummary from "./Stats/StatsSummary";
 import Stat from "./Stats/services/Stat";
 
 const useStyles = makeStyles((theme) => ({
+  root: {
+    width: "90%",
+    minWidth: 300,
+    maxWidth: 600,
+    height: "fit-content",
+  },
   editButton: {
     color: theme.palette.button.color,
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: 1000,
     letterSpacing: -1.5,
     lineHeight: 1,
@@ -26,7 +32,6 @@ const useStyles = makeStyles((theme) => ({
 
 const EditButton = (props) => {
   const classes = useStyles();
-  const theme = useTheme();
 
   return (
     <Button
@@ -71,6 +76,8 @@ const EditButton = (props) => {
 };
 
 export default function FitCard(props) {
+  const classes = useStyles();
+
   const [fit, setFit] = useState(false);
   const [fitID, setFitID] = useState(false);
 
@@ -101,10 +108,7 @@ export default function FitCard(props) {
 
   return (
     <React.Fragment>
-      <Card
-        style={{ width: "90%", minWidth: 300, maxWidth: 600 }}
-        elevation={3}
-      >
+      <Card className={classes.root} elevation={3}>
         <EditButton
           fit={fit}
           open={open}

@@ -13,8 +13,7 @@ import GitHubIcon from "@material-ui/icons/GitHub";
 import WbSunnyIcon from "@material-ui/icons/WbSunny";
 import Brightness2Icon from "@material-ui/icons/Brightness2";
 import SimulationPanel from "./SimulationPanel/SimulationPanel";
-import Fit from "../fitter/src/Fit";
-import EFT from "./Drawers/services/EFT";
+import useLongPress from "../services/useLongPress";
 import { useRef } from "react";
 
 const useStyles = makeStyles((theme) => ({
@@ -26,32 +25,62 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: theme.palette.background.paper,
     color: theme.palette.property.org,
   },
+  errorButtonGroup: {
+    transition: theme.transitions.create("width", {
+      easing: theme.transitions.easing.sharp,
+      duration: theme.transitions.duration.enteringScreen,
+    }),
+    color: theme.palette.text.primary,
+  },
 }));
 
 const Links = (props) => {
-  const theme = useTheme();
+  const classes = useStyles();
+
+  const [isError, setIsError] = useState(false);
+
+  const longPressEvent = useLongPress(
+    () => {
+      setIsError(!isError);
+    },
+    () => {
+      const newWindow = window.open(
+        "https://github.com/tiktrimo/EVE-Fitting.js/issues",
+        "_blank",
+        "noopener,noreferrer"
+      );
+      if (newWindow) newWindow.opener = null;
+    }
+  );
+
   return (
     <Paper elevation={2}>
-      <ButtonGroup variant="text" style={{ color: theme.palette.text.primary }}>
+      <ButtonGroup variant="text" className={classes.errorButtonGroup}>
         <Button
           href={"https://github.com/tiktrimo/EVE-Fitting.js"}
           target="_blank"
         >
           <GitHubIcon />
         </Button>
-        <Button
-          href={"https://github.com/tiktrimo/EVE-Fitting.js/issues"}
-          target="_blank"
-        >
-          ERROR REPORT
-        </Button>
+        <Button {...longPressEvent}>Report bug</Button>
+
+        {isError && (
+          <Button
+            onClick={() => {
+              localStorage.clear();
+              window.location.reload();
+            }}
+          >
+            Clear Local Storage and refresh
+          </Button>
+        )}
         <Button
           href={
-            "https://github.com/tiktrimo/EVE-Fitting.js/blob/master/DOCS/DOCS.md"
+            "https://github.com/tiktrimo/EVE-Fitting.js/wiki/Bug-&-Suggestion"
           }
           target="_blank"
         >
-          DOCS
+          WIKI
         </Button>
       </ButtonGroup>
     </Paper>
@@ -171,16 +200,13 @@ export default function InitialCard(props) {
     setWidth(window.innerWidth);
     const handleRender = (e) => {
       setWidth(window.innerWidth);
+      setIsCompact(widthRef.current?.offsetWidth < 800);
     };
     window.addEventListener("resize", handleRender);
     return () => {
       window.removeEventListener("resize", handleRender);
     };
   }, []);
-
-  useEffect(() => {
-    setIsCompact(widthRef.current?.offsetWidth < 800);
-  }, [widthRef.current?.offsetWidth]);
 
   return (
     <div style={{ display: "flex", flexDirection: "row-reverse" }}>
@@ -197,7 +223,12 @@ export default function InitialCard(props) {
         <Grid xs={12} container item justifyContent="center">
           <Header label="FITTING" />
         </Grid>
-        <Grid xs={isCompact ? 12 : 6} container item justifyContent="center">
+        <Grid
+          xs={isCompact ? 12 : 6}
+          container
+          item
+          justifyContent={isCompact ? "center" : "flex-end"}
+        >
           <FitCard
             setSlots={setSlots0}
             backgroundColor={theme.palette.property.blue}
@@ -208,7 +239,12 @@ export default function InitialCard(props) {
             cache={props.cache}
           />
         </Grid>
-        <Grid xs={isCompact ? 12 : 6} container item justifyContent="center">
+        <Grid
+          xs={isCompact ? 12 : 6}
+          container
+          item
+          justifyContent={isCompact ? "center" : "flex-start"}
+        >
           <FitCard
             setSlots={setSlots1}
             backgroundColor={theme.palette.property.red}

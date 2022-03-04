@@ -55,7 +55,7 @@ export default function ImportExportButtons(props) {
         return true;
       }
     });
-    console.log("Valid", isValid);
+
     if (isValid) {
       props.setImportFitText(_text);
       props.dispatchImportStateFlag({ type: "START" });

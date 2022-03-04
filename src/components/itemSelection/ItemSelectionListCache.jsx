@@ -52,7 +52,7 @@ export default React.memo(function ItemSelectionListCache(props) {
         .get(`typeID/${item.typeID}`, () => {
           //storage version
           const saved = localStorage.getItem(`typeID/${item.typeID}`);
-          if (saved !== null) return Promise.resolve(saved);
+          if (saved !== null) return Promise.resolve(JSON.parse(saved));
 
           return storage
             .ref(`/typeIDs/typeID${item.typeID}.json`)

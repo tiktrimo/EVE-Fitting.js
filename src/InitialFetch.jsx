@@ -27,7 +27,7 @@ export default function InitialD(props) {
   useEffect(() => {
     cache.get("/marketCategories", () => {
       const saved = localStorage.getItem("/marketCategories");
-      if (saved !== null) return Promise.resolve(saved);
+      if (saved !== null) return Promise.resolve(JSON.parse(saved));
 
       return storage
         .ref("/marketCategories.json")
@@ -45,7 +45,7 @@ export default function InitialD(props) {
   useEffect(() => {
     cache.get("/typeIDsTable", () => {
       const saved = localStorage.getItem("/typeIDsTable");
-      if (saved !== null) return Promise.resolve(saved);
+      if (saved !== null) return Promise.resolve(JSON.parse(saved));
 
       return storage
         .ref("/listInvTypesTable.json")
@@ -63,7 +63,7 @@ export default function InitialD(props) {
   useEffect(() => {
     cache.get("/skillsStaticBoard", () => {
       const saved = localStorage.getItem("/skillsStaticBoard");
-      if (saved !== null) return Promise.resolve(saved);
+      if (saved !== null) return Promise.resolve(JSON.parse(saved));
 
       return storage
         .ref("/skillsStaticBoard.json")
@@ -81,7 +81,7 @@ export default function InitialD(props) {
   useEffect(() => {
     cache.get("/attributesCategories", () => {
       const saved = localStorage.getItem("/attributesCategories");
-      if (saved !== null) return Promise.resolve(saved);
+      if (saved !== null) return Promise.resolve(JSON.parse(saved));
 
       return storage
         .ref("/attributesCategories.json")

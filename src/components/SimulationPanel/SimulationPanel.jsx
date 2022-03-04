@@ -5,18 +5,15 @@ import {
   Grid,
   makeStyles,
   Tooltip,
-  Typography,
   useTheme,
 } from "@material-ui/core";
-import SystemUpdateAltIcon from "@material-ui/icons/SystemUpdateAlt";
 import ArchiveIcon from "@material-ui/icons/Archive";
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback } from "react";
 import { useState } from "react";
 import ShipPanel from "./ShipPanel";
 import Fit from "../../fitter/src/Fit";
 import ReplayIcon from "@material-ui/icons/Replay";
 import SituationalPanel from "../simpleEdition/SituationalPanel.jsx";
-import EFT from "../Drawers/services/EFT";
 import { useReducer } from "react";
 
 const useStyles = makeStyles((theme) => ({
@@ -39,7 +36,7 @@ const logReducer = (state, action) => {
       action.payload.forEach((log) => {
         state.push(log);
       });
-      console.log(state);
+
       return state.slice(state.length - 20 > 0 ? state.length - 20 : 0);
     default:
       return state;
@@ -86,7 +83,7 @@ export default function SimulationPanel(props) {
         xs={props.isCompact ? 12 : 6}
         container
         item
-        justifyContent="center"
+        justifyContent={props.isCompact ? "center" : "flex-end"}
       >
         <Card className={classes.rootCard} elevation={3}>
           <Grid xs={12} container item justifyContent="center">
@@ -96,20 +93,20 @@ export default function SimulationPanel(props) {
               fullWidth
               disableElevation
             >
-              <Button className={classes.modeButton} onClick={initialize}>
-                <Tooltip title="Import fit from above" placement="bottom" arrow>
+              <Tooltip
+                title="Import fits from above. Needs both(red and blue) fits to start simulation"
+                placement="bottom"
+                arrow
+              >
+                <Button className={classes.modeButton} onClick={initialize}>
                   <ArchiveIcon style={{ color: theme.palette.text.primary }} />
-                </Tooltip>
-              </Button>
-              <Button className={classes.modeButton} onClick={refresh}>
-                <Tooltip
-                  title="Restart the simulation"
-                  placement="bottom"
-                  arrow
-                >
+                </Button>
+              </Tooltip>
+              <Tooltip title="Restart the simulation" placement="bottom" arrow>
+                <Button className={classes.modeButton} onClick={refresh}>
                   <ReplayIcon style={{ color: theme.palette.text.primary }} />
-                </Tooltip>
-              </Button>
+                </Button>
+              </Tooltip>
             </ButtonGroup>
           </Grid>
 
@@ -150,7 +147,7 @@ export default function SimulationPanel(props) {
         xs={props.isCompact ? 12 : 6}
         container
         item
-        justifyContent="center"
+        justifyContent={props.isCompact ? "center" : "flex-start"}
       >
         <SituationalPanel
           logs={logs}
@@ -167,18 +164,20 @@ export default function SimulationPanel(props) {
         item
         justifyContent="center"
       >
-        <Button
-          onClick={() => {
-            createDebugFile(
-              props.slotsSet[0],
-              props.slotsSet[1],
-              summaries0,
-              summaries1
-            );
-          }}
-        >
-          Download error log
-        </Button>
+        <Grid xs={12} container item justifyContent="center">
+          <Button
+            onClick={() => {
+              createDebugFile(
+                props.slotsSet[0],
+                props.slotsSet[1],
+                summaries0,
+                summaries1
+              );
+            }}
+          >
+            Download error log
+          </Button>
+        </Grid>
       </Grid>
     </React.Fragment>
   );
@@ -202,7 +201,7 @@ function initializeSlots(slots) {
 }
 
 function createDebugFile(slots0, slots1, summaries0, summaries1) {
-  if (!!"remove this block if you need to save log file seperately!") {
+  /* if (!!"remove this block if you need to save log file seperately!") {
     console.log({
       up: {
         slots: slots0,
@@ -221,7 +220,7 @@ function createDebugFile(slots0, slots1, summaries0, summaries1) {
     });
     return false;
   }
-
+ */
   let data = {};
   if (!summaries0?.utils || !summaries1?.utils) {
     data = JSON.stringify({
