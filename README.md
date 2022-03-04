@@ -1,20 +1,17 @@
 # EVE Fitting.js
 
 ![enter image description here](https://github.com/tiktrimo/EVE-Fitting.js/blob/master/DOCS/HeadforReadme.png?raw=true)
-EVE online fitting tool based on web environment Primarily targeted for mobile
+EVE online fitting tool based on web environment. <br>
 Link : [https://evefittingjs.web.app/](https://evefittingjs.web.app/)
 
-## BUGS!
-
-If you are having trouble, use [Github Issues Interface](https://github.com/tiktrimo/EVE-Fitting.js/issues) to report bugs.
+## If you are having trouble
+Try following steps in the [WIKI](https://github.com/tiktrimo/EVE-Fitting.js/wiki/Bug-&-Suggestion) <br>
+It would be thankful if you report ther bug. You can report bug via [Github Issues Interface](https://github.com/tiktrimo/EVE-Fitting.js/issues).
 Or you can contact developer directly using email. tiktrimo@gmail.com
-
-It would be great to have details like
-procedure to simulate bug : Click this and that ..... and crashed.
 
 ## How to use?
 
-You can read the [DOCS](https://github.com/tiktrimo/EVE-Fitting.js/blob/master/DOCS/DOCS.md).
+You can read the [WIKI](https://github.com/tiktrimo/EVE-Fitting.js/wiki/Fitting).
 
 ## Contact
 
