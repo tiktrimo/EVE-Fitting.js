@@ -37,7 +37,7 @@ const logReducer = (state, action) => {
         state.push(log);
       });
 
-      return state.slice(state.length - 20 > 0 ? state.length - 20 : 0);
+      return state.slice(state.length - 40 > 0 ? state.length - 40 : 0);
     default:
       return state;
   }

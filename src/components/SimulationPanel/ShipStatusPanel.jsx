@@ -106,9 +106,7 @@ const HPprogress = React.memo(
         showDivider
         value={(props.load / props.capacity) * 100}
         label={`${props.load.toFixed(1)}`}
-        /*  description={`/ ${props.summaries.summary?.capacity.shield.HP.toFixed(
-      1
-    )}`} */
+        description={`/ ${props.capacity.toFixed(1)}`}
         typographyProps={{
           style: {
             color: props.color,
@@ -277,7 +275,7 @@ export default function ShipStatusPanel(props) {
                 1
               )} / ${props.summaries.summary?.capacity.capacitor.HP.toFixed(
                 1
-              )}`}
+              )} GJ`}
               backgroundColor={theme.palette.property.orgSecondary}
               color={theme.palette.property.org}
             />

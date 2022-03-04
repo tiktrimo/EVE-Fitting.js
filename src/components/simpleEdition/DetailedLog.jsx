@@ -60,10 +60,7 @@ const JaxLog = (props) => {
 
   return (
     <MathJax.Provider>
-      <MathJax.Node className={classes.jax} formula={formula.title} />
-
-      <MathJax.Node className={classes.jax} formula={formula.reference} />
-      <MathJax.Node className={classes.jax} formula={formula.applied} />
+      <MathJax.Node className={classes.jax} formula={formula.latex} />
     </MathJax.Provider>
   );
 };
@@ -109,28 +106,36 @@ function getLatex(log) {
     case "turret_accuracy": {
       const payload = log.debugs[0][0].payload;
       return {
-        title: `Turret Accuracy`,
-        reference: `{\\scriptsize 0.5}^{((\\frac{Angular \\times 40000m}{Tracking \\times Signature})^{2}+
-                (\\frac{max(0, Distance - Optimal)}{Falloff})^{2})}`,
         //prettier-ignore
-        applied: `{\\scriptsize 0.5}^{((\\frac{${payload.angularVelocity.toFixed(5)} \\times 40000m}
+        latex:`Turret Accuracy\\\\
+        
+        {\\scriptsize 0.5}^{((\\frac{Angular \\times 40000m}{Tracking \\times Signature})^{2}+
+        (\\frac{max(0, Distance - Optimal)}{Falloff})^{2})}\\\\
+        
+        {\\scriptsize 0.5}^{((\\frac{${payload.angularVelocity.toFixed(5)} \\times 40000m}
         {${payload.tracking.toFixed(2)} \\times ${payload.signatureRadius.toFixed(0)}})^{2}+
         (\\frac{max(0,${payload.distance.toFixed(0)} - ${payload.optimalRange.toFixed(0)})}
-        {${payload.falloffRange.toFixed(0)}})^{2})}={\\scriptsize ${(log.debugs[0][0].value * 100).toFixed(1)}\\%}`,
+        {${payload.falloffRange.toFixed(0)}})^{2})}\\\\
+        
+        {\\scriptsize ${(log.debugs[0][0].value * 100).toFixed(1)}\\%}`,
       };
     }
     case "launcher_damage_modifier":
       const payload = log.debugs[0][0].payload;
       return {
-        title: `Missile Damage`,
-        reference: `{\\scriptsize D \\times min(1,\\frac{S}{E_r},
-                 {(\\frac{S \\times E_v}{E_r \\times T_v})}^{drf})}`,
         //prettier-ignore
-        applied: `{\\scriptsize D \\times min(1,\\frac{${payload.signatureRadius.toFixed(0)}}
-        {${payload.explosionRadius.toFixed(0)}},
-        {(\\frac{${payload.signatureRadius.toFixed(0)} \\times ${payload.signatureRadius.toFixed(1)}}
+        latex:`Missile Damage\\\\
+        
+        {\\scriptsize D \\times min(1,{\\tiny \\frac{S}{E_r}},
+        {\\tiny (\\frac{S \\times E_v}{E_r \\times T_v})}^{drf})}\\\\
+          
+        {\\scriptsize D \\times min(1,{\\tiny \\frac{${payload.signatureRadius.toFixed(0)}}
+        {${payload.explosionRadius.toFixed(0)}}},
+        {\\tiny (\\frac{${payload.signatureRadius.toFixed(0)} \\times ${payload.signatureRadius.toFixed(1)}}
         {${payload.explosionRadius.toFixed(0)} \\times ${payload.targetVelocity.toFixed(1)}})}^
-        {${payload.damageReductionFactor.toFixed(3)}})}={\\scriptsize D \\times${log.debugs[0][0].value.toFixed(3)}}`,
+        {${payload.damageReductionFactor.toFixed(3)}})}\\\\
+        
+        {\\scriptsize D \\times${log.debugs[0][0].value.toFixed(3)}}`,
       };
     default:
       return {

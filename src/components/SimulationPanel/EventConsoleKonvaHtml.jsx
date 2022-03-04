@@ -13,9 +13,8 @@ const useStyles = makeStyles((theme) => ({
   textContainer: {
     transition: `${theme.transitions.create(["top"], {
       duration: 200,
-    })}, ${theme.transitions.create(["opacity"], {
+    })} , ${theme.transitions.create(["opacity"], {
       duration: 1000,
-      delay: 5000,
     })}`,
     position: "absolute",
     overflow: "hidden",
@@ -163,7 +162,7 @@ function EveLogTransition(props) {
               <Transition
                 in={false}
                 key={`${event.description}:${event.ID}`}
-                timeout={0}
+                timeout={5000}
               >
                 {props.children(event, index)}
               </Transition>

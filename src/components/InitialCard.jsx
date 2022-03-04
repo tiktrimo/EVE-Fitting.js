@@ -45,7 +45,7 @@ const Links = (props) => {
     },
     () => {
       const newWindow = window.open(
-        "https://github.com/tiktrimo/EVE-Fitting.js/issues",
+        "https://github.com/tiktrimo/EVE-Fitting.js/wiki/Bug-&-Suggestion",
         "_blank",
         "noopener,noreferrer"
       );
@@ -75,9 +75,7 @@ const Links = (props) => {
           </Button>
         )}
         <Button
-          href={
-            "https://github.com/tiktrimo/EVE-Fitting.js/wiki/Bug-&-Suggestion"
-          }
+          href={"https://github.com/tiktrimo/EVE-Fitting.js/wiki/Fitting"}
           target="_blank"
         >
           WIKI
@@ -186,7 +184,7 @@ export default function InitialCard(props) {
   const [width, setWidth] = useState(0);
   const widthRef = useRef(null);
 
-  const [isCompact, setIsCompact] = useState(false);
+  const [isCompact, setIsCompact] = useState(true);
   const [drawersOpen, dispatchDrawersOpen] = useReducer(
     drawersOpenReducer,
     initialDrawersOpen
@@ -198,6 +196,7 @@ export default function InitialCard(props) {
 
   useEffect(() => {
     setWidth(window.innerWidth);
+    setIsCompact(widthRef.current?.offsetWidth < 800);
     const handleRender = (e) => {
       setWidth(window.innerWidth);
       setIsCompact(widthRef.current?.offsetWidth < 800);

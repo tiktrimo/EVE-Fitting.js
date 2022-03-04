@@ -42,7 +42,7 @@ export function useProgressCircleInterval(callback, delay, reset) {
     if (interval.current) {
       clearInterval(interval.current);
       interval.current = false;
-      console.log("reset");
+      pauseFlag.current = false;
     }
   }, [reset]);
 
