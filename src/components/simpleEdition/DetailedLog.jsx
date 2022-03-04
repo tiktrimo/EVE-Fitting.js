@@ -82,7 +82,7 @@ export default function DetailedLogs(props) {
 
       <div className={classes.bottomDivContainer}>
         <div className={classes.bottomDiv}>
-          <Tooltip title="Stats for nerds" placement="top" arrow>
+          <Tooltip title="Stats for nerds (Experimental)" placement="top" arrow>
             <IconButton
               className={classes.expandButton}
               style={{ transform: open ? "rotate(180deg)" : "" }}

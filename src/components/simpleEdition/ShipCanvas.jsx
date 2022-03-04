@@ -11,6 +11,7 @@ import ZoomInIcon from "@material-ui/icons/ZoomIn";
 import ZoomOutIcon from "@material-ui/icons/ZoomOut";
 import ReplayIcon from "@material-ui/icons/Replay";
 import EventConsoleKonvaHtml from "../SimulationPanel/EventConsoleKonvaHtml";
+import { mergeClasses } from "@material-ui/styles";
 
 const hostileAnchorInitial = {
   rootID: "hostileID",
@@ -113,7 +114,22 @@ const ShipCanvasButtonGroup = React.memo((props) => {
     props.setStagePoint({ x: 0, y: 0 });
     props.dispatchOnBoardAnchor({ type: "reset", value: onBoardAnchorInitial });
     props.dispatchHostileAnchor({ type: "reset", value: hostileAnchorInitial });
-  }, []);
+    if (!!props.hostileSummaries?.summary.capacity.propulsion.maximumVelocity)
+      props.dispatchHostileAnchor({
+        type: "maximumSpeed",
+        value:
+          props.hostileSummaries.summary.capacity.propulsion.maximumVelocity,
+      });
+    if (!!props.onBoardSummaries?.summary.capacity.propulsion.maximumVelocity)
+      props.dispatchOnBoardAnchor({
+        type: "maximumSpeed",
+        value:
+          props.onBoardSummaries.summary.capacity.propulsion.maximumVelocity,
+      });
+  }, [
+    props.hostileSummaries?.summary.capacity.propulsion.maximumVelocity,
+    props.onBoardSummaries?.summary.capacity.propulsion.maximumVelocity,
+  ]);
 
   const handleMagnifyButton = useCallback(() => {
     props.setStageScale(props.stageScale * 1.5);
@@ -137,17 +153,17 @@ const ShipCanvasButtonGroup = React.memo((props) => {
       <Grid item xs={8}>
         <ButtonGroup fullWidth style={{ color: theme.palette.text.primary }}>
           <Tooltip title="Zoom In" placement="bottom" arrow>
-            <Button onClick={handleMagnifyButton}>
+            <Button style={{ zIndex: 2 }} onClick={handleMagnifyButton}>
               <ZoomInIcon />
             </Button>
           </Tooltip>
           <Tooltip title="Reset" placement="bottom" arrow>
-            <Button onClick={handleResetClick}>
+            <Button style={{ zIndex: 2 }} onClick={handleResetClick}>
               <ReplayIcon />
             </Button>
           </Tooltip>
           <Tooltip title="Zoom Out" placement="bottom" arrow>
-            <Button onClick={handleMinifyButton}>
+            <Button style={{ zIndex: 2 }} onClick={handleMinifyButton}>
               <ZoomOutIcon />
             </Button>
           </Tooltip>
@@ -164,6 +180,7 @@ const ShipCanvasButtonGroup = React.memo((props) => {
                 backgroundColor: props.isStageDrragable
                   ? theme.palette.text.primary
                   : theme.palette.background.paper,
+                zIndex: 2,
               }}
               variant={props.isStageDrragable ? "contained" : "outlined"}
               onClick={handleStageDrragable}
@@ -439,6 +456,8 @@ export default function ShipCanvas(props) {
         setStagePoint={setStagePoint}
         dispatchHostileAnchor={dispatchHostileAnchor}
         dispatchOnBoardAnchor={dispatchOnBoardAnchor}
+        onBoardSummaries={props.onBoardSummaries}
+        hostileSummaries={props.hostileSummaries}
       />
       <Stage
         style={{ zIndex: 1 }}
@@ -449,7 +468,9 @@ export default function ShipCanvas(props) {
         scaleX={stageScale}
         scaleY={stageScale}
         draggable={isStageDrragable}
-        onDragMove={() => {}} // Only here to supress warning message (if draggable = true there should be onDragMove function)
+        onDragEnd={(e) => {
+          setStagePoint({ x: e.currentTarget.x(), y: e.currentTarget.y() });
+        }}
       >
         <ShipCanvasTacticalMap
           theme={theme}

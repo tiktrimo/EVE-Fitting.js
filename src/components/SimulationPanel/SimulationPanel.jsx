@@ -225,11 +225,11 @@ function createDebugFile(slots0, slots1, summaries0, summaries1) {
   if (!summaries0?.utils || !summaries1?.utils) {
     data = JSON.stringify({
       up: {
-        slots: slots0,
+        slots: { ...slots0, skills: undefined },
         fit: Fit.apply(slots0),
       },
       down: {
-        slots: slots1,
+        slots: { ...slots1, skills: undefined },
         fit: Fit.apply(slots1),
       },
     });
@@ -238,7 +238,7 @@ function createDebugFile(slots0, slots1, summaries0, summaries1) {
       const _summaries = {
         lowSlots: [],
         midSlots: [],
-        HighSlots: [],
+        highSlots: [],
         droneSlots: [],
       };
       ["droneSlots", "highSlots", "midSlots", "lowSlots"].forEach((variant) => {
