@@ -14,11 +14,10 @@ import { useEffect } from "react";
 import LinearProgressLabel from "../FitCard/Stats/LinearProgressLabel.jsx";
 import {
   ArmorIcon,
-  EhpIcon,
   ShieldIcon,
   StructureIcon,
 } from "../Icons/defenseIcons.jsx";
-import { CapacitorChargeIcon } from "../Icons/capacitorIcons";
+import ClearIcon from "@material-ui/icons/Clear";
 
 const useStyles = makeStyles((theme) => ({
   boldTypography: {
@@ -33,6 +32,19 @@ const useStyles = makeStyles((theme) => ({
     padding: 5,
     width: 40,
     height: 40,
+    position: "relative",
+  },
+  deadIndicator: {
+    position: "absolute",
+    width: "100%",
+    height: "100%",
+    backgroundColor: "red",
+    color: "white",
+    fontSize: 50,
+    transition: theme.transitions.create("opacity", {
+      easing: theme.transitions.easing.sharp,
+      duration: theme.transitions.duration.enteringScreen,
+    }),
   },
 }));
 
@@ -67,7 +79,6 @@ const GridBoldTypography = (props) => {
 
 const Header = React.memo((props) => {
   const classes = useStyles();
-
   return (
     <Grid
       className={classes.headerRoot}
@@ -78,6 +89,12 @@ const Header = React.memo((props) => {
       <Grid container item xs={2} justifyContent="center" alignContent="center">
         <Avatar className={classes.headerAvatar}>
           {feedSource(props.summary)}
+          <div
+            className={classes.deadIndicator}
+            style={{ opacity: props.isDead ? 0.5 : 0 }}
+          >
+            <ClearIcon fontSize="inherit" color="inherit" />
+          </div>
         </Avatar>
       </Grid>
       <Grid
@@ -116,7 +133,7 @@ const HPprogress = React.memo(
         }}
         /*   backgroundColor={theme.palette.property.blueSecondary}
     color={theme.palette.property.blue} */
-        backgroundColor={theme.palette.action.opaqueHover}
+        backgroundColor={theme.palette.action.opaqueHoverSecondary}
         color={theme.palette.background.paper}
         Icon={
           <div style={{ height: 24 }}>
@@ -219,6 +236,7 @@ export default function ShipStatusPanel(props) {
             signatureRadius={
               props.summaries.summary?.capacity.misc.signatureRadius
             }
+            isDead={props.summaries.summary?.load.structure.HP === 0}
           />
           {/*  <Grid
             style={{

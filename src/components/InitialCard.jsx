@@ -130,10 +130,10 @@ const Header = (props) => {
       <div
         style={{
           width: 400,
-          backgroundColor: theme.palette.divider,
+          backgroundColor: theme.palette.action.disabled,
           height: 1,
           position: "absolute",
-          top: 16,
+          top: 17,
           zIndex: -1,
         }}
       />
@@ -149,7 +149,7 @@ const Header = (props) => {
           style={{
             fontSize: 26,
             fontWeight: 600,
-            color: theme.palette.divider,
+            color: theme.palette.action.disabled,
           }}
         >
           {props.label}
@@ -181,6 +181,7 @@ function drawersOpenReducer(state, action) {
 
 export default function InitialCard(props) {
   const theme = useTheme();
+
   const [width, setWidth] = useState(0);
   const widthRef = useRef(null);
 
@@ -197,6 +198,7 @@ export default function InitialCard(props) {
   useEffect(() => {
     setWidth(window.innerWidth);
     setIsCompact(widthRef.current?.offsetWidth < 800);
+
     const handleRender = (e) => {
       setWidth(window.innerWidth);
       setIsCompact(widthRef.current?.offsetWidth < 800);
@@ -205,7 +207,7 @@ export default function InitialCard(props) {
     return () => {
       window.removeEventListener("resize", handleRender);
     };
-  }, []);
+  }, [widthRef.current?.offsetWidth]);
 
   return (
     <div style={{ display: "flex", flexDirection: "row-reverse" }}>

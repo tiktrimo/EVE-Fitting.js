@@ -128,6 +128,7 @@ export function useLazyActivationInterval(callback, delay, reset) {
     if (interval.current) {
       clearInterval(interval.current);
       interval.current = false;
+      cancleFlag.current = false;
     }
   }, [reset]);
 

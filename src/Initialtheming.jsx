@@ -12,6 +12,7 @@ const lightTheme = createTheme({
     },
     action: {
       opaqueHover: "#F5F5F5",
+      opaqueHoverSecondary: "#EEEEEE",
     },
     button: {
       color: "#ffffff",
@@ -49,6 +50,7 @@ const darkTheme = createTheme({
     },
     action: {
       opaqueHover: "#515151",
+      opaqueHoverSecondary: "#616161",
     },
     button: {
       color: "#ffffff",

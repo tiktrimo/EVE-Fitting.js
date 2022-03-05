@@ -56,7 +56,10 @@ export default /* React.memo( */ function ModuleActivation(props) {
       }
       if (isInstaActivationModule(props.moduleSet[0].summary)) {
         // Instant activation module such as shield booster, projectile, hybrid, launcher etc...
-        if (!isNegEdge)
+        if (
+          !isNegEdge &&
+          props.moduleSet[0].summary.activationState.isActive === true
+        )
           activateModules(
             props.moduleSet,
             props.dispatchSummaries,
@@ -64,7 +67,10 @@ export default /* React.memo( */ function ModuleActivation(props) {
           );
       } else {
         // Delayed activation module  such as armor repairer, nodferatu etc...
-        if (!isPosEdge)
+        if (
+          !isPosEdge &&
+          props.moduleSet[0].summary.activationState.isActive === true
+        )
           activateModules(
             props.moduleSet,
             props.dispatchSummaries,
@@ -249,8 +255,22 @@ function dispatchActivation(props) {
       return;
     }
 
-    // change state of moduleSet
+    // Check if target is already dead
+    if (
+      props.moduleSet[0].summary.operation === "damage" &&
+      props.moduleSet[0].summary.target.summary.load.structure.HP === 0
+    ) {
+      props.setIsActivating(false);
+      props.dispatchSummaries({
+        type: "moduleSet_update_activation",
+        payload: { moduleSet: props.moduleSet, isActive: false },
+      });
+
+      return;
+    }
+
     if (props.moduleSet[0].summary.activationState.isActive === false)
+      // change state of moduleSet
       props.dispatchSummaries({
         type: "moduleSet_update_activation",
         payload: { moduleSet: props.moduleSet, isActive: true },

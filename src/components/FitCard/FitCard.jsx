@@ -138,7 +138,7 @@ export default function FitCard(props) {
 function getFitCardTitle(open, typeName) {
   if (!typeName)
     return open
-      ? "> CLICK HERE TO START FITTING <"
-      : "CLICK HERE TO START FITTING";
+      ? "> CLICK HERE TO OPEN FITTING DRAWERS <"
+      : "CLICK HERE TO OPEN FITTING DRAWERS";
   else return open ? `> ${typeName} <` : typeName;
 }

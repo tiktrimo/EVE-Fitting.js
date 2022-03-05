@@ -26,7 +26,7 @@ export default function ControlPanel(props) {
         payload: { capacitorDelta, shieldDelta },
       });
     },
-    !!props?.summaries?.summary ? 1000 : null
+    props.summaries?.summary?.load.structure.HP > 0 ? 1000 : null
   );
 
   return (

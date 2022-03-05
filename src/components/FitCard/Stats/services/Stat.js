@@ -1,5 +1,6 @@
 import { findAttributebyID } from "../../../../services/dataManipulation/findAttributes";
 import Fit from "../../../../fitter/src/Fit";
+import EveMath from "./EveMath";
 
 export default class Stat {
   static defaultStat = {
@@ -18,6 +19,9 @@ export default class Stat {
         shieldBonus: 0,
         armorBonus: 0,
         structureBonus: 0,
+      },
+      passive: {
+        shieldBonus: 0,
       },
     },
     capacitor: {
@@ -387,10 +391,14 @@ export default class Stat {
           armorBonus: 0,
           structureBonus: 0,
         },
+        passive: {
+          shieldBonus: 0,
+        },
       };
     return {
       resistance: Stat.defense_resistance(fit),
       active: Stat.#defense_active(fit),
+      passive: Stat.#defense_passive(fit),
     };
   }
   static defense_resistance = (fit) => {
@@ -505,6 +513,26 @@ export default class Stat {
       }
     );
     return active;
+  };
+  static #defense_passive = (fit) => {
+    const passive = {
+      shieldBonus: 0,
+    };
+    if (!fit.ship || !fit.ship.typeAttributesStats) return passive;
+
+    const shipAttrs = fit.ship.typeAttributesStats;
+    const shieldHP = shipAttrs.find((attr) => attr.attributeID === 263).value;
+    const shieldChargeRate =
+      shipAttrs.find((attr) => attr.attributeID === 479).value / 1000 || 0; // attributeID: 479, attributeName: "Shield recharge time"
+
+    const ambientChargeRate = EveMath.getAmbientChargeRateMath(
+      shieldHP,
+      shieldHP * 0.25,
+      shieldChargeRate
+    );
+    passive.shieldBonus = ambientChargeRate;
+
+    return passive;
   };
 
   static engineering(fit) {

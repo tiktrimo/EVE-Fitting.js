@@ -52,7 +52,6 @@ export default /* React.memo( */ function ModuleReloading(props) {
 
   useLazyActivationInterval(
     () => {
-      console.log("reloaded");
       // Ancillary booster/repairer
       if (props.moduleSet[0].summary.activationInfo.isChargeNegligible)
         props.dispatchSummaries({
@@ -72,6 +71,8 @@ export default /* React.memo( */ function ModuleReloading(props) {
 
   useEffect(() => {
     setForceReset(!forceReset);
+    setIsProgressing(false);
+    props.setIsReloading(false);
   }, [props.updateFlag]);
 
   return (

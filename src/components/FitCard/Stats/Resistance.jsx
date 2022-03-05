@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import {
   ArmorIcon,
-  EhpIcon,
   ShieldIcon,
   StructureIcon,
 } from "../../Icons/defenseIcons.jsx";
@@ -30,10 +29,13 @@ export default function Resistance(props) {
               <ShieldIcon color={theme.palette.text.primary} />
             </div>
           }
+          tooltip={getTooltip(props.stat.defense, damageType)}
           resistance={props.stat.defense.resistance.shield}
+          passiveBonus={props.stat.defense.passive.shieldBonus}
           activeBonus={props.stat.defense.active.shieldBonus}
           damageType={damageType}
         />
+
         <ResistanceProgressLabel
           variant="armor"
           Icon={
@@ -62,5 +64,29 @@ export default function Resistance(props) {
         />
       </Grid>
     </React.Fragment>
+  );
+}
+
+function getTooltip(defense, damageType) {
+  const ehpFactor = calculateEhpFactor(damageType, defense.resistance.shield);
+  if (!ehpFactor) return "";
+
+  //prettier-ignore
+  return (<span style={{ whiteSpace: 'pre-line' }}>
+  {`Passive +${defense.passive.shieldBonus.toFixed(1)} HP/s 
+  Active +${defense.active.shieldBonus.toFixed(1)} HP/s
+  Passive +${(defense.passive.shieldBonus * ehpFactor).toFixed(1)} EHP/s 
+  Active +${(defense.active.shieldBonus * ehpFactor).toFixed(1)} EHP/s`}
+  </span>);
+}
+function calculateEhpFactor(damageType, resistance) {
+  if (!damageType || !resistance) return 1;
+
+  return (
+    (100 * (damageType.EM + damageType.TH + damageType.KI + damageType.EX)) /
+    (damageType.EM * (100 - resistance.EM) +
+      damageType.TH * (100 - resistance.TH) +
+      damageType.KI * (100 - resistance.KI) +
+      damageType.EX * (100 - resistance.EX))
   );
 }

@@ -1,12 +1,23 @@
 import React from "react";
-import { Button, Grid, ListItem, useTheme } from "@material-ui/core";
+import { useState } from "react";
+import { Grid, ListItem, Tooltip, useTheme } from "@material-ui/core";
 import LinearProgressLabel from "./LinearProgressLabel";
 
 export const ResistanceProgressLabel = React.forwardRef((props, ref) => {
   const theme = useTheme();
 
+  const [isHover, setIsHover] = useState(false);
+
   return (
-    <Grid container>
+    <Grid
+      container
+      onMouseEnter={() => {
+        setIsHover(true);
+      }}
+      onMouseLeave={() => {
+        setIsHover(false);
+      }}
+    >
       <Grid innerRef={ref} item xs={12}>
         <ListItem style={{ width: "100%", padding: 0 }} button={!!props.button}>
           <LinearProgressLabel
@@ -14,7 +25,16 @@ export const ResistanceProgressLabel = React.forwardRef((props, ref) => {
             label={getLabel(props)}
             description={getDescription(props)}
             backgroundColor={theme.palette.background.paper}
-            Icon={props.Icon}
+            Icon={
+              <Tooltip
+                open={isHover}
+                title={props.tooltip || ""}
+                placement="left"
+                arrow
+              >
+                {props.Icon}
+              </Tooltip>
+            }
             typographyProps={{
               style: {
                 fontSize: 14,
@@ -64,19 +84,20 @@ export const ResistanceProgressLabel = React.forwardRef((props, ref) => {
 function getDescription(props) {
   const ehpFactor = calculateEhpFactor(props.damageType, props.resistance);
   if (ehpFactor === 1 || !ehpFactor) return "";
-
-  if (props.activeBonus === 0)
-    return `${(props.resistance?.HP * ehpFactor).toFixed(0)}`;
-  return `${(props.resistance?.HP * ehpFactor).toFixed(0)}+${(
+  if (!props.passiveBonus && !props.activeBonus)
+    return `${(props.resistance?.HP * ehpFactor).toFixed(0)} `;
+  return `${(props.resistance?.HP * ehpFactor).toFixed(0)} + ${(
+    props.passiveBonus * ehpFactor +
     props.activeBonus * ehpFactor
   ).toFixed(1)}/s`;
 }
 function getLabel(props) {
   if (!!props.label) return props.label;
-  if (props.activeBonus === 0) return `${(props.resistance?.HP).toFixed(0)}`;
-  return `${(props.resistance?.HP).toFixed(0)}+${props.activeBonus.toFixed(
-    1
-  )}/s`;
+  if (!props.passiveBonus && !props.activeBonus)
+    return `${(props.resistance?.HP).toFixed(0)} `;
+  return `${(props.resistance?.HP).toFixed(0)} + ${(
+    props.passiveBonus + props.activeBonus
+  ).toFixed(1)}/s`;
 }
 function calculateEhpFactor(damageType, resistance) {
   if (!damageType || !resistance) return 1;

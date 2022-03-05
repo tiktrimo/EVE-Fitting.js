@@ -201,7 +201,7 @@ function initializeSlots(slots) {
 }
 
 function createDebugFile(slots0, slots1, summaries0, summaries1) {
-  /* if (!!"remove this block if you need to save log file seperately!") {
+  if (!!"remove this block if you need to save log file seperately!") {
     console.log({
       up: {
         slots: slots0,
@@ -220,7 +220,7 @@ function createDebugFile(slots0, slots1, summaries0, summaries1) {
     });
     return false;
   }
- */
+
   let data = {};
   if (!summaries0?.utils || !summaries1?.utils) {
     data = JSON.stringify({
@@ -246,9 +246,9 @@ function createDebugFile(slots0, slots1, summaries0, summaries1) {
           if (!slot.summary) return;
 
           const _summary = { ...slot.summary };
-          _summary.root = slot.summary.root?.summary?.decription;
-          _summary.target = slot.summary.target?.summary?.decription;
-          _summaries[variant].push(_summary);
+          _summary.root = slot.summary.root?.summary?.description;
+          _summary.target = slot.summary.target?.summary?.description;
+          _summaries[variant].push({ summary: _summary });
         });
       });
 

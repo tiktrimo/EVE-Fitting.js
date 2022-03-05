@@ -1,20 +1,23 @@
-import React from "react";
+import React, { useState } from "react";
 import LinearProgressLabel from "./LinearProgressLabel";
 import { CapacitorChargeIcon } from "../../Icons/capacitorIcons";
-import { Tooltip, makeStyles, useTheme } from "@material-ui/core";
-
-const useStyles = makeStyles((theme) => ({
-  tooltip: {
-    maxWidth: 80,
-  },
-}));
+import { Tooltip, makeStyles, useTheme, Grid } from "@material-ui/core";
 
 export default function Capacitor(props) {
-  const classes = useStyles();
   const theme = useTheme();
 
+  const [isHover, setIsHover] = useState(false);
+
   return (
-    <React.Fragment>
+    <Grid
+      container
+      onMouseEnter={() => {
+        setIsHover(true);
+      }}
+      onMouseLeave={() => {
+        setIsHover(false);
+      }}
+    >
       <LinearProgressLabel
         value={0}
         label={`${(
@@ -25,11 +28,12 @@ export default function Capacitor(props) {
         backgroundColor={theme.palette.background.paper}
         Icon={
           <Tooltip
-            classes={{ tooltip: classes.tooltip }}
+            open={isHover}
             //prettier-ignore
-            title={`Passive +${props.stat.capacitor.ambientChargeRate.toFixed(2)} 
-            Active +${props.stat.capacitor.boosterChargeRate.toFixed(2)} 
-            Active -${props.stat.capacitor.activationUseRate.toFixed(2)}`}
+            title={<span style={{ whiteSpace: 'pre-line' }}>
+            {`Passive +${props.stat.capacitor.ambientChargeRate.toFixed(1)} GJ/s
+            Active +${props.stat.capacitor.boosterChargeRate.toFixed(1)} GJ/s
+            Active -${props.stat.capacitor.activationUseRate.toFixed(1)} GJ/s`}</span>}
             placement="left"
             arrow
           >
@@ -55,6 +59,6 @@ export default function Capacitor(props) {
         backgroundColor={theme.palette.property.orgSecondary}
         color={theme.palette.property.org}
       />
-    </React.Fragment>
+    </Grid>
   );
 }
