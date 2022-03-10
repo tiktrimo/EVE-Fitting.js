@@ -200,6 +200,7 @@ export default function Slots(props) {
                     props.slotsOpen.AMMO.slotVariant === props.variant)
                 }
                 index={index}
+                activeSlotNumber={activeSlotNumber}
                 setActiveSlotNumber={setActiveSlotNumber}
                 setImportFitText={props.setImportFitText}
                 cache={props.cache}

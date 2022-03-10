@@ -183,7 +183,10 @@ export default class EFT {
     const midSlots = EFT.#buildCompareTextFromFit_moduleSlots(fit?.midSlots, "[Empty Med slot]");
     const highSlots = EFT.#buildCompareTextFromFit_moduleSlots(fit?.highSlots, "[Empty High slot]");
     const rigSlots = EFT.#buildCompareTextFromFit_moduleSlots(fit?.rigSlots, "[Empty Rig slot]");
+    const implantSlots = EFT.#buildCompareTextFromFit_moduleSlots(fit?.implantSlots, "[Empty Implant slot]");
+    const drugSlots = EFT.#buildCompareTextFromFit_moduleSlots(fit?.drugSlots, "[Empty Drug slot]");
     const drones = EFT.#buildCompareTextFromFit_droneSlots(fit?.droneSlots);
+    
     const skills = !!fit.skills ? "skills" : "noSkills";
 
     return [
@@ -193,6 +196,8 @@ export default class EFT {
       midSlots,
       highSlots,
       rigSlots,
+      implantSlots,
+      drugSlots,
       drones,
       skills
     ].join("\n\n");

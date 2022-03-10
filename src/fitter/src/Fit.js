@@ -48,6 +48,8 @@ export default class Fit {
       lowSlots: false,
       rigSlots: false,
       droneSlots: false,
+      implantSlots: false,
+      drugSlots: false,
       exSlots: false,
     },
   };
@@ -67,6 +69,8 @@ export default class Fit {
       "lowSlots",
       "rigSlots",
       "droneSlots",
+      "implantSlots",
+      "drugSlots",
       "exSlots",
     ].reduce((acc, slotName) => {
       if (config.isIterate[slotName] === true)
@@ -99,6 +103,8 @@ export default class Fit {
     const lowSlots = Fit.#applyBoard_slots(fit.lowSlots, staticBoard);
     const rigSlots = Fit.#applyBoard_slots(fit.rigSlots, staticBoard);
     const droneSlots = Fit.#applyBoard_slots(fit.droneSlots, staticBoard);
+    const implantSlots = Fit.#applyBoard_slots(fit.implantSlots, staticBoard);
+    const drugSlots = Fit.#applyBoard_slots(fit.drugSlots, staticBoard);
 
     return {
       ship,
@@ -108,6 +114,8 @@ export default class Fit {
       highSlots,
       rigSlots,
       droneSlots,
+      implantSlots,
+      drugSlots,
     };
   };
   static #applyBoard_createStaticBoard = function (board) {
@@ -431,6 +439,11 @@ export default class Fit {
     const highSlots = Fit.#giveDomainID_slots(fit.highSlots, "highSlots");
     const rigSlots = Fit.#giveDomainID_slots(fit.rigSlots, "rigSlots");
     const droneSlots = Fit.#giveDomainID_slots(fit.droneSlots, "droneSlots");
+    const implantSlots = Fit.#giveDomainID_slots(
+      fit.implantSlots,
+      "implantSlots"
+    );
+    const drugSlots = Fit.#giveDomainID_slots(fit.drugSlots, "drugSlots");
     const exSlots = Fit.#giveDomainID_slots(fit.exSlots, "exSlots");
 
     return {
@@ -442,6 +455,8 @@ export default class Fit {
       highSlots,
       rigSlots,
       droneSlots,
+      implantSlots,
+      drugSlots,
       exSlots,
     };
   };
@@ -482,6 +497,8 @@ export default class Fit {
     const highSlots = Fit.#createBoard_slots(fit.highSlots);
     const rigSlots = Fit.#createBoard_slots(fit.rigSlots);
     const droneSlots = Fit.#createBoard_slots(fit.droneSlots);
+    const implantSlots = Fit.#createBoard_slots(fit.implantSlots);
+    const drugSlots = Fit.#createBoard_slots(fit.drugSlots);
     // exSlots is for electronic warfare. other ship's calculated slot will be inserted. and the mod should have domain: target to affect current calculating ship
     const exSlots = Fit.#createBoard_slots(fit.exSlots).filter(
       (mod) => mod.domain === "target"
@@ -496,6 +513,8 @@ export default class Fit {
       ...highSlots,
       ...rigSlots,
       ...droneSlots,
+      ...implantSlots,
+      ...drugSlots,
       ...exSlots,
     ];
   };

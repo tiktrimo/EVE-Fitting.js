@@ -8,6 +8,7 @@ import StatDrawer from "./Stats/StatDrawer.jsx";
 import EFT from "./services/EFT.js";
 import ListDrawers from "./ListDrawer/ListDrawers.jsx";
 import { createWorkerFactory, useWorker } from "@shopify/react-web-worker";
+import CharacterDrawer from "./ChracterDrawer/CharacterDrawer.jsx";
 const createFitWorker = createWorkerFactory(() =>
   import("../../fitter/src/FitWorker")
 );
@@ -24,6 +25,8 @@ const initialSlots = {
   highSlots: [],
   rigSlots: [],
   droneSlots: [],
+  implantSlots: [],
+  drugSlots: [],
 };
 function slotsReducer(state, action) {
   switch (action.type) {
@@ -45,6 +48,8 @@ function slotsReducer(state, action) {
     case "HIGH_SLOT":
     case "RIG_SLOT":
     case "DRONE_SLOT":
+    case "IMPLANT_SLOT":
+    case "DRUG_SLOT":
       return {
         ...state,
         [translateVariant(action.type)]: action.payload,
@@ -62,12 +67,15 @@ const initialSlotsOpen = {
   LOW_SLOT: { open: false },
   RIG_SLOT: { open: false, filter: false },
   DRONE_SLOT: { open: false, filter: false },
+  IMPLANT_SLOT: { open: false, filter: false },
+  DRUG_SLOT: { open: false, filter: false },
 
   AMMO: { open: false, slotVariant: false, filter: false },
   STAT: { open: false, slotVariant: false, slotNumber: false, filter: false },
 };
 
 function slotsOpenReducer(state, action) {
+  console.log(action.type, action.payload?.filter);
   switch (action.type) {
     case "SHIP":
     case "MISC_SLOT":
@@ -76,21 +84,17 @@ function slotsOpenReducer(state, action) {
     case "LOW_SLOT":
       return { ...initialSlotsOpen, [action.type]: { open: true } };
     case "DRONE_SLOT":
-      return {
-        ...initialSlotsOpen,
-        DRONE_SLOT: {
-          open: true,
-          filter: action.payload.filter,
-        },
-      };
     case "RIG_SLOT":
+    case "DRUG_SLOT":
+    case "IMPLANT_SLOT":
       return {
         ...initialSlotsOpen,
-        RIG_SLOT: {
+        [action.type]: {
           open: true,
-          filter: action.payload.filter,
+          filter: action.payload?.filter,
         },
       };
+
     case "AMMO":
       return {
         ...initialSlotsOpen,
@@ -124,6 +128,8 @@ const initialListItems = {
   LOW_SLOT: false,
   RIG_SLOT: false,
   DRONE_SLOT: false,
+  IMPLANT_SLOT: false,
+  DRUG_SLOT: false,
   AMMO: false,
 };
 function listItemsReducer(state, action) {
@@ -135,6 +141,8 @@ function listItemsReducer(state, action) {
     case "LOW_SLOT":
     case "RIG_SLOT":
     case "DRONE_SLOT":
+    case "IMPLANT_SLOT":
+    case "DRUG_SLOT":
     case "AMMO":
       return { ...state, [action.type]: action.payload };
     default:
@@ -168,43 +176,49 @@ export default function Drawers(props) {
   }, []);
 
   useEffect(() => {
-    if (props.open === true) dispatchSlotsOpen({ type: "SHIP" });
-    else dispatchSlotsOpen({ type: "RESET" });
-  }, [props.open]);
+    if (props.fitOpen === true) {
+      dispatchSlotsOpen({ type: "SHIP" });
+      props.setCharacterOpen(false);
+    } else if (props.characterOpen === true) {
+      dispatchSlotsOpen({ type: "IMPLANT_SLOT" });
+    } else dispatchSlotsOpen({ type: "RESET" });
+  }, [props.fitOpen]);
 
   useEffect(() => {
-    (async () => {
-      if (importFitText !== false) return;
-      /* console.log(
+    if (props.characterOpen) props.setFitOpen(false);
+    else dispatchSlotsOpen({ type: "RESET" });
+  }, [props.characterOpen]);
+
+  useEffect(() => {
+    if (importFitText !== false) return;
+    console.log("CAL");
+    /* console.log(
         "∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨FitCalc∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨"
       );
       console.time("Fit Stat Calculation"); */
-      /* const appliedFit = await fitWorker.fit(slots); */
-      const appliedFit = await fitWorker.fit(
-        !!slots.ship ? slots : initialSlots
-      );
-      /* const appliedFit = Fit.apply(slots); */
-      /* console.timeEnd("Fit Stat Calculation");
+    /* const appliedFit = await fitWorker.fit(slots); */
+    const appliedFit = Fit.apply(!!slots.ship ? slots : initialSlots);
+    /* const appliedFit = Fit.apply(slots); */
+    /* console.timeEnd("Fit Stat Calculation");
       console.log(appliedFit);
       console.log(
         `∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧∧`
       ); */
-      setFit(appliedFit);
-      props.setFit(appliedFit);
-      props.setFitID(EFT.buildCompareTextFromFit(slots));
-      props.setSlots(slots);
+    setFit(appliedFit);
+    props.setFit(appliedFit);
+    props.setFitID(EFT.buildCompareTextFromFit(slots));
+    props.setSlots(slots);
 
-      if (!!slots.ship?.typeID) {
-        const appliedFitExportText = EFT.buildTextFromFit(appliedFit);
-        const appliedSlotsModified = { ...slots, skills: undefined };
-        setExportFitText(appliedFitExportText);
-        localStorage.setItem(
-          `${props.tag}SLOTS`,
-          JSON.stringify(appliedSlotsModified)
-        );
-        localStorage.setItem(`${props.tag}EFT`, appliedFitExportText);
-      }
-    })();
+    if (!!slots.ship?.typeID) {
+      const appliedFitExportText = EFT.buildTextFromFit(appliedFit);
+      const appliedSlotsModified = { ...slots, skills: undefined };
+      setExportFitText(appliedFitExportText);
+      localStorage.setItem(
+        `${props.tag}SLOTS`,
+        JSON.stringify(appliedSlotsModified)
+      );
+      localStorage.setItem(`${props.tag}EFT`, appliedFitExportText);
+    }
   }, [EFT.buildCompareTextFromFit(slots), importFitText]);
 
   return (
@@ -226,8 +240,8 @@ export default function Drawers(props) {
         tag={props.tag}
         fit={fit}
         slots={slots}
-        open={props.open}
-        setOpen={props.setOpen}
+        open={props.fitOpen}
+        setOpen={props.setFitOpen}
         expand={props.expand}
         setExpand={props.setExpand}
         backgroundColor={props.backgroundColor}
@@ -248,6 +262,27 @@ export default function Drawers(props) {
         slot={giveSlotToStatDrawer(fit, slotsOpen.STAT)}
         cache={props.cache}
       />
+
+      <CharacterDrawer
+        tag={props.tag}
+        fit={fit}
+        slots={slots}
+        open={props.characterOpen}
+        setOpen={props.setCharacterOpen}
+        expand={props.expand}
+        setExpand={props.setExpand}
+        backgroundColor={props.backgroundColor}
+        exportFitText={exportFitText}
+        importFitText={importFitText}
+        setImportFitText={setImportFitText}
+        slotsOpen={slotsOpen}
+        dispatchSlotsOpen={dispatchSlotsOpen}
+        listItems={listItems}
+        dispatchListItems={dispatchListItems}
+        dispatchSlots={dispatchSlots}
+        setActiveSlot={setActiveSlot}
+        cache={props.cache}
+      />
     </React.Fragment>
   );
 }
@@ -262,6 +297,8 @@ function giveSlotToStatDrawer(fit, STAT) {
     case "MID_SLOT":
     case "LOW_SLOT":
     case "RIG_SLOT":
+    case "IMPLANT_SLOT":
+    case "DRUG_SLOT":
       return fit[translateVariant(STAT.slotVariant)][STAT.slotNumber];
     default:
       return undefined;
@@ -283,6 +320,10 @@ export function translateVariant(variant) {
       return "rigSlots";
     case "DRONE_SLOT":
       return "droneSlots";
+    case "IMPLANT_SLOT":
+      return "implantSlots";
+    case "DRUG_SLOT":
+      return "drugSlots";
     default:
       return undefined;
   }

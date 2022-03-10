@@ -199,6 +199,7 @@ function extractListTypeID(ID, props) {
   const typeFighterSize = findAttributeByID(2215, dogmaAttributes); //"attributeID": 2215,"attributeName": "Squadron Size",
   const typeRigSize = findAttributeByID(1547, dogmaAttributes);
   const typeChargeSize = findAttributeByID(128, dogmaAttributes);
+  const typeSlotNumber = findAttributeByID(331, dogmaAttributes) ||  findAttributeByID(1087, dogmaAttributes)// "attributeID": 331,"attributeName": "Implant Slot", "attributeID": 1087,"attributeName": "Booster Slot",
 
   const isHiPower = findEffectByID(12, dogmaEffects);
   const isMedPower = findEffectByID(13, dogmaEffects);
@@ -226,6 +227,7 @@ function extractListTypeID(ID, props) {
     typeIsLoPower: isLoPower,
     typeIsTurretFitted: isTurretFitted,
     typeIsLauncherFitted: isLauncherFitted,
+    typeSlotNumber: typeSlotNumber
   };
 }
 

@@ -123,6 +123,10 @@ function getRootMarketGroupID(slots, variant) {
       return 11;
     case "DRONE_SLOT":
       return 157;
+    case "IMPLANT_SLOT":
+      return 27;
+    case "DRUG_SLOT":
+      return 977;
   }
 }
 function allowedAttributes(variant) {

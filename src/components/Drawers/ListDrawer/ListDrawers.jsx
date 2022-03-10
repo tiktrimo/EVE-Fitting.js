@@ -27,6 +27,8 @@ export default React.memo(function ListDrawers(props) {
         "RIG_SLOT",
         "AMMO",
         "DRONE_SLOT",
+        "IMPLANT_SLOT",
+        "DRUG_SLOT",
       ].map((variant) => {
         return (
           <ListDrawer
@@ -77,6 +79,26 @@ function generateFilter(slots, slotsOpen, variant) {
         {
           attributeName: "typeDroneSize",
           value: [...new Array(filter.size + 1).keys()],
+        },
+      ];
+    }
+    case "IMPLANT_SLOT": {
+      const filter = slotsOpen.IMPLANT_SLOT.filter;
+      if (!filter?.typeSlotNumber) return [];
+      return [
+        {
+          attributeName: "typeSlotNumber",
+          value: filter.typeSlotNumber,
+        },
+      ];
+    }
+    case "DRUG_SLOT": {
+      const filter = slotsOpen.DRUG_SLOT.filter;
+      if (!filter?.typeSlotNumber) return [];
+      return [
+        {
+          attributeName: "typeSlotNumber",
+          value: filter.typeSlotNumber,
         },
       ];
     }

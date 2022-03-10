@@ -94,6 +94,11 @@ export default function Slot(props) {
           },
         });
         break;
+
+      // Conditional breaking is intentional
+      case "IMPLANT_SLOT":
+      case "DRUG_SLOT":
+        if (props.slotsOpen[props.variant].open === true) break;
       default:
         props.dispatchSlotsOpen({ type: props.variant });
         break;
@@ -106,6 +111,20 @@ export default function Slot(props) {
         type: props.variant,
         index: props.index,
       });
+      if (props.variant === "IMPLANT_SLOT")
+        props.dispatchSlotsOpen({
+          type: "IMPLANT_SLOT",
+          payload: {
+            filter: { typeSlotNumber: props.index + 1 },
+          },
+        });
+      else if (props.variant === "DRUG_SLOT")
+        props.dispatchSlotsOpen({
+          type: "DRUG_SLOT",
+          payload: {
+            filter: { typeSlotNumber: getDrugSlotNumber(props.index) },
+          },
+        });
     }
   }, [props.isActive]);
 
@@ -210,6 +229,11 @@ function getLoadableDrone(ship) {
   const attrs = ship.typeAttributesStats;
   const droneSize = attrs.find((attr) => attr.attributeID === 1271)?.value; //attributeID: 1271, attributeName: "Drone Bandwidth"
   return { size: droneSize };
+}
+function getDrugSlotNumber(index) {
+  if (index < 3) return index + 1;
+  else if (index === 3) return 11;
+  else return 14;
 }
 
 function slotIcon(props, theme) {

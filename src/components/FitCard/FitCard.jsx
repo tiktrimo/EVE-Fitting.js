@@ -8,10 +8,12 @@ import {
   makeStyles,
   useTheme,
   Avatar,
+  ListItem,
 } from "@material-ui/core";
 import { useState } from "react";
 import StatsSummary from "./Stats/StatsSummary";
 import Stat from "./Stats/services/Stat";
+import FitCharacterBadge from "./FitCharacterBadge.jsx";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -21,6 +23,17 @@ const useStyles = makeStyles((theme) => ({
     height: "fit-content",
   },
   editButton: {
+    height: 70,
+    borderRadius: 0,
+
+    marginBottom: 10,
+  },
+  editButtonAvatar: {
+    padding: 5,
+    width: 40,
+    height: 40,
+  },
+  editButtonText: {
     color: theme.palette.button.color,
     fontSize: 24,
     fontWeight: 1000,
@@ -31,47 +44,45 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const EditButton = (props) => {
-  const classes = useStyles();
+  const classes = useStyles(props);
 
   return (
-    <Button
-      style={{
-        height: 70,
-        borderRadius: 0,
-        backgroundColor: props.backgroundColor,
-        marginBottom: 10,
-      }}
-      fullWidth
+    <ListItem
+      className={classes.editButton}
+      style={{ backgroundColor: props.backgroundColor }}
       onClick={() => {
-        props.setOpen(true);
+        props.setFitOpen(true);
       }}
+      button
     >
       <Grid container item xs={2} justifyContent="center">
-        <Avatar
-          style={{
-            padding: 5,
-            width: 40,
-            height: 40,
-            backgroundColor: props.color,
+        <FitCharacterBadge
+          onClick={() => {
+            props.setCharacterOpen(true);
           }}
         >
-          {!!props.fit?.ship?.typeID ? (
-            <img
-              draggable="false"
-              style={{ width: 50, height: 50 }}
-              src={`https://images.evetech.net/types/${props.fit?.ship?.typeID}/icon?size=128`}
-            />
-          ) : (
-            ""
-          )}
-        </Avatar>
+          <Avatar
+            className={classes.editButtonAvatar}
+            style={{ backgroundColor: props.color }}
+          >
+            {!!props.fit?.ship?.typeID ? (
+              <img
+                draggable="false"
+                style={{ width: 50, height: 50 }}
+                src={`https://images.evetech.net/types/${props.fit?.ship?.typeID}/icon?size=128`}
+              />
+            ) : (
+              ""
+            )}
+          </Avatar>
+        </FitCharacterBadge>
       </Grid>
       <Grid item xs={10}>
-        <Typography className={classes.editButton} align="center">
-          {getFitCardTitle(props.open, props.fit.ship?.typeName)}
+        <Typography className={classes.editButtonText} align="center">
+          {getFitCardTitle(props.fitOpen, props.fit.ship?.typeName)}
         </Typography>
       </Grid>
-    </Button>
+    </ListItem>
   );
 };
 
@@ -81,38 +92,33 @@ export default function FitCard(props) {
   const [fit, setFit] = useState(false);
   const [fitID, setFitID] = useState(false);
 
-  const [open, setOpen] = useState(false);
+  const [fitOpen, setFitOpen] = useState(false);
+  const [characterOpen, setCharacterOpen] = useState(false);
   const [expand, setExpand] = useState(window.innerWidth < 1000 ? false : true);
 
   const [stat, setStat] = useState(Stat.defaultStat);
 
-  const isInitialRender = useRef(true);
   useEffect(() => {
-    if (!isInitialRender.current && !isSyncing.current) {
-      props.dispatchDrawersOpen({
-        type: open ? "OPEN" : "CLOSE",
-        tag: props.tag,
-        payload: open,
-      });
-    } else {
-      isInitialRender.current = false;
-      isSyncing.current = false;
-    }
-  }, [open]);
+    if (props.activeDrawer !== props.tag) {
+      setFitOpen(false);
+      setCharacterOpen(false);
+    } else setFitOpen(true);
+  }, [props.activeDrawer]);
 
-  const isSyncing = useRef(false); // Too complicated.!
   useEffect(() => {
-    setOpen(props.drawersOpen[props.tag]);
-    if (open !== props.drawersOpen[props.tag]) isSyncing.current = true;
-  }, [props.drawersOpen[props.tag]]);
+    if (fitOpen) {
+      props.setActiveDrawer(props.tag);
+    }
+  }, [fitOpen]);
 
   return (
     <React.Fragment>
       <Card className={classes.root} elevation={3}>
         <EditButton
           fit={fit}
-          open={open}
-          setOpen={setOpen}
+          fitOpen={fitOpen}
+          setFitOpen={setFitOpen}
+          setCharacterOpen={setCharacterOpen}
           backgroundColor={props.backgroundColor}
           color={props.color}
         />
@@ -121,8 +127,10 @@ export default function FitCard(props) {
 
       <Drawers
         tag={props.tag}
-        open={open}
-        setOpen={setOpen}
+        fitOpen={fitOpen}
+        setFitOpen={setFitOpen}
+        characterOpen={characterOpen}
+        setCharacterOpen={setCharacterOpen}
         backgroundColor={props.backgroundColor}
         expand={expand}
         setExpand={setExpand}
@@ -135,10 +143,10 @@ export default function FitCard(props) {
     </React.Fragment>
   );
 }
-function getFitCardTitle(open, typeName) {
+function getFitCardTitle(fitOpen, typeName) {
   if (!typeName)
-    return open
+    return fitOpen
       ? "> CLICK HERE TO OPEN FITTING DRAWERS <"
       : "CLICK HERE TO OPEN FITTING DRAWERS";
-  else return open ? `> ${typeName} <` : typeName;
+  else return fitOpen ? `> ${typeName} <` : typeName;
 }

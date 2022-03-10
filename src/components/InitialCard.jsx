@@ -159,26 +159,6 @@ const Header = (props) => {
   );
 };
 
-const initialDrawersOpen = {
-  fit: true,
-  fit1: false,
-};
-const defaultDrawersOpen = {
-  fit: false,
-  fit1: false,
-};
-function drawersOpenReducer(state, action) {
-  if (!action?.tag) return defaultDrawersOpen;
-  switch (action.type) {
-    case "OPEN":
-      return { ...defaultDrawersOpen, [action.tag]: action.payload };
-    case "CLOSE":
-      return { ...defaultDrawersOpen };
-    default:
-      return defaultDrawersOpen;
-  }
-}
-
 export default function InitialCard(props) {
   const theme = useTheme();
 
@@ -186,11 +166,8 @@ export default function InitialCard(props) {
   const widthRef = useRef(null);
 
   const [isCompact, setIsCompact] = useState(true);
-  const [drawersOpen, dispatchDrawersOpen] = useReducer(
-    drawersOpenReducer,
-    initialDrawersOpen
-  );
 
+  const [activeDrawer, setActiveDrawer] = useState("fit");
   const [situation, setSituation] = useState();
   const [slots0, setSlots0] = useState();
   const [slots1, setSlots1] = useState();
@@ -235,8 +212,8 @@ export default function InitialCard(props) {
             backgroundColor={theme.palette.property.blue}
             color={theme.palette.background.paper}
             tag={"fit"}
-            drawersOpen={drawersOpen}
-            dispatchDrawersOpen={dispatchDrawersOpen}
+            activeDrawer={activeDrawer}
+            setActiveDrawer={setActiveDrawer}
             cache={props.cache}
           />
         </Grid>
@@ -251,8 +228,8 @@ export default function InitialCard(props) {
             backgroundColor={theme.palette.property.red}
             color={theme.palette.background.paper}
             tag={"fit1"}
-            drawersOpen={drawersOpen}
-            dispatchDrawersOpen={dispatchDrawersOpen}
+            activeDrawer={activeDrawer}
+            setActiveDrawer={setActiveDrawer}
             cache={props.cache}
           />
         </Grid>
