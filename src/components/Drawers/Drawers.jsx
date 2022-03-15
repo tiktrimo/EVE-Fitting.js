@@ -75,7 +75,6 @@ const initialSlotsOpen = {
 };
 
 function slotsOpenReducer(state, action) {
-  console.log(action.type, action.payload?.filter);
   switch (action.type) {
     case "SHIP":
     case "MISC_SLOT":
@@ -150,8 +149,31 @@ function listItemsReducer(state, action) {
   }
 }
 
+const importInitializeFlag = {
+  SHIP: false,
+  MISC_SLOT: false,
+  HIGH_SLOT: false,
+  MID_SLOT: false,
+  LOW_SLOT: false,
+  RIG_SLOT: false,
+  DRONE_SLOT: false,
+  IMPLANT_SLOT: false,
+  DRUG_SLOT: false,
+};
+
+function importStateFlagReducer(state, action) {
+  switch (action.type) {
+    case "START":
+      return importInitializeFlag;
+    default:
+      return {
+        ...state,
+        [action.type]: true,
+      };
+  }
+}
+
 export default function Drawers(props) {
-  const fitWorker = useWorker(createFitWorker);
   //prettier-ignore
   const [activeSlot, setActiveSlot] = useState({ type: false, index: false});
 
@@ -168,6 +190,50 @@ export default function Drawers(props) {
   const [fit, setFit] = useState(false);
   const [exportFitText, setExportFitText] = useState(false);
   const [importFitText, setImportFitText] = useState(false);
+  const [importStateFlag, dispatchImportStateFlag] = useReducer(
+    importStateFlagReducer,
+    importInitializeFlag
+  );
+
+  useEffect(() => {
+    //If import is finished
+    if (!Object.values(importStateFlag).includes(false)) {
+      setImportFitText(false);
+    }
+  }, [importStateFlag]);
+
+  useEffect(() => {
+    const savedSlots = JSON.parse(localStorage.getItem(`${props.tag}SLOTS`));
+    const savedEFT = localStorage.getItem(`${props.tag}EFT`);
+    /* console.log(props.tag, savedSlots, savedEFT); */
+    if (!savedSlots?.ship?.typeID || !savedEFT) return;
+
+    props.cache.set(`typeID/${savedSlots.ship.typeID}`, savedSlots.ship);
+    Fit.mapSlots(
+      savedSlots,
+      (slot) => {
+        if (!!slot.item?.typeID && !!slot.item?.typeAttributesStats)
+          props.cache.set(`typeID/${slot.item.typeID}`, slot.item);
+        if (!!slot.charge?.typeID && !!slot.charge?.typeAttributesStats)
+          props.cache.set(`typeID/${slot.charge.typeID}`, slot.charge);
+      },
+      {
+        isIterate: {
+          miscSlots: true,
+          highSlots: true,
+          midSlots: true,
+          lowSlots: true,
+          rigSlots: true,
+          droneSlots: true,
+          implantSlots: true,
+          drugSlots: true,
+        },
+      }
+    );
+
+    setImportFitText(savedEFT);
+    dispatchImportStateFlag({ type: "START" });
+  }, []);
 
   useEffect(() => {
     props.cache
@@ -190,8 +256,8 @@ export default function Drawers(props) {
   }, [props.characterOpen]);
 
   useEffect(() => {
-    if (importFitText !== false) return;
-    console.log("CAL");
+    if (importFitText !== false || !slots.skills) return;
+    console.log("CAL", props.tag);
     /* console.log(
         "∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨FitCalc∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨"
       );
@@ -208,8 +274,8 @@ export default function Drawers(props) {
     props.setFit(appliedFit);
     props.setFitID(EFT.buildCompareTextFromFit(slots));
     props.setSlots(slots);
-
     if (!!slots.ship?.typeID) {
+      const appliedFitIntenalText = EFT.buildInternalTextFromFit(appliedFit);
       const appliedFitExportText = EFT.buildTextFromFit(appliedFit);
       const appliedSlotsModified = { ...slots, skills: undefined };
       setExportFitText(appliedFitExportText);
@@ -217,7 +283,7 @@ export default function Drawers(props) {
         `${props.tag}SLOTS`,
         JSON.stringify(appliedSlotsModified)
       );
-      localStorage.setItem(`${props.tag}EFT`, appliedFitExportText);
+      localStorage.setItem(`${props.tag}EFT`, appliedFitIntenalText);
     }
   }, [EFT.buildCompareTextFromFit(slots), importFitText]);
 
@@ -237,7 +303,6 @@ export default function Drawers(props) {
       />
 
       <FittingDrawer
-        tag={props.tag}
         fit={fit}
         slots={slots}
         open={props.fitOpen}
@@ -247,6 +312,8 @@ export default function Drawers(props) {
         backgroundColor={props.backgroundColor}
         exportFitText={exportFitText}
         importFitText={importFitText}
+        importStateFlag={importStateFlag}
+        dispatchImportStateFlag={dispatchImportStateFlag}
         setImportFitText={setImportFitText}
         slotsOpen={slotsOpen}
         dispatchSlotsOpen={dispatchSlotsOpen}
@@ -274,6 +341,8 @@ export default function Drawers(props) {
         backgroundColor={props.backgroundColor}
         exportFitText={exportFitText}
         importFitText={importFitText}
+        importStateFlag={importStateFlag}
+        dispatchImportStateFlag={dispatchImportStateFlag}
         setImportFitText={setImportFitText}
         slotsOpen={slotsOpen}
         dispatchSlotsOpen={dispatchSlotsOpen}

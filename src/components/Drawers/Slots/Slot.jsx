@@ -7,6 +7,7 @@ import {
   Tooltip,
   useTheme,
   Button,
+  Typography,
 } from "@material-ui/core";
 import { useState } from "react";
 import {
@@ -103,7 +104,12 @@ export default function Slot(props) {
         props.dispatchSlotsOpen({ type: props.variant });
         break;
     }
-  }, [props.slots.ship?.typeID, props.variant, props.index]);
+  }, [
+    props.slots.ship?.typeID,
+    props.variant,
+    props.index,
+    props.slotsOpen[props.variant].open,
+  ]);
 
   useEffect(() => {
     if (props.isActive === true || props.isActive.open === true) {
@@ -177,7 +183,7 @@ export default function Slot(props) {
 
         <ListItemText
           style={{ marginLeft: 50 }}
-          primary={item?.typeName}
+          primary={getPrimaryLabel(props, item)}
           primaryTypographyProps={{ noWrap: true, variant: "subtitle2" }}
           secondary={
             !!charge &&
@@ -263,5 +269,39 @@ function slotIcon(props, theme) {
       return <RigSlotIcon color={theme.palette.text.primary} />;
     case "DRONE_SLOT":
       return <DroneIcon color={theme.palette.text.primary} />;
+    case "IMPLANT_SLOT":
+      return getImplantIcon(props, theme);
+    case "DRUG_SLOT":
+      return getDrugIcon(props, theme);
+  }
+}
+function getImplantIcon(props, theme) {
+  return (
+    <Typography
+      style={{ color: theme.palette.text.primary, fontWeight: 700 }}
+    >{`${props.index + 1}`}</Typography>
+  );
+}
+function getDrugIcon(props, theme) {
+  const drugSlotNumber =
+    props.index >= 3 ? (props.index === 3 ? 11 : 14) : props.index + 1;
+  return (
+    <Typography
+      style={{ color: theme.palette.text.primary, fontWeight: 700 }}
+    >{`${drugSlotNumber}`}</Typography>
+  );
+}
+function getPrimaryLabel(props, item) {
+  if (item.typeName) return item.typeName;
+
+  switch (props.variant) {
+    /* case "IMPLANT_SLOT":
+      return `Implant slot ${props.index + 1}`;
+    case "DRUG_SLOT":
+      const drugSlotNumber =
+        props.index >= 3 ? (props.index === 3 ? 11 : 14) : props.index + 1;
+      return `Booster slot ${drugSlotNumber}`; */
+    default:
+      return item.typeName;
   }
 }

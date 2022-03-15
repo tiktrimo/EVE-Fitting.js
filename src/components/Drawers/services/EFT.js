@@ -40,15 +40,17 @@ export default class EFT {
   };
 
   static buildFitFromText = function (fitText, typeIDs) {
-    const shipTextLine = fitText.slice(0, fitText.indexOf("]") + 1);
+    const [eveFitText, internalFitText] = fitText.split("||\n");
+    const shipTextLine = eveFitText.slice(0, eveFitText.indexOf("]") + 1);
     const shipName = shipTextLine.replace("[", "").split(",")[0];
     const ship = EFT.#common_findIdByName(shipName, typeIDs);
 
-    const fitTextBlocks = fitText.split(/\r?\n\r?\n\r?\n/);
+    const fitTextBlocks = eveFitText.split(/\r?\n\r?\n\r?\n/);
     const moduleText = EFT.#buildFitFromText_getModuleText(fitTextBlocks);
     const droneText = fitTextBlocks[1]; //At this point we dont know wether this text is drone or not
 
-    const moduleSlots = EFT.#buildFitFromText_buildModules(moduleText, typeIDs);
+    //prettier-ignore
+    const moduleSlots = EFT.#buildFitFromText_buildModules(moduleText, internalFitText, typeIDs);
     const droneSlots = EFT.#buildFitFromText_buildDrones(droneText, typeIDs);
 
     return { ship, ...moduleSlots, ...droneSlots };
@@ -58,7 +60,11 @@ export default class EFT {
     const moduleText = fitTextBlocks[0].substring(indexOfModuleText);
     return moduleText.trimStart();
   };
-  static #buildFitFromText_buildModules = function (moduleText, typeIDs) {
+  static #buildFitFromText_buildModules = function (
+    moduleText,
+    internalFitText,
+    typeIDs
+  ) {
     const moduleTextBlocks = moduleText.split(/\r?\n\r?\n/);
 
     const moduleSlots = {};
@@ -70,6 +76,16 @@ export default class EFT {
         );
       }
     );
+
+    const intentionalModuleTextBlocks = internalFitText
+      ? internalFitText.split(/\r?\n\r?\n/)
+      : [];
+    ["implantSlots", "drugSlots"].forEach((slot, index) => {
+      moduleSlots[slot] = EFT.#buildFitFromText_buildModule(
+        intentionalModuleTextBlocks[index],
+        typeIDs
+      );
+    });
 
     return moduleSlots;
   };
@@ -131,6 +147,22 @@ export default class EFT {
     }
 
     return false;
+  };
+
+  static buildInternalTextFromFit = function (fit) {
+    const officialEFT = EFT.buildTextFromFit(fit);
+
+    const implantSlots = EFT.#buildTextFromFit_moduleSlots(
+      fit?.implantSlots,
+      "[Empty Implant slot]"
+    );
+    const drugSlots = EFT.#buildTextFromFit_moduleSlots(
+      fit?.drugSlots,
+      "[Empty Drug slot]"
+    );
+    const privateEFT = [implantSlots, drugSlots].join("\n\n");
+
+    return [officialEFT, privateEFT].join("||\n");
   };
 
   //prettier-ignore

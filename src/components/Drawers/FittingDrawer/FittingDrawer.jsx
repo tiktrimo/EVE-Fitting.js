@@ -68,74 +68,8 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export const importInitializeFlag = {
-  SHIP: false,
-  MISC_SLOT: false,
-  HIGH_SLOT: false,
-  MID_SLOT: false,
-  LOW_SLOT: false,
-  RIG_SLOT: false,
-  DRONE_SLOT: false,
-};
-
-function importStateFlagReducer(state, action) {
-  switch (action.type) {
-    case "START":
-      return importInitializeFlag;
-    default:
-      return {
-        ...state,
-        [action.type]: true,
-      };
-  }
-}
-
 export default function FittingDrawer(props) {
   const classes = useStyles();
-
-  const [importStateFlag, dispatchImportStateFlag] = useReducer(
-    importStateFlagReducer,
-    importInitializeFlag
-  );
-  const childRef = useRef(null);
-
-  useEffect(() => {
-    //If import is finished
-    if (!Object.values(importStateFlag).includes(false)) {
-      props.setImportFitText(false);
-    }
-  }, [importStateFlag]);
-
-  useEffect(() => {
-    const savedSlots = JSON.parse(localStorage.getItem(`${props.tag}SLOTS`));
-    const savedEFT = localStorage.getItem(`${props.tag}EFT`);
-    /* console.log(props.tag, savedSlots, savedEFT); */
-    if (!savedSlots?.ship?.typeID || !savedEFT) return;
-
-    props.cache.set(`typeID/${savedSlots.ship.typeID}`, savedSlots.ship);
-    Fit.mapSlots(
-      savedSlots,
-      (slot) => {
-        if (!!slot.item?.typeID && !!slot.item?.typeAttributesStats)
-          props.cache.set(`typeID/${slot.item.typeID}`, slot.item);
-        if (!!slot.charge?.typeID && !!slot.charge?.typeAttributesStats)
-          props.cache.set(`typeID/${slot.charge.typeID}`, slot.charge);
-      },
-      {
-        isIterate: {
-          miscSlots: true,
-          highSlots: true,
-          midSlots: true,
-          lowSlots: true,
-          rigSlots: true,
-          droneSlots: true,
-        },
-      }
-    );
-
-    props.setImportFitText(savedEFT);
-    dispatchImportStateFlag({ type: "START" });
-  }, []);
 
   return (
     <React.Fragment>
@@ -152,7 +86,7 @@ export default function FittingDrawer(props) {
             exportFitText={props.exportFitText}
             importFitText={props.importFitText}
             setImportFitText={props.setImportFitText}
-            dispatchImportStateFlag={dispatchImportStateFlag}
+            dispatchImportStateFlag={props.dispatchImportStateFlag}
             cache={props.cache}
           />
         </ButtonGroup>
@@ -164,7 +98,7 @@ export default function FittingDrawer(props) {
         </Button>
 
         <div className={classes.child}>
-          <div ref={childRef}>
+          <div>
             {[
               "SHIP",
               "MISC_SLOT",
@@ -178,9 +112,8 @@ export default function FittingDrawer(props) {
                 <Slots
                   key={variant}
                   importFitText={props.importFitText}
-                  importStateFlag={importStateFlag}
                   setImportFitText={props.setImportFitText}
-                  dispatchImportStateFlag={dispatchImportStateFlag}
+                  dispatchImportStateFlag={props.dispatchImportStateFlag}
                   variant={variant}
                   slotCount={getSlotCount(props.fit, variant)}
                   {...props}
