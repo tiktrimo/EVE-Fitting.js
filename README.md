@@ -1,8 +1,10 @@
 # EVE Fitting.js
 
-![enter image description here](https://github.com/tiktrimo/EVE-Fitting.js/blob/master/DOCS/Header.png?raw=true)
+[![Youtube link](https://github.com/tiktrimo/EVE-Fitting.js/blob/master/DOCS/Header.png?raw=true)](https://www.youtube.com/watch?v=nb4bgZtrxM4)
 EVE online fitting tool based on web environment. <br>
-Link : [https://evefittingjs.web.app/](https://evefittingjs.web.app/)
+Site address : [https://evefittingjs.web.app/](https://evefittingjs.web.app/)
+
+
 
 ## If you are having trouble
 Try following steps in the [WIKI](https://github.com/tiktrimo/EVE-Fitting.js/wiki/Bug-&-Suggestion) <br>
