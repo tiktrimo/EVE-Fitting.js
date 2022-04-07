@@ -252,6 +252,7 @@ export default function Drawers(props) {
 
   useEffect(() => {
     if (props.characterOpen) props.setFitOpen(false);
+    else if (props.fitOpen === true) dispatchSlotsOpen({ type: "SHIP" });
     else dispatchSlotsOpen({ type: "RESET" });
   }, [props.characterOpen]);
 
