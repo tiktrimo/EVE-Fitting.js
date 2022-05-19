@@ -8,13 +8,16 @@ import {
   useTheme,
 } from "@material-ui/core";
 import ArchiveIcon from "@material-ui/icons/Archive";
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect } from "react";
 import { useState } from "react";
 import ShipPanel from "./ShipPanel";
+import { storage } from "../../index.js";
 import Fit from "../../fitter/src/Fit";
 import ReplayIcon from "@material-ui/icons/Replay";
 import SituationalPanel from "../simpleEdition/SituationalPanel.jsx";
+import cJSON from "compressed-json";
 import { useReducer } from "react";
+import { Skeleton } from "@material-ui/lab";
 
 const useStyles = makeStyles((theme) => ({
   modeButton: {
@@ -27,6 +30,12 @@ const useStyles = makeStyles((theme) => ({
     maxWidth: 600,
     marginBottom: 24,
     height: "fit-content",
+  },
+  demoButton: {
+    width: "100%",
+    backgroundColor: theme.palette.property.blue,
+    color: theme.palette.button.color,
+    borderRadius: 0,
   },
 }));
 
@@ -48,6 +57,7 @@ export default function SimulationPanel(props) {
 
   const [logs, dispatchLog] = useReducer(logReducer, []);
 
+  const [demogifURL, setDemogifURL] = useState(false);
   const [updateFlag, setUpdateFlag] = useState(false);
 
   const [slots0, setSlots0] = useState();
@@ -58,24 +68,38 @@ export default function SimulationPanel(props) {
   const [dispatchSummarizedSlot0, setDispatchSummarizedSlot0] = useState();
   const [dispatchSummarizedSlot1, setDispatchSummarizedSlot1] = useState();
 
-  const initialize = useCallback(() => {
-    if (!props.slotsSet[0].ship || !props.slotsSet[1].ship) return;
+  const initialize = useCallback(
+    (slotsSet) => {
+      if (!props.slotsSet[0].ship || !props.slotsSet[1].ship) return;
 
-    const _slots0 = JSON.parse(JSON.stringify(props.slotsSet[0]));
-    const _slots1 = JSON.parse(JSON.stringify(props.slotsSet[1]));
+      const _slots0 =
+        slotsSet?.[0] || JSON.parse(JSON.stringify(props.slotsSet[0]));
+      const _slots1 =
+        slotsSet?.[1] || JSON.parse(JSON.stringify(props.slotsSet[1]));
 
-    initializeSlots(_slots0);
-    setSlots0(_slots0);
+      initializeSlots(_slots0);
+      setSlots0(_slots0);
 
-    initializeSlots(_slots1);
-    setSlots1(_slots1);
+      initializeSlots(_slots1);
+      setSlots1(_slots1);
 
-    setUpdateFlag(!updateFlag);
-  }, [props.slotsSet, updateFlag]);
+      setUpdateFlag(!updateFlag);
+    },
+    [props.slotsSet, updateFlag]
+  );
 
   const refresh = useCallback(() => {
     setUpdateFlag(!updateFlag);
   }, [props.slotsSet, updateFlag]);
+
+  useEffect(() => {
+    storage
+      .ref("/demo/demo.gif")
+      .getDownloadURL()
+      .then((url) => {
+        setDemogifURL(url);
+      });
+  }, []);
 
   return (
     <React.Fragment>
@@ -109,7 +133,29 @@ export default function SimulationPanel(props) {
               </Tooltip>
             </ButtonGroup>
           </Grid>
-
+          {!slots0 && (
+            <Grid xs={12} container item justifyContent="center">
+              <Card style={{ margin: 20, width: "100%" }} elevation={3}>
+                {demogifURL ? (
+                  <img src={demogifURL.toString()} style={{ height: 340 }} />
+                ) : (
+                  <Skeleton variant="rect" width="100%" height={340} />
+                )}
+                <Grid xs={12} container item justifyContent="center">
+                  <Button
+                    className={classes.demoButton}
+                    onClick={() => {
+                      fetchDemo(props.cache).then((slotsSet) => {
+                        initialize(slotsSet);
+                      });
+                    }}
+                  >
+                    CLICK TO TRY DEMO
+                  </Button>
+                </Grid>
+              </Card>
+            </Grid>
+          )}
           <ShipPanel
             slots={slots0}
             setSlots={setSlots0}
@@ -294,4 +340,22 @@ function createDebugFile(slots0, slots1, summaries0, summaries1) {
       window.URL.revokeObjectURL(url);
     }, 0);
   }
+}
+
+function fetchDemo(cache) {
+  return cache.get("/demojson", () => {
+    const saved = localStorage.getItem("/demojson");
+    if (saved !== null) return Promise.resolve(JSON.parse(saved));
+
+    return storage
+      .ref("/demo/demo.json")
+      .getDownloadURL()
+      .then(async (url) => {
+        const result = await fetch(url)
+          .then((data) => data.json())
+          .then((data) => cJSON.decompress(data));
+        localStorage.setItem("/demojson", JSON.stringify(result));
+        return result;
+      });
+  });
 }

@@ -243,6 +243,7 @@ export default function InitialCard(props) {
           slotsSet={[slots0, slots1]}
           situation={situation}
           setSituation={setSituation}
+          cache={props.cache}
         />
 
         <Grid xs={12} container item justifyContent="center">

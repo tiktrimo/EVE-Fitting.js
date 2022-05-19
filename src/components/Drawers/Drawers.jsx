@@ -258,7 +258,6 @@ export default function Drawers(props) {
 
   useEffect(() => {
     if (importFitText !== false || !slots.skills) return;
-    console.log("CAL", props.tag);
     /* console.log(
         "∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨FitCalc∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨∨"
       );

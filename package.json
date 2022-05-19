@@ -14,7 +14,7 @@
     "@testing-library/react": "^12.1.2",
     "@testing-library/user-event": "^13.5.0",
     "compressed-json": "^1.0.15",
-    "firebase": "^8.7.1",
+    "firebase": "^8.10.1",
     "js-yaml": "^3.13.1",
     "konva": "^8.3.2",
     "node-blob": "^0.0.2",

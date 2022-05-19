@@ -238,7 +238,7 @@ export default function ShipStatusPanel(props) {
             }
             isDead={props.summaries.summary?.load.structure.HP === 0}
           />
-          {/*  <Grid
+          <Grid
             style={{
               width: 80,
             }}
@@ -258,7 +258,14 @@ export default function ShipStatusPanel(props) {
                 18
               )}
             />
-          </Grid> */}
+          </Grid>
+          <Grid
+            style={{
+              width: 1,
+              /* backgroundColor: theme.palette.divider, */
+              borderRight: `dashed ${theme.palette.divider} 0.1px`,
+            }}
+          ></Grid>
           <Grid
             style={{
               flex: 1,
@@ -283,7 +290,7 @@ export default function ShipStatusPanel(props) {
               Icon={<StructureIcon />}
               color={theme.palette.text.primary}
             />
-            <LinearProgressLabel
+            {/* <LinearProgressLabel
               value={
                 (props.summaries.summary?.load.capacitor.HP /
                   props.summaries.summary?.capacity.capacitor.HP) *
@@ -296,17 +303,14 @@ export default function ShipStatusPanel(props) {
               )} GJ`}
               backgroundColor={theme.palette.property.orgSecondary}
               color={theme.palette.property.org}
-            />
-            {/* <div
-              style={{
-                top: 0,
-                width: 1,
-                height: "100%",
-                position: "absolute",
-                backgroundColor: theme.palette.background.paper,
-              }}
             /> */}
           </Grid>
+          {/* <Grid
+            style={{
+              width: "100%",
+              borderBottom: `dashed ${theme.palette.divider} 0.1px`,
+            }}
+          ></Grid> */}
         </Grid>
       )}
     </React.Fragment>
