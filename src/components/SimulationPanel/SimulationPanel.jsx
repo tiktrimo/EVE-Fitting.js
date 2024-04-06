@@ -70,12 +70,12 @@ export default function SimulationPanel(props) {
 
   const initialize = useCallback(
     (slotsSet) => {
-      if (!props.slotsSet[0].ship || !props.slotsSet[1].ship) return;
+      if (!slotsSet[0].ship || !slotsSet[1].ship) return;
 
       const _slots0 =
-        slotsSet?.[0] || JSON.parse(JSON.stringify(props.slotsSet[0]));
+        slotsSet?.[0] || JSON.parse(JSON.stringify(slotsSet[0]));
       const _slots1 =
-        slotsSet?.[1] || JSON.parse(JSON.stringify(props.slotsSet[1]));
+        slotsSet?.[1] || JSON.parse(JSON.stringify(slotsSet[1]));
 
       initializeSlots(_slots0);
       setSlots0(_slots0);
