@@ -69,7 +69,7 @@ export default function ResourcesMiscellaneousListItem(props) {
         >{`Max Locked Target`}</GridBoldTypography>
         <GridBoldTypography
           value={misc.sensor.maximumTargetingRange}
-        >{`Max Trageting Range (m)`}</GridBoldTypography>
+        >{`Max Targeting Range (m)`}</GridBoldTypography>
         <GridBoldTypography
           value={misc.sensor.scanResolution}
         >{`Scan Resolution (mm)`}</GridBoldTypography>
