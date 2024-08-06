@@ -122,7 +122,7 @@ export default function SimulationPanel(props) {
                 placement="bottom"
                 arrow
               >
-                <Button className={classes.modeButton} onClick={initialize}>
+                <Button className={classes.modeButton} onClick={() => {initialize(props.slotsSet)}}>
                   <ArchiveIcon style={{ color: theme.palette.text.primary }} />
                 </Button>
               </Tooltip>
